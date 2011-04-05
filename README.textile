@@ -1,12 +1,12 @@
-h2. ScalaInterpreterPane ==<small>-- version 0.13 (built 04-may-10) --</small>==
+h2. ScalaInterpreterPane
 
 h3. statement
 
-ScalaInterpreterPane is a Swing component for editing Scala code and executing it in an interpreter. The editor component is based on JSyntaxPane. ScalaInterpreterPane is (C)opyright 2010 by Hanns Holger Rutz. All rights reserved. It is released under the "GNU Lesser General Public License":http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt and comes with absolutely no warranties. To contact the author, send an email to @contact at sciss.de@
+ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on JSyntaxPane. ScalaInterpreterPane is (C)opyright 2010 by Hanns Holger Rutz. All rights reserved. It is released under the "GNU Lesser General Public License":http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt and comes with absolutely no warranties. To contact the author, send an email to @contact at sciss.de@
 
 h3. requirements / installation
 
-ScalaInterpreterPane currently compiles against the Scala 2.8.0. The repository contains a project file for Intellij IDEA 9 CE, and project files for sbt. Standard targets for sbt:
+ScalaInterpreterPane currently compiles against the Scala 2.8.1. The repository contains a project file for Intellij IDEA 10 CE, and project files for sbt. Standard targets for sbt:
 
 * @clean@
 * @compile@
@@ -15,9 +15,14 @@ ScalaInterpreterPane currently compiles against the Scala 2.8.0. The repository 
 
 To install the dependancy on JSyntaxPane v0.9.5-b29 ( "code.google.com/p/jsyntaxpane":http://code.google.com/p/jsyntaxpane/ ), run @sbt update@ once before compiling.
 
-(Obsolete?) Note that due to an incompatibility between Scala 2.8.0 and sbt 0.7.3, it is not possible to run using @sbt run@. Instead, you will need to use the provided shell script @run.sh@.
+Note that due to an incompatibility between Scala 2.8.1 and sbt 0.7.4, it is not possible to run using @sbt run@. Instead, you will need to use the provided shell script @run.sh@.
 
 h3. download
 
-The current version can be downloaded from "github.com/Sciss/ScalaInterpreterPane":http://github.com/Sciss/ScalaInterpreterPane
+Note: ScalaInterpreterPane has now releases in the scala-tools.org repository; the following entry in your sbt project should give you the possibility
+of automatic download:
+
+@val scalaInterpreterPane = "de.sciss" %% "scalainterpreterpane" % "0.17"@
+
+In any case, the current version can be downloaded from "github.com/Sciss/ScalaInterpreterPane":http://github.com/Sciss/ScalaInterpreterPane
 
