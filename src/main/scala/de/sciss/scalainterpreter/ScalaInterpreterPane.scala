@@ -32,8 +32,8 @@ import jsyntaxpane.{ DefaultSyntaxKit, SyntaxDocument }
 import tools.nsc.{ ConsoleWriter, NewLinePrintWriter, Settings }
 import java.io.{ File, Writer }
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
-import tools.nsc.interpreter.{JLineCompletion, Results, IMain}
 import tools.nsc.interpreter.Completion.ScalaCompleter
+import tools.nsc.interpreter.{NamedParam, JLineCompletion, Results, IMain}
 
 object ScalaInterpreterPane {
    val name          = "ScalaInterpreterPane"
@@ -65,6 +65,15 @@ extends JPanel with CustomizableFont {
 
    var customKeyMapActions:    Map[ KeyStroke, () => Unit ] = Map.empty
    var customKeyProcessAction: Option[ KeyEvent => KeyEvent ] = None
+   /**
+    *    Subclasses may override this to
+    *    create initial bindings for the interpreter.
+    *    Note that this is not necessarily executed
+    *    on the event thread.
+    */
+   var customBindings = Seq.empty[ NamedParam ] // Option[ IMain => Unit ] = None
+   var customImports  = Seq.empty[ String ]
+
    var initialText = """// Type Scala code here.
 // Press '""" + KeyEvent.getKeyModifiersText( executeKeyStroke.getModifiers ) + " + " +
       KeyEvent.getKeyText( executeKeyStroke.getKeyCode ) + """' to execute selected text
@@ -108,8 +117,11 @@ extends JPanel with CustomizableFont {
                override protected def parentClassLoader = pane.getClass.getClassLoader
             }
             in.setContextClassLoader()
-            bindingsCreator.foreach( _.apply( in ))
-            initialCode.foreach( code => in.interpret( code ))
+//            bindingsCreator.foreach( _.apply( in ))
+            customBindings.foreach( in.bind( _ ))
+            in.addImports( customImports: _* )
+
+            initialCode.foreach( in.interpret( _ ))
             val cmp = new JLineCompletion( in )
             compVar = Some( cmp )
 //            interpreterVar = Some( in )
@@ -188,15 +200,6 @@ extends JPanel with CustomizableFont {
 
    def getSelectedTextOrCurrentLine : Option[ String ] =
       getSelectedText.orElse( getCurrentLine )
-
-
-   /**
-    *    Subclasses may override this to
-    *    create initial bindings for the interpreter.
-    *    Note that this is not necessarily executed
-    *    on the event thread.
-    */
-   var bindingsCreator: Option[ IMain => Unit ] = None
 
    protected def status( s: String ) {
       ggStatus.setText( s )
