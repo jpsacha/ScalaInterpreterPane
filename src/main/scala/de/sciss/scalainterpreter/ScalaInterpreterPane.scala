@@ -2,7 +2,7 @@
  *  ScalaInterpreterPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -22,32 +22,33 @@
 
 package de.sciss.scalainterpreter
 
-import java.awt.{ BorderLayout, Dimension, Font, GraphicsEnvironment, Toolkit }
+import actions.CompletionAction
+import java.awt.{ BorderLayout, Toolkit }
 import javax.swing.{ AbstractAction, Box, JComponent, JEditorPane, JLabel, JPanel, JProgressBar, JScrollPane,
    KeyStroke, OverlayLayout, ScrollPaneConstants, SwingWorker }
 import ScrollPaneConstants._
 
 import jsyntaxpane.{ DefaultSyntaxKit, SyntaxDocument }
-import tools.nsc.{ ConsoleWriter, Interpreter, InterpreterResults => IR, NewLinePrintWriter, Settings }
-import java.io.{ File, PrintWriter, Writer }
-import java.awt.event.{InputEvent, ActionEvent, KeyEvent, KeyListener}
+import tools.nsc.{ ConsoleWriter, NewLinePrintWriter, Settings }
+import java.io.{ File, Writer }
+import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
+import tools.nsc.interpreter.{JLineCompletion, Results, IMain}
+import tools.nsc.interpreter.Completion.ScalaCompleter
 
 object ScalaInterpreterPane {
    val name          = "ScalaInterpreterPane"
-   val version       = 0.16
-   val copyright     = "(C)opyright 2010 Hanns Holger Rutz"
+   val version       = 0.18
+   val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
 
    def versionString = (version + 0.001).toString.substring( 0, 4 )
 }
 
-/**
- *    @version 0.14, 11-Jun-10
- */
 class ScalaInterpreterPane
 extends JPanel with CustomizableFont {
    pane =>
 
-   @volatile private var interpreterVar: Option[ Interpreter ] = None
+   @volatile private var compVar: Option[ JLineCompletion ] = None
+//   @volatile private var interpreterVar: Option[ IMain ] = None
    private var docVar: Option[ SyntaxDocument ] = None
 
    // subclasses may override this
@@ -62,11 +63,11 @@ extends JPanel with CustomizableFont {
    // subclasses may override this
    var out: Option[ Writer ] = None
 
-   var customKeyMapActions:    Map[ KeyStroke, Function0[ Unit ]] = Map.empty
-   var customKeyProcessAction: Option[ Function1[ KeyEvent, KeyEvent ]] = None
+   var customKeyMapActions:    Map[ KeyStroke, () => Unit ] = Map.empty
+   var customKeyProcessAction: Option[ KeyEvent => KeyEvent ] = None
    var initialText = """// Type Scala code here.
-// Press '""" + KeyEvent.getKeyModifiersText( executeKeyStroke.getModifiers() ) + " + " +
-      KeyEvent.getKeyText( executeKeyStroke.getKeyCode() ) + """' to execute selected text
+// Press '""" + KeyEvent.getKeyModifiersText( executeKeyStroke.getModifiers ) + " + " +
+      KeyEvent.getKeyText( executeKeyStroke.getKeyCode ) + """' to execute selected text
 // or current line.
 """
 
@@ -87,42 +88,46 @@ extends JPanel with CustomizableFont {
       override def getMaximumSize   = ggProgress.getMaximumSize
    }
 
-   def interpreter: Option[ Interpreter ] = interpreterVar
+   def interpreter: Option[ IMain ] = compVar.map( _.intp )
    def doc: Option[ SyntaxDocument ] = docVar
 
-   def init {
+   def init() {
       // spawn interpreter creation
       (new SwingWorker[ Unit, Unit ] {
-         override def doInBackground {
+         override def doInBackground() {
             val settings = {
                val set = new Settings()
                set.classpath.value += File.pathSeparator + System.getProperty( "java.class.path" )
                set
             }
 
+//            val cfg = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
+//            cfg.put( "Action.completion", "de.sciss.scalainterpreter.actions.CompletionAction, control SPACE" )
             DefaultSyntaxKit.initKit()
-            val in = new Interpreter( settings, new NewLinePrintWriter( out getOrElse (new ConsoleWriter), true )) {
+            val in = new IMain( settings, new NewLinePrintWriter( out getOrElse (new ConsoleWriter), true )) {
                override protected def parentClassLoader = pane.getClass.getClassLoader
             }
             in.setContextClassLoader()
             bindingsCreator.foreach( _.apply( in ))
             initialCode.foreach( code => in.interpret( code ))
-            interpreterVar = Some( in )
+            val cmp = new JLineCompletion( in )
+            compVar = Some( cmp )
+//            interpreterVar = Some( in )
          }
 
-         override protected def done {
+         override protected def done() {
             ggProgressInvis.setVisible( true )
             ggProgress.setVisible( false )
             editorPane.setContentType( "text/scala" )
             editorPane.setText( initialText )
-            docVar = editorPane.getDocument() match {
+            docVar = editorPane.getDocument match {
                case sdoc: SyntaxDocument => Some( sdoc )
                case _ => None
             }
 
             editorPane.setFont( createFont )
             editorPane.setEnabled( true )
-            editorPane.requestFocus
+            editorPane.requestFocus()
             status( "Ready." )
          }
       }).execute()
@@ -136,13 +141,16 @@ extends JPanel with CustomizableFont {
       editorPane.setEnabled( false )
 
       val imap = editorPane.getInputMap( JComponent.WHEN_FOCUSED )
-      val amap = editorPane.getActionMap()
+      val amap = editorPane.getActionMap
       imap.put( executeKeyStroke, "de.sciss.exec" )
       amap.put( "de.sciss.exec", new AbstractAction {
          def actionPerformed( e: ActionEvent ) {
             getSelectedTextOrCurrentLine.foreach( interpret( _ ))
          }
       })
+      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, InputEvent.CTRL_MASK ), "de.sciss.comp" )
+      amap.put( "de.sciss.comp", new CompletionAction( compVar.map( _.completer() )))
+
       customKeyMapActions.iterator.zipWithIndex.foreach( tup => {
          val (spec, idx) = tup
          val name = "de.sciss.user" + idx
@@ -188,22 +196,22 @@ extends JPanel with CustomizableFont {
     *    Note that this is not necessarily executed
     *    on the event thread.
     */
-   var bindingsCreator: Option[ Function1[ Interpreter, Unit ]] = None
+   var bindingsCreator: Option[ IMain => Unit ] = None
 
    protected def status( s: String ) {
       ggStatus.setText( s )
    }
 
    def interpret( code: String ) {
-      interpreterVar.foreach( in => {
+      interpreter.foreach { in =>
          status( null )
          try { in.interpret( code ) match {
-            case IR.Error       => status( "! Error !" )
-            case IR.Success     => status( "Ok. <" + in.mostRecentVar + ">" )
-            case IR.Incomplete  => status( "! Code incomplete !" )
+            case Results.Error       => status( "! Error !" )
+            case Results.Success     => status( "Ok. <" + in.mostRecentVar + ">" )
+            case Results.Incomplete  => status( "! Code incomplete !" )
             case _ =>
          }}
          catch { case e => e.printStackTrace() }
-      })
+      }
    }
 }

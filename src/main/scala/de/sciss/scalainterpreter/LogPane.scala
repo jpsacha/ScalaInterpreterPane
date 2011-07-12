@@ -2,7 +2,7 @@
  *  LogPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@ package de.sciss.scalainterpreter
 
 import java.awt.{ BorderLayout, Color }
 import java.io.{ IOException, OutputStream, Writer }
-import javax.swing.{ AbstractAction, JPanel, JScrollPane, JTextArea, ScrollPaneConstants }
+import javax.swing.{ JPanel, JScrollPane, JTextArea, ScrollPaneConstants }
 import ScrollPaneConstants._
 
 class LogPane( rows: Int = 10, columns: Int = 60 )
@@ -37,7 +37,7 @@ extends JPanel with CustomizableFont {
       override def append( str: String ) {
          super.append( str );
          totalLength += str.length
-         updateCaret
+         updateCaret()
       }
 
       override def setText( str: String ) {
@@ -45,7 +45,7 @@ extends JPanel with CustomizableFont {
          totalLength = if( str == null ) 0 else str.length
       }
 
-      private def updateCaret {
+      private def updateCaret() {
          try {
             setCaretPosition( math.max( 0, totalLength - 1 ))
          }
@@ -53,7 +53,7 @@ extends JPanel with CustomizableFont {
       }
    }
 
-   def init {
+   def init() {
       textPane.setFont( createFont )
       textPane.setEditable( false )
       textPane.setLineWrap( true )
@@ -65,14 +65,14 @@ extends JPanel with CustomizableFont {
       add( ggScroll, BorderLayout.CENTER )
    }
 
-   def clear {
+   def clear() {
       textPane.setText( null )
    }
 
    // ---- Writer ----
    object writer extends Writer {
-      def close {}
-      def flush {}
+      def close() {}
+      def flush() {}
 
       @throws( classOf[ IOException ])
       def write( ch: Array[ Char ], off: Int, len: Int ) {
