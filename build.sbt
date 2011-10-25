@@ -13,6 +13,10 @@ libraryDependencies ++= Seq(
    "jsyntaxpane" % "jsyntaxpane" % "0.9.5-b29"
 )
 
+retrieveManaged := true
+
+scalacOptions ++= Seq( "-deprecation", "-unchecked" )
+
 // ---- publishing ----
 
 publishTo <<= version { (v: String) =>
