@@ -14,16 +14,13 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  Lesser General Public License for more details.
  *
- *	  Below is a copy of the GNU Lesser General Public License
- *
- *	  For further information, please contact Hanns Holger Rutz at
- *	  contact@sciss.de
+ *  For further information, please contact Hanns Holger Rutz at
+ *  contact@sciss.de
  */
 
 package de.sciss.scalainterpreter
 
 import actions.CompletionAction
-import java.awt.{ BorderLayout, Toolkit }
 import javax.swing.{ AbstractAction, Box, JComponent, JEditorPane, JLabel, JPanel, JProgressBar, JScrollPane,
    KeyStroke, OverlayLayout, ScrollPaneConstants, SwingWorker }
 import ScrollPaneConstants._
@@ -32,15 +29,20 @@ import jsyntaxpane.{ DefaultSyntaxKit, SyntaxDocument }
 import tools.nsc.{ ConsoleWriter, NewLinePrintWriter, Settings }
 import java.io.{ File, Writer }
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
-import tools.nsc.interpreter.Completion.ScalaCompleter
 import tools.nsc.interpreter.{NamedParam, JLineCompletion, Results, IMain}
+import jsyntaxpane.syntaxkits.ScalaSyntaxKit
+import java.awt.{Color, BorderLayout}
 
 object ScalaInterpreterPane {
    val name          = "ScalaInterpreterPane"
-   val version       = 0.18
+   val version       = 0.20
+   val isSnapshot    = true
    val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
 
-   def versionString = (version + 0.001).toString.substring( 0, 4 )
+   def versionString = {
+      val s = (version + 0.001).toString.substring( 0, 4 )
+      if( isSnapshot ) s + "-SNAPSHOT" else s
+   }
 }
 
 class ScalaInterpreterPane
@@ -52,10 +54,11 @@ extends JPanel with CustomizableFont {
    private var docVar: Option[ SyntaxDocument ] = None
 
    // subclasses may override this
-   var executeKeyStroke = {
-      val ms = Toolkit.getDefaultToolkit.getMenuShortcutKeyMask
-      KeyStroke.getKeyStroke( KeyEvent.VK_E, if( ms == InputEvent.CTRL_MASK ) ms | InputEvent.SHIFT_MASK else ms )
-   }
+//   var executeKeyStroke = {
+//      val ms = Toolkit.getDefaultToolkit.getMenuShortcutKeyMask
+//      KeyStroke.getKeyStroke( KeyEvent.VK_E, if( ms == InputEvent.CTRL_MASK ) ms | InputEvent.SHIFT_MASK else ms )
+//   }
+   var executeKeyStroke = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK )
 
    // subclasses may override this
    var initialCode: Option[ String ] = None
@@ -82,12 +85,18 @@ extends JPanel with CustomizableFont {
 
    private val ggStatus = new JLabel( "Initializing..." )
 
-   protected val editorPane      = new JEditorPane() {
-      override protected def processKeyEvent( e: KeyEvent ) {
-         super.processKeyEvent( customKeyProcessAction.map( fun => {
-            fun.apply( e )
-         }) getOrElse e )
+   protected val editorPane = {
+      val res = new JEditorPane() {
+         override protected def processKeyEvent( e: KeyEvent ) {
+            super.processKeyEvent( customKeyProcessAction.map( fun => {
+               fun.apply( e )
+            }) getOrElse e )
+         }
       }
+      res.setBackground( new Color( 0x14, 0x1F, 0x2E ))  // stupid... this cannot be set in the kit config
+      res.setForeground( new Color( 0xF5, 0xF5, 0xF5 ))
+//      res.setSelectedTextColor( new Color( 0xF5, 0xF5, 0xF5 ))
+      res
    }
    private val progressPane      = new JPanel()
    private val ggProgress        = new JProgressBar()
@@ -113,9 +122,34 @@ extends JPanel with CustomizableFont {
 //            val cfg = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
 //            cfg.put( "Action.completion", "de.sciss.scalainterpreter.actions.CompletionAction, control SPACE" )
             DefaultSyntaxKit.initKit()
+            val synCfg = DefaultSyntaxKit.getConfig( classOf[ ScalaSyntaxKit ])
+            // this is currently wrong in the config.properties!
+            synCfg.put( "Action.toggle-comments.LineComments", "// " )
+            // colors
+            synCfg.put( "Style.DEFAULT",  "0xf5f5f5, 0" )
+            synCfg.put( "Style.KEYWORD",  "0x0099ff, 1" )
+            synCfg.put( "Style.OPERATOR", "0xf5f5f5, 0" )
+            synCfg.put( "Style.COMMENT",  "0x50f050, 2" )   // XXX somewhat appears too dark
+//            synCfg.put( "Style.COMMENT2", "0x50f050, 2" )
+            synCfg.put( "Style.NUMBER",   "0xff8080, 0" )
+            synCfg.put( "Style.STRING",   "0xa0ffa0, 0" )
+            synCfg.put( "Style.STRING2",  "0xa0ffa0, 0" )
+            synCfg.put( "Style.IDENTIFIER",  "0xf5f5f5, 0" )
+//            synCfg.put( "Style.DELIMITER", "0xff0000, 0" )
+            synCfg.put( "Style.TYPE",      "0xff00ff, 0" )
+            synCfg.put( "LineNumbers.CurrentBack", "0x1b2b40" )
+            synCfg.put( "LineNumbers.Foreground", "0x808080" )
+//            synCfg.put( "LineNumbers.Background", "141f2e" ) // XXX has no effect
+            synCfg.put( "SingleColorSelect", "true" )
+            synCfg.put( "SelectionColor", "0x375780" )
+            synCfg.put( "CaretColor", "0xffffff" )
+            synCfg.put( "PairMarker.Color", "0x3c5f8c" )
+//            synCfg.put( "TextAA", ... )   // XXX has no effect
+
             val in = new IMain( settings, new NewLinePrintWriter( out getOrElse (new ConsoleWriter), true )) {
                override protected def parentClassLoader = pane.getClass.getClassLoader
             }
+
             in.setContextClassLoader()
 //            bindingsCreator.foreach( _.apply( in ))
             customBindings.foreach( in.bind( _ ))

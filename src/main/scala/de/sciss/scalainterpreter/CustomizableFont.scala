@@ -3,7 +3,7 @@ package de.sciss.scalainterpreter
 import java.awt.{ Font, GraphicsEnvironment }
 
 trait CustomizableFont {
-   var preferredFonts = List( "DejaVu Sans Mono" -> 12, "Bitstream Vera Sans Mono" -> 12, "Menlo" -> 12,
+   var preferredFonts = List( "Menlo" -> 12, "DejaVu Sans Mono" -> 12, "Bitstream Vera Sans Mono" -> 12,
       "Monaco" -> 12, "Anonymous Pro" -> 12 )
 
    protected def createFont : Font = {

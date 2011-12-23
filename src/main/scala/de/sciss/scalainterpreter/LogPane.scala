@@ -24,7 +24,8 @@ package de.sciss.scalainterpreter
 
 import java.awt.{ BorderLayout, Color }
 import java.io.{ IOException, OutputStream, Writer }
-import javax.swing.{ JPanel, JScrollPane, JTextArea, ScrollPaneConstants }
+import java.awt.event.{ActionEvent, MouseEvent, MouseAdapter}
+import javax.swing.{JPopupMenu, AbstractAction, JPanel, JScrollPane, JTextArea, ScrollPaneConstants}
 import ScrollPaneConstants._
 
 class LogPane( rows: Int = 10, columns: Int = 60 )
@@ -54,11 +55,30 @@ extends JPanel with CustomizableFont {
    }
 
    def init() {
+      val popup = new JPopupMenu()
+      popup.add( new AbstractAction( "Clear All" ) {
+         override def actionPerformed( e: ActionEvent ) {
+            clear()
+         }
+      })
+
       textPane.setFont( createFont )
       textPane.setEditable( false )
       textPane.setLineWrap( true )
-      textPane.setBackground( Color.black )
-      textPane.setForeground( Color.white )
+      textPane.setBackground( new Color( 0x14, 0x1F, 0x2E )) // Color.black )
+      textPane.setForeground( new Color( 0xF5, 0xF5, 0xF5 )) // Color.white )
+      textPane.addMouseListener( new MouseAdapter {
+         override def mousePressed( e: MouseEvent ) { handleButton( e )}
+         override def mouseReleased( e: MouseEvent ) { handleButton( e )}
+
+         private def handleButton( e: MouseEvent ) {
+            if( e.isPopupTrigger ) {
+//               textPane.add( popup )
+               popup.show( textPane, e.getX, e.getY )
+            }
+         }
+      })
+
       val ggScroll   = new JScrollPane( textPane, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER )
 //      ggScroll.putClientProperty( "JComponent.sizeVariant", "small" )
       setLayout( new BorderLayout() )

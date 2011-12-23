@@ -1,6 +1,6 @@
 name := "scalainterpreterpane"
 
-version := "0.18"
+version := "0.20-SNAPSHOT"
 
 organization := "de.sciss"
 
@@ -16,6 +16,8 @@ libraryDependencies ++= Seq(
 retrieveManaged := true
 
 scalacOptions ++= Seq( "-deprecation", "-unchecked" )
+
+fork in run := true
 
 // ---- publishing ----
 
