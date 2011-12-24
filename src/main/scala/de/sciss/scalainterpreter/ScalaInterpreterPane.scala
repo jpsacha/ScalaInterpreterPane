@@ -95,7 +95,7 @@ extends JPanel with CustomizableFont {
       }
       res.setBackground( new Color( 0x14, 0x1F, 0x2E ))  // stupid... this cannot be set in the kit config
       res.setForeground( new Color( 0xF5, 0xF5, 0xF5 ))
-//      res.setSelectedTextColor( new Color( 0xF5, 0xF5, 0xF5 ))
+      res.setSelectedTextColor( new Color( 0xF5, 0xF5, 0xF5 ))
       res
    }
    private val progressPane      = new JPanel()
