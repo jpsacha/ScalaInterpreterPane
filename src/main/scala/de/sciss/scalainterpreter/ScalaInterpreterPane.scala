@@ -136,7 +136,7 @@ extends JPanel with CustomizableFont {
             synCfg.put( "Style.STRING2",  "0xa0ffa0, 0" )
             synCfg.put( "Style.IDENTIFIER",  "0xf5f5f5, 0" )
 //            synCfg.put( "Style.DELIMITER", "0xff0000, 0" )
-            synCfg.put( "Style.TYPE",      "0xff00ff, 0" )
+            synCfg.put( "Style.TYPE",      "0x91ccff, 0" )
             synCfg.put( "LineNumbers.CurrentBack", "0x1b2b40" )
             synCfg.put( "LineNumbers.Foreground", "0x808080" )
 //            synCfg.put( "LineNumbers.Background", "141f2e" ) // XXX has no effect
