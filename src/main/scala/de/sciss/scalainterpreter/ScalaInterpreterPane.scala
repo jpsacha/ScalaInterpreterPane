@@ -2,7 +2,7 @@
  *  ScalaInterpreterPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -30,14 +30,14 @@ import tools.nsc.{ ConsoleWriter, NewLinePrintWriter, Settings }
 import java.io.{ File, Writer }
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
 import tools.nsc.interpreter.{NamedParam, JLineCompletion, Results, IMain}
-import jsyntaxpane.syntaxkits.ScalaSyntaxKit
+//import jsyntaxpane.syntaxkits.ScalaSyntaxKit
 import java.awt.{Color, BorderLayout}
 
 object ScalaInterpreterPane {
    val name          = "ScalaInterpreterPane"
    val version       = 0.20
-   val isSnapshot    = true
-   val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
+   val isSnapshot    = false
+   val copyright     = "(C)opyright 2010-2012 Hanns Holger Rutz"
 
    def versionString = {
       val s = (version + 0.001).toString.substring( 0, 4 )
@@ -122,9 +122,10 @@ extends JPanel with CustomizableFont {
 //            val cfg = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
 //            cfg.put( "Action.completion", "de.sciss.scalainterpreter.actions.CompletionAction, control SPACE" )
             DefaultSyntaxKit.initKit()
+            DefaultSyntaxKit.registerContentType( "text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit" )
             val synCfg = DefaultSyntaxKit.getConfig( classOf[ ScalaSyntaxKit ])
             // this is currently wrong in the config.properties!
-            synCfg.put( "Action.toggle-comments.LineComments", "// " )
+//            synCfg.put( "Action.toggle-comments.LineComments", "// " )
             // colors
             synCfg.put( "Style.DEFAULT",  "0xf5f5f5, 0" )
             synCfg.put( "Style.KEYWORD",  "0x0099ff, 1" )

@@ -1,6 +1,8 @@
-name := "scalainterpreterpane"
+import AssemblyKeys._
 
-version := "0.20-SNAPSHOT"
+name := "ScalaInterpreterPane"
+
+version := "0.20"
 
 organization := "de.sciss"
 
@@ -38,3 +40,12 @@ pomExtra :=
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
+// ---- standalone ----
+
+seq( assemblySettings: _* )
+
+test in assembly := {}
+
+seq( appbundle.settings: _* )
+
+appbundle.icon := Some( file( "application.icns" ))
