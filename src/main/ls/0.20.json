@@ -3,8 +3,8 @@
  "organization":"de.sciss",
  "name":"ScalaInterpreterPane",
  "version":"0.20",
- "description":"ScalaInterpreterPane",
- "site":"",
+ "description":"A Swing based front-end for the Scala REPL (interpreter)",
+ "site":"https://github.com/Sciss/ScalaInterpreterPane",
  "tags":["repl","interpreter"],
  "docs":"",
  "licenses": [{

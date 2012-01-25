@@ -8,6 +8,12 @@ organization := "de.sciss"
 
 scalaVersion := "2.9.1"
 
+description := "A Swing based front-end for the Scala REPL (interpreter)"
+
+homepage := Some( url( "https://github.com/Sciss/ScalaInterpreterPane" ))
+
+licenses := Seq( "LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt" ))
+
 resolvers += "Clojars Repository" at "http://clojars.org/repo"
 
 libraryDependencies ++= Seq(
