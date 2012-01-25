@@ -49,3 +49,16 @@ test in assembly := {}
 seq( appbundle.settings: _* )
 
 appbundle.icon := Some( file( "application.icns" ))
+
+// ---- ls.implicit.ly ----
+
+seq( lsSettings :_* )
+
+(LsKeys.tags in LsKeys.lsync) := Seq( "repl", "interpreter" )
+
+(LsKeys.ghUser in LsKeys.lsync) := Some( "Sciss" )
+
+(LsKeys.ghRepo in LsKeys.lsync) := Some( "ScalaInterpreterPane" )
+
+// bug in ls -- doesn't find the licenses from global scope
+(licenses in LsKeys.lsync) := Seq( "LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt" ))

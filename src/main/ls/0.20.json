@@ -1,0 +1,22 @@
+
+{
+ "organization":"de.sciss",
+ "name":"ScalaInterpreterPane",
+ "version":"0.20",
+ "description":"ScalaInterpreterPane",
+ "site":"",
+ "tags":["repl","interpreter"],
+ "docs":"",
+ "licenses": [{
+   "name": "LGPL v2.1+",
+   "url": "http://www.gnu.org/licenses/lgpl-2.1.txt"
+  }],
+ "resolvers": ["http://scala-tools.org/repo-releases"],
+ "dependencies": [{
+   "organization":"jsyntaxpane",
+   "name": "jsyntaxpane",
+   "version": "0.9.5-b29"
+  }],
+ "scalas": ["2.9.1"],
+ "sbt": false
+}
