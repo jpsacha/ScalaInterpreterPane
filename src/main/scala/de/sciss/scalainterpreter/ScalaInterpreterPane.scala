@@ -36,7 +36,7 @@ import java.awt.{Color, BorderLayout}
 object ScalaInterpreterPane {
    val name          = "ScalaInterpreterPane"
    val version       = 0.21
-   val isSnapshot    = true
+   val isSnapshot    = false
    val copyright     = "(C)opyright 2010-2012 Hanns Holger Rutz"
 
    def versionString = {

@@ -6,19 +6,19 @@ ScalaInterpreterPane is a Swing component for editing code in the Scala programm
 
 ### requirements
 
-ScalaInterpreterPane currently compiles against Scala 2.9.1 and is build with xsbt (sbt 0.11).
+ScalaInterpreterPane currently compiles against Scala 2.9.2 and is build with xsbt (sbt 0.11).
 
 To use it in your own project, add the following to `build.sbt`:
 
     resolvers += "Clojars Repository" at "http://clojars.org/repo"
 
-    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "0.18"
+    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "0.21"
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
 ### creating an IntelliJ IDEA project
 
-If you haven't globally installed the sbt-idea plugin yet, create the following contents in `~/.sbt/plugins/build.sbt`:
+To develop the source, if you haven't globally installed the sbt-idea plugin yet, create the following contents in `~/.sbt/plugins/build.sbt`:
 
     resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
     

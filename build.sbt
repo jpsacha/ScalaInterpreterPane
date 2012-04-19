@@ -2,11 +2,11 @@ import AssemblyKeys._
 
 name := "ScalaInterpreterPane"
 
-version := "0.21-SNAPSHOT"
+version := "0.21"
 
 organization := "de.sciss"
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.9.2"
 
 description := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -17,7 +17,7 @@ licenses := Seq( "LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"
 resolvers += "Clojars Repository" at "http://clojars.org/repo"
 
 libraryDependencies ++= Seq(
-   "org.scala-lang" % "scala-compiler" % "2.9.1",
+   "org.scala-lang" % "scala-compiler" % "2.9.2",
    "jsyntaxpane" % "jsyntaxpane" % "0.9.5-b29"
 )
 
