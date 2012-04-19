@@ -29,22 +29,32 @@ fork in run := true
 
 // ---- publishing ----
 
+publishMavenStyle := true
+
 publishTo <<= version { (v: String) =>
-   Some( "Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/".+(
-      if( v.endsWith( "-SNAPSHOT")) "snapshots/" else "releases/"
-   ))
+   Some( if( v.endsWith( "-SNAPSHOT" ))
+      "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+   else
+      "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+   )
 }
 
-pomExtra :=
-<licenses>
-  <license>
-    <name>LGPL v2.1+</name>
-    <url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
-    <distribution>repo</distribution>
-  </license>
-</licenses>
+publishArtifact in Test := false
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+pomIncludeRepository := { _ => false }
+
+pomExtra :=
+<scm>
+  <url>git@github.com:Sciss/ScalaInterpreterPane.git</url>
+  <connection>scm:git:git@github.com:Sciss/ScalaInterpreterPane.git</connection>
+</scm>
+<developers>
+   <developer>
+      <id>sciss</id>
+      <name>Hanns Holger Rutz</name>
+      <url>http://www.sciss.de</url>
+   </developer>
+</developers>
 
 // ---- standalone ----
 
