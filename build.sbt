@@ -6,7 +6,7 @@ version := "0.21"
 
 organization := "de.sciss"
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.0-M6"
 
 description := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -17,7 +17,7 @@ licenses := Seq( "LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"
 resolvers += "Clojars Repository" at "http://clojars.org/repo"
 
 libraryDependencies ++= Seq(
-   "org.scala-lang" % "scala-compiler" % "2.9.2",
+   "org.scala-lang" % "scala-compiler" % "2.10.0-M6",
    "jsyntaxpane" % "jsyntaxpane" % "0.9.5-b29"
 )
 
