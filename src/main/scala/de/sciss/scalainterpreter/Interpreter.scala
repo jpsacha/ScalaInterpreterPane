@@ -53,6 +53,7 @@ object Interpreter {
       var out        = Option.empty[ Writer ]
 
       def build : Settings = new SettingsImpl( imports, bindings, out )
+      override def toString = "Interpreter.SettingsBuilder@" + hashCode().toHexString
    }
 
    private final case class SettingsImpl( imports: Seq[ String ], bindings: Seq[ NamedParam ], out: Option[ Writer ])
@@ -78,6 +79,8 @@ object Interpreter {
 
    private final class Impl( in: IMain ) extends Interpreter {
       private val cmp = new JLineCompletion( in )
+
+      override def toString = "Interpreter@" + hashCode().toHexString
 
       def completer: Completion.ScalaCompleter = cmp.completer()
 
