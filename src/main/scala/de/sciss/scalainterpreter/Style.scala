@@ -41,10 +41,12 @@ object Style {
       val tpe              = c( 0x000000 ) -> Italic
       val delimiter        = c( 0x000000 ) -> Bold
 
+      val background       = c( 0xffffff )
+      val foreground       = c( 0x000000 )
       val lineBackground   = c( 0x1b2b40 )
       val lineForeground   = c( 0x808080 )
       val selection        = c( 0x375780 )
-      val caret            = c( 0xffffff )
+      val caret            = c( 0x000000 )
       val pair             = c( 0x3c5f8c )
 
       val singleColorSelect= false
@@ -75,6 +77,8 @@ object Style {
       val identifier       = c( 0xf5f5f5 ) -> Plain
       val tpe              = c( 0x91ccff ) -> Plain
 
+      val background       = c( 0x141f2e )
+      val foreground       = c( 0xf5f5f5 )
       val lineBackground   = c( 0x1b2b40 )
       val lineForeground   = c( 0x808080 )
       val selection        = c( 0x375780 )
@@ -99,6 +103,8 @@ trait Style {
    def tpe: Pair
    def delimiter: Pair
 
+   def background: Color
+   def foreground: Color
    def selection: Color
    def caret: Color
    def pair: Color

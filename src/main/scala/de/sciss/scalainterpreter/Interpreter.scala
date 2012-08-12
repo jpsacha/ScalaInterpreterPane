@@ -34,6 +34,7 @@ object Interpreter {
       def imports: Seq[ String ]
       def bindings: Seq[ NamedParam ]
       def out: Option[ Writer ]
+      def toBuilder : SettingsBuilder
    }
    sealed trait SettingsBuilder extends Settings {
       def imports_=( value: Seq[ String ]) : Unit
@@ -54,12 +55,20 @@ object Interpreter {
       var out        = Option.empty[ Writer ]
 
       def build : Settings = new SettingsImpl( imports, bindings, out )
+      def toBuilder : SettingsBuilder = this
       override def toString = "Interpreter.SettingsBuilder@" + hashCode().toHexString
    }
 
    private final case class SettingsImpl( imports: Seq[ String ], bindings: Seq[ NamedParam ], out: Option[ Writer ])
    extends Settings {
       override def toString = "Interpreter.Settings@" + hashCode().toHexString
+      def toBuilder : SettingsBuilder = {
+         val b = new SettingsBuilderImpl
+         b.imports = imports
+         b.bindings = bindings
+         b.out = out
+         b
+      }
    }
 
    def apply( settings: Settings = Settings().build ) : Interpreter = {

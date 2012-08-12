@@ -60,6 +60,8 @@ object CodePane {
        * in the end.
        */
       def font: Seq[ (String, Int) ]
+
+      def toBuilder : SettingsBuilder
    }
    sealed trait SettingsBuilder extends Settings {
       def text_=( value: String ) : Unit
@@ -75,15 +77,10 @@ object CodePane {
       var style: Style = Style.BlueForest
       var keyMap = Map.empty[ KeyStroke, () => Unit ]
       var keyProcessor: KeyEvent => KeyEvent = identity
-      var font = Seq[ (String, Int) ](
-         "Menlo" -> 12,
-         "DejaVu Sans Mono" -> 12,
-         "Bitstream Vera Sans Mono" -> 12,
-         "Monaco" -> 12,
-         "Anonymous Pro" -> 12
-      )
+      var font = aux.Helper.defaultFonts
 
       def build: Settings = SettingsImpl( text, keyMap, keyProcessor, font, style )
+      def toBuilder : SettingsBuilder = this
       override def toString = "CodePane.SettingsBuilder@" + hashCode().toHexString
    }
 
@@ -92,6 +89,16 @@ object CodePane {
                                           style: Style )
    extends Settings {
       override def toString = "CodePane.Settings@" + hashCode().toHexString
+
+      def toBuilder : SettingsBuilder = {
+         val b = new SettingsBuilderImpl
+         b.text = text
+         b.keyMap = keyMap
+         b.keyProcessor = keyProcessor
+         b.font = font
+         b.style = style
+         b
+      }
    }
 
    private def put( cfg: Configuration, key: String, pair: (Color, Style.Face) ) {
@@ -142,20 +149,13 @@ object CodePane {
             super.processKeyEvent( settings.keyProcessor( e ))
          }
       }
-      ed.setBackground( new Color( 0x14, 0x1F, 0x2E ))  // stupid... this cannot be set in the kit config
-      ed.setForeground( new Color( 0xF5, 0xF5, 0xF5 ))
-      ed.setSelectedTextColor( new Color( 0xF5, 0xF5, 0xF5 ))
+      val style = settings.style
+      ed.setBackground( style.background )  // stupid... this cannot be set in the kit config
+      ed.setForeground( style.foreground )
+      ed.setSelectedTextColor( style.foreground )
 
       val imap = ed.getInputMap( JComponent.WHEN_FOCUSED )
       val amap = ed.getActionMap
-//      imap.put( executeKeyStroke, "de.sciss.exec" )
-//      amap.put( "de.sciss.exec", new AbstractAction {
-//         def actionPerformed( e: ActionEvent ) {
-//            getSelectedTextOrCurrentLine.foreach( interpret( _ ))
-//         }
-//      })
-//      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, InputEvent.CTRL_MASK ), "de.sciss.comp" )
-//      amap.put( "de.sciss.comp", new CompletionAction( compVar.map( _.completer() )))
 
       settings.keyMap.iterator.zipWithIndex.foreach { case (spec, idx) =>
          val name = "de.sciss.user" + idx

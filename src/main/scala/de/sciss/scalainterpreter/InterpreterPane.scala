@@ -66,22 +66,23 @@ object InterpreterPane {
       override def toString = "InterpreterPane.Settings@" + hashCode().toHexString
    }
 
-   def defaultCodePaneSettings( settings: Settings ) : CodePane.SettingsBuilder = {
-      val res = CodePane.Settings()
+   private def incorporate( settings: Settings, code: CodePane.Settings ) : CodePane.Settings = {
+      val res = code.toBuilder
       res.text = "// Type Scala code here.\n// Press '" +
          KeyEvent.getKeyModifiersText( settings.executeKey.getModifiers ) + " + " +
-         KeyEvent.getKeyText( settings.executeKey.getKeyCode ) + "' to execute selected text\n// or current line.\n"
-      res
+         KeyEvent.getKeyText( settings.executeKey.getKeyCode ) + "' to execute selected text\n// or current line.\n" + res.text
+      res.build
    }
 
    def wrap( interpreter: Interpreter, codePane: CodePane ) : InterpreterPane =
       new Impl( Settings().build, Some( interpreter ), codePane )
 
-   def apply( settings: Settings = Settings().build )(
+   def apply( settings: Settings = Settings().build,
               interpreterSettings: Interpreter.Settings = Interpreter.Settings().build,
-              codePaneSettings: CodePane.Settings = defaultCodePaneSettings( settings ).build ) : InterpreterPane = {
+              codePaneSettings: CodePane.Settings = CodePane.Settings().build ) : InterpreterPane = {
 
-      val codePane   = CodePane( codePaneSettings )
+      val cpSet      = incorporate( settings, codePaneSettings )
+      val codePane   = CodePane( cpSet )
       val impl       = new Impl( settings, None, codePane )
       Interpreter.async( interpreterSettings ) { in =>
          EventQueue.invokeLater( new Runnable {
@@ -180,9 +181,7 @@ object InterpreterPane {
          imap.put( settings.executeKey, "de.sciss.exec" )
          amap.put( "de.sciss.exec", new AbstractAction {
             def actionPerformed( e: ActionEvent ) {
-               interpreter.foreach { in =>
-                  codePane.getSelectedTextOrCurrentLine.foreach( in.interpret )
-               }
+               codePane.getSelectedTextOrCurrentLine.foreach( interpret )
             }
          })
       }
