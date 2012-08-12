@@ -33,17 +33,11 @@ import tools.nsc.interpreter.{NamedParam, JLineCompletion, Results, IMain}
 //import jsyntaxpane.syntaxkits.ScalaSyntaxKit
 import java.awt.{Color, BorderLayout}
 
-object ScalaInterpreterPane {
-   val name          = "ScalaInterpreterPane"
-   val version       = 0.21
-   val isSnapshot    = false
-   val copyright     = "(C)opyright 2010-2012 Hanns Holger Rutz"
-
-   def versionString = {
-      val s = (version + 0.001).toString.substring( 0, 4 )
-      if( isSnapshot ) s + "-SNAPSHOT" else s
-   }
-}
+//object ScalaInterpreterPane {
+//   val name          = "ScalaInterpreterPane"
+//   val version       = "1.0.0-SNAPSHOT"
+//   val copyright     = "(C)opyright 2010-2012 Hanns Holger Rutz"
+//}
 
 class ScalaInterpreterPane
 extends JPanel with CustomizableFont {
@@ -249,7 +243,7 @@ extends JPanel with CustomizableFont {
             case Results.Incomplete  => status( "! Code incomplete !" )
             case _ =>
          }}
-         catch { case e => e.printStackTrace() }
+         catch { case e: Throwable => e.printStackTrace() }
       }
    }
 }
