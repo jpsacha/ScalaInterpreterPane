@@ -104,7 +104,7 @@ object CodePane {
       cfg.put( key, value )
    }
 
-   private def initKit( settings: Settings ) {
+   def initKit( settings: Settings ) {
       DefaultSyntaxKit.initKit()
       DefaultSyntaxKit.registerContentType( "text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit" )
       val syn = DefaultSyntaxKit.getConfig( classOf[ ScalaSyntaxKit ])
@@ -130,6 +130,13 @@ object CodePane {
    }
 
    def apply( settings: Settings = Settings().build ) : CodePane = {
+      initKit( settings )
+      val res = createPlain( settings )
+      res.init()
+      res
+   }
+
+   private[scalainterpreter] def createPlain( settings: Settings ) : CodePane = {
       val ed: JEditorPane = new JEditorPane() {
          override protected def processKeyEvent( e: KeyEvent ) {
             super.processKeyEvent( settings.keyProcessor( e ))
@@ -165,6 +172,12 @@ object CodePane {
 
    private final class Impl( val component: JEditorPane, settings: Settings ) extends CodePane {
       def docOption: Option[ SyntaxDocument ] = sys.error( "TODO" )
+
+      def init() {
+         component.setContentType( "text/scala" )
+         component.setText( settings.text )
+         component.setFont( aux.Helper.createFont( settings.font ))
+      }
 
       def getSelectedText : Option[ String ] = {
          val txt = component.getSelectedText
@@ -221,4 +234,6 @@ trait CodePane {
 
    def installAutoCompletion( interpreter: Interpreter ) : Unit
 //   def installExecutionAction( interpreter: Interpreter, key: KeyStroke ) : Unit
+
+   private[scalainterpreter] def init() : Unit
 }
