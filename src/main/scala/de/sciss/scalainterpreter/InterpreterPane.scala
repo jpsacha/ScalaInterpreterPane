@@ -20,18 +20,9 @@
 
 package de.sciss.scalainterpreter
 
-import actions.CompletionAction
-import javax.swing.{ AbstractAction, Box, JComponent, JEditorPane, JLabel, JPanel, JProgressBar, JScrollPane,
-   KeyStroke, OverlayLayout, ScrollPaneConstants, SwingWorker }
-import ScrollPaneConstants._
-
-import jsyntaxpane.{ DefaultSyntaxKit, SyntaxDocument }
-import tools.nsc.{ ConsoleWriter, NewLinePrintWriter, Settings }
-import java.io.{ File, Writer }
-import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
-import tools.nsc.interpreter.{NamedParam, JLineCompletion, Results, IMain}
-//import jsyntaxpane.syntaxkits.ScalaSyntaxKit
-import java.awt.{Color, BorderLayout}
+import javax.swing.{AbstractAction, ScrollPaneConstants, Box, JComponent, JLabel, JPanel, JProgressBar, JScrollPane, KeyStroke, OverlayLayout}
+import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
+import java.awt.{EventQueue, BorderLayout}
 
 //object ScalaInterpreterPane {
 //   val name          = "ScalaInterpreterPane"
@@ -84,20 +75,43 @@ object InterpreterPane {
    }
 
    def wrap( interpreter: Interpreter, codePane: CodePane ) : InterpreterPane =
-      new Impl( Some( interpreter ), codePane )
+      new Impl( Settings().build, Some( interpreter ), codePane )
 
    def apply( settings: Settings = Settings().build )(
               interpreterSettings: Interpreter.Settings = Interpreter.Settings().build,
               codePaneSettings: CodePane.Settings = defaultCodePaneSettings( settings ).build ) : InterpreterPane = {
 
       val codePane   = CodePane( codePaneSettings )
-      val impl       = new Impl( None, codePane )
-      impl.status    = "Initializing..."
+      val impl       = new Impl( settings, None, codePane )
+      Interpreter.async( interpreterSettings ) { in =>
+         EventQueue.invokeLater( new Runnable {
+            def run() {
+               impl.setInterpreter( in )
+            }
+         })
+      }
       impl
    }
 
-   private final class Impl( interpreter: Option[ Interpreter ], codePane: CodePane )
+   private final class Impl( settings: Settings, private var interpreter: Option[ Interpreter ], codePane: CodePane )
    extends InterpreterPane {
+      private def checkInterpreter() {
+         val has = interpreter.isDefined
+         codePane.editor.setEnabled( has )
+         ggProgressInvis.setVisible( has )
+         ggProgress.setVisible( !has )
+         if( settings.code != "" ) interpreter.foreach( _.interpret( settings.code ))
+         status = if( has ) "Ready." else "Initializing..."
+      }
+
+      def setInterpreter( in: Interpreter ) {
+         require( interpreter.isEmpty )
+         interpreter = Some( in )
+         codePane.init()
+         codePane.editor.requestFocus()
+         checkInterpreter()
+      }
+
       private val ggStatus = {
          val lb = new JLabel( "" )
          lb.putClientProperty( "JComponent.sizeVariant", "small" )
@@ -115,7 +129,6 @@ object InterpreterPane {
             override def getPreferredSize = ggProgress.getPreferredSize
             override def getMaximumSize   = ggProgress.getMaximumSize
          }
-         p.setVisible( false )
          p
       }
       private val progressPane = {
@@ -135,15 +148,9 @@ object InterpreterPane {
          b
       }
 
-      private val ggScroll = {
-         val editor = codePane.component
-         editor.setEnabled( interpreter.isDefined )
-         new JScrollPane( editor, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_ALWAYS  )
-      }
-
       val component = {
          val p = new JPanel( new BorderLayout() )
-         p.add( ggScroll, BorderLayout.CENTER )
+         p.add( codePane.component, BorderLayout.CENTER )
          p.add( statusPane, BorderLayout.SOUTH )
          p
       }
@@ -165,6 +172,23 @@ object InterpreterPane {
             }
          }
       }
+
+      def installExecutionAction() {
+         val ed   = codePane.editor
+         val imap = ed.getInputMap( JComponent.WHEN_FOCUSED )
+         val amap = ed.getActionMap
+         imap.put( settings.executeKey, "de.sciss.exec" )
+         amap.put( "de.sciss.exec", new AbstractAction {
+            def actionPerformed( e: ActionEvent ) {
+               interpreter.foreach { in =>
+                  codePane.getSelectedTextOrCurrentLine.foreach( in.interpret )
+               }
+            }
+         })
+      }
+
+      checkInterpreter()
+      installExecutionAction()
    }
 }
 sealed trait InterpreterPane {
@@ -174,27 +198,3 @@ sealed trait InterpreterPane {
 
    def interpret( code: String ) : Unit
 }
-
-
-//      // spawn interpreter creation
-//      (new SwingWorker[ Unit, Unit ] {
-//         override def doInBackground() {
-//            initialCode.foreach( in.interpret( _ ))
-//         }
-//
-//         override protected def done() {
-//            ggProgressInvis.setVisible( true )
-//            ggProgress.setVisible( false )
-//            editorPane.setContentType( "text/scala" )
-//            editorPane.setText( initialText )
-//            docVar = editorPane.getDocument match {
-//               case sdoc: SyntaxDocument => Some( sdoc )
-//               case _ => None
-//            }
-//
-//            editorPane.setFont( createFont )
-//            editorPane.setEnabled( true )
-//            editorPane.requestFocus()
-//            status( "Ready." )
-//         }
-//      }).execute()

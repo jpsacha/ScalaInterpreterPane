@@ -21,7 +21,7 @@
 package de.sciss.scalainterpreter
 
 import actions.CompletionAction
-import javax.swing.{AbstractAction, JEditorPane, KeyStroke, JComponent}
+import javax.swing.{JScrollPane, ScrollPaneConstants, AbstractAction, JEditorPane, KeyStroke, JComponent}
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
 import jsyntaxpane.{DefaultSyntaxKit, SyntaxDocument}
 import java.awt.Color
@@ -170,43 +170,43 @@ object CodePane {
       new Impl( ed, settings )
    }
 
-   private final class Impl( val component: JEditorPane, settings: Settings ) extends CodePane {
-      def docOption: Option[ SyntaxDocument ] = sys.error( "TODO" )
+   private final class Impl( val editor: JEditorPane, settings: Settings ) extends CodePane {
+      def docOption: Option[ SyntaxDocument ] = {
+         val doc = editor.getDocument
+         if( doc == null ) return None
+         doc match {
+            case sd: SyntaxDocument => Some( sd )
+            case _ => None
+         }
+      }
+
+      val component: JComponent = new JScrollPane( editor,
+         ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS )
 
       def init() {
-         component.setContentType( "text/scala" )
-         component.setText( settings.text )
-         component.setFont( aux.Helper.createFont( settings.font ))
+         editor.setContentType( "text/scala" )
+         editor.setText( settings.text )
+         editor.setFont( aux.Helper.createFont( settings.font ))
       }
 
       def getSelectedText : Option[ String ] = {
-         val txt = component.getSelectedText
+         val txt = editor.getSelectedText
          if( txt != null ) Some( txt ) else None
       }
 
       def getCurrentLine : Option[ String ] =
-         docOption.map( _.getLineAt( component.getCaretPosition ))
+         docOption.map( _.getLineAt( editor.getCaretPosition ))
 
       def getSelectedTextOrCurrentLine : Option[ String ] =
          getSelectedText.orElse( getCurrentLine )
 
       def installAutoCompletion( interpreter: Interpreter ) {
-         val imap = component.getInputMap( JComponent.WHEN_FOCUSED )
-         val amap = component.getActionMap
+         val imap = editor.getInputMap( JComponent.WHEN_FOCUSED )
+         val amap = editor.getActionMap
          imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, InputEvent.CTRL_MASK ), "de.sciss.comp" )
          amap.put( "de.sciss.comp", new CompletionAction( interpreter.completer ))
       }
-
-//      def installExecutionAction( interpreter: Interpreter, key: KeyStroke ) {
-//         val imap = ed.getInputMap( JComponent.WHEN_FOCUSED )
-//         val amap = ed.getActionMap
-//         imap.put( executeKeyStroke, "de.sciss.exec" )
-//         amap.put( "de.sciss.exec", new AbstractAction {
-//            def actionPerformed( e: ActionEvent ) {
-//               getSelectedTextOrCurrentLine.foreach( interpret( _ ))
-//            }
-//         })
-//      }
 
       override def toString = "CodePane@" + hashCode().toHexString
    }
@@ -216,6 +216,8 @@ trait CodePane {
     * The peer swing component which can be added to the parent swing container.
     */
    def component: JComponent
+
+   def editor: JEditorPane
 
    /**
     * The currently selected text, or `None` if no selection has been made.

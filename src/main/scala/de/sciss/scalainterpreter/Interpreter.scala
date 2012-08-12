@@ -23,6 +23,7 @@ package de.sciss.scalainterpreter
 import tools.nsc.{ConsoleWriter, NewLinePrintWriter, Settings => CompilerSettings}
 import java.io.{Writer, File}
 import tools.nsc.interpreter.{JLineCompletion, Completion, Results, NamedParam, IMain}
+import java.util.concurrent.Executors
 
 object Interpreter {
    object Settings {
@@ -62,6 +63,11 @@ object Interpreter {
    }
 
    def apply( settings: Settings = Settings().build ) : Interpreter = {
+      val in = makeIMain( settings )
+      new Impl( in )
+   }
+
+   private def makeIMain( settings: Settings ) : IMain = {
       val cset = new CompilerSettings()
       cset.classpath.value += File.pathSeparator + System.getProperty( "java.class.path" )
       val in = new IMain( cset, new NewLinePrintWriter( settings.out getOrElse (new ConsoleWriter), true )) {
@@ -71,10 +77,17 @@ object Interpreter {
       in.setContextClassLoader()
       settings.bindings.foreach( in.bind )
       in.addImports( settings.imports: _* )
+      in
+   }
 
-//      initialCode.foreach( in.interpret( _ ))
-
-      new Impl( in )
+   def async( settings: Settings = Settings().build )( done: Interpreter => Unit ) {
+      val exec = Executors.newSingleThreadExecutor()
+      exec.submit( new Runnable {
+         def run() {
+            val res = apply( settings )
+            done( res )
+         }
+      })
    }
 
    private final class Impl( in: IMain ) extends Interpreter {
@@ -85,52 +98,12 @@ object Interpreter {
       def completer: Completion.ScalaCompleter = cmp.completer()
 
       def interpret( code: String ) : Interpreter.Result = {
-// requestFromLine is private :-(
-
-//         val synthetic = false
-//
-//         def loadAndRunReq( req: in.Request ) : Results.Result = {
-//            val (result, succeeded) = req.loadAndRun
-//
-//            /** To our displeasure, ConsoleReporter offers only printMessage,
-//             *  which tacks a newline on the end.  Since that breaks all the
-//             *  output checking, we have to take one off to balance.
-//             */
-//            if( succeeded ) {
-//               if( printResults && result != "" ) {
-//                  printMessage( result.stripSuffix( "\n" ))
-//               } else if( isReplDebug ) { // show quiet-mode activity
-//                  printMessage( result.trim.lines.map( "[quiet] " + _ ).mkString( "\n" ))
-//               }
-//
-//               // Book-keeping.  Have to record synthetic requests too,
-//               // as they may have been issued for information, e.g. :type
-//               recordRequest( req )
-//               Results.Success
-//            } else {
-//               // don't truncate stack traces
-//               withoutTruncating( printMessage( result ))
-//               Results.Error
-//            }
-//         }
-//
-//         if( global == null ) Results.Error
-//         else requestFromLine( code, synthetic ) match {
-//            case Left( result )  => result
-//            case Right( req )    =>
-//               // null indicates a disallowed statement type; otherwise compile and
-//               // fail if false (implying e.g. a type error)
-//               if( req == null || !req.compile ) Results.Error
-//               else loadAndRunReq( req )
-//         }
-
          in.interpret( code ) match {
             case Results.Success =>
                val resName = in.mostRecentVar
                val resVal  = in.valueOfTerm( resName ).getOrElse( () )
                Interpreter.Success( resName, resVal )
             case Results.Error =>
-//               in.quietRun()
                Interpreter.Error
             case Results.Incomplete =>
                Interpreter.Incomplete

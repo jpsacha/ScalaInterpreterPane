@@ -7,12 +7,14 @@ object Main extends App with Runnable {
    EventQueue.invokeLater( this )
 
    def run() {
-      val ip = InterpreterPane()()
       val lp = new LogPane
       lp.init()
-//      ip.out = Some( lp.writer )
       Console.setOut( lp.outputStream )
       Console.setErr( lp.outputStream )
+      val iset = Interpreter.Settings()
+      iset.out = Some( lp.writer )
+      val ip = InterpreterPane()( interpreterSettings = iset )
+//      ip.out = Some( lp.writer )
 //      ip.init()
 
       val frame = new JFrame( "Scala Interpreter" )
