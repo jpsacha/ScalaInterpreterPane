@@ -20,8 +20,8 @@
 
 package de.sciss.scalainterpreter
 
-import javax.swing.{JEditorPane, KeyStroke, JComponent}
-import java.awt.event.KeyEvent
+import javax.swing.{AbstractAction, JEditorPane, KeyStroke, JComponent}
+import java.awt.event.{ActionEvent, KeyEvent}
 import jsyntaxpane.{DefaultSyntaxKit, SyntaxDocument}
 import java.awt.Color
 import jsyntaxpane.util.Configuration
@@ -127,16 +127,40 @@ object CodePane {
 
       syn.put( "SingleColorSelect", style.singleColorSelect.toString )
 
-      new Impl( settings )
-   }
-
-   private final class Impl( settings: Settings ) extends CodePane {
-      val component: JEditorPane = new JEditorPane() {
+      val ed: JEditorPane = new JEditorPane() {
          override protected def processKeyEvent( e: KeyEvent ) {
             super.processKeyEvent( settings.keyProcessor( e ))
          }
       }
+      ed.setBackground( new Color( 0x14, 0x1F, 0x2E ))  // stupid... this cannot be set in the kit config
+      ed.setForeground( new Color( 0xF5, 0xF5, 0xF5 ))
+      ed.setSelectedTextColor( new Color( 0xF5, 0xF5, 0xF5 ))
 
+      val imap = ed.getInputMap( JComponent.WHEN_FOCUSED )
+      val amap = ed.getActionMap
+//      imap.put( executeKeyStroke, "de.sciss.exec" )
+//      amap.put( "de.sciss.exec", new AbstractAction {
+//         def actionPerformed( e: ActionEvent ) {
+//            getSelectedTextOrCurrentLine.foreach( interpret( _ ))
+//         }
+//      })
+//      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, InputEvent.CTRL_MASK ), "de.sciss.comp" )
+//      amap.put( "de.sciss.comp", new CompletionAction( compVar.map( _.completer() )))
+
+      settings.keyMap.iterator.zipWithIndex.foreach { case (spec, idx) =>
+         val name = "de.sciss.user" + idx
+         imap.put( spec._1, name )
+         amap.put( name, new AbstractAction {
+            def actionPerformed( e: ActionEvent ) {
+               spec._2.apply()
+            }
+         })
+      }
+
+      new Impl( ed, settings )
+   }
+
+   private final class Impl( val component: JEditorPane, settings: Settings ) extends CodePane {
       def docOption: Option[ SyntaxDocument ] = sys.error( "TODO" )
 
       def getSelectedText : Option[ String ] = {

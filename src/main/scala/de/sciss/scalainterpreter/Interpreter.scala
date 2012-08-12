@@ -43,7 +43,7 @@ object Interpreter {
    }
 
    sealed trait Result
-   case class Success( result: Any ) extends Result
+   case class Success( resultName: String, resultValue: Any ) extends Result
    case object Error extends Result // can't find a way to get the exception right now
    case object Incomplete extends Result
 
@@ -126,8 +126,9 @@ object Interpreter {
 
          in.interpret( code ) match {
             case Results.Success =>
-               val res = in.valueOfTerm( in.mostRecentVar ).getOrElse( () )
-               Interpreter.Success( res )
+               val resName = in.mostRecentVar
+               val resVal  = in.valueOfTerm( resName ).getOrElse( () )
+               Interpreter.Success( resName, resVal )
             case Results.Error =>
 //               in.quietRun()
                Interpreter.Error

@@ -39,211 +39,162 @@ import java.awt.{Color, BorderLayout}
 //   val copyright     = "(C)opyright 2010-2012 Hanns Holger Rutz"
 //}
 
-class ScalaInterpreterPane
-extends JPanel with CustomizableFont {
-   pane =>
+object InterpreterPane {
+   object Settings {
+      implicit def fromBuilder( b: SettingsBuilder ) : Settings = b.build
+      def apply() : SettingsBuilder = new SettingsBuilderImpl
+   }
+   sealed trait Settings {
+      /**
+       * Key stroke to trigger interpreter execution of selected text
+       */
+      def executeKey: KeyStroke
 
-   @volatile private var compVar: Option[ JLineCompletion ] = None
-//   @volatile private var interpreterVar: Option[ IMain ] = None
-   private var docVar: Option[ SyntaxDocument ] = None
+      /**
+       * Code to initially execute once the interpreter is initialized.
+       */
+      def code: String
+   }
+   sealed trait SettingsBuilder extends Settings {
+      def executeKey_=( value: KeyStroke ) : Unit
+      def code_=( value: String ) : Unit
 
-   // subclasses may override this
-//   var executeKeyStroke = {
-//      val ms = Toolkit.getDefaultToolkit.getMenuShortcutKeyMask
-//      KeyStroke.getKeyStroke( KeyEvent.VK_E, if( ms == InputEvent.CTRL_MASK ) ms | InputEvent.SHIFT_MASK else ms )
-//   }
-   var executeKeyStroke = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK )
+      // subclasses may override this
+      var initialCode: Option[ String ] = None
+      def build: Settings
+   }
 
-   // subclasses may override this
-   var initialCode: Option[ String ] = None
+   private final class SettingsBuilderImpl extends SettingsBuilder {
+      var executeKey = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK )
+      var code       = ""
+      def build : Settings = SettingsImpl( executeKey, code )
+      override def toString = "InterpreterPane.SettingsBuilder@" + hashCode().toHexString
+   }
 
-   // subclasses may override this
-   var out: Option[ Writer ] = None
+   private final case class SettingsImpl( executeKey: KeyStroke, code: String ) extends Settings {
+      override def toString = "InterpreterPane.Settings@" + hashCode().toHexString
+   }
 
-   var customKeyMapActions:    Map[ KeyStroke, () => Unit ] = Map.empty
-   var customKeyProcessAction: Option[ KeyEvent => KeyEvent ] = None
-   /**
-    *    Subclasses may override this to
-    *    create initial bindings for the interpreter.
-    *    Note that this is not necessarily executed
-    *    on the event thread.
-    */
-   var customBindings = Seq.empty[ NamedParam ] // Option[ IMain => Unit ] = None
-   var customImports  = Seq.empty[ String ]
-
-   var initialText = """// Type Scala code here.
-// Press '""" + KeyEvent.getKeyModifiersText( executeKeyStroke.getModifiers ) + " + " +
-      KeyEvent.getKeyText( executeKeyStroke.getKeyCode ) + """' to execute selected text
-// or current line.
-"""
-
-   private val ggStatus = new JLabel( "Initializing..." )
-
-   protected val editorPane = {
-      val res = new JEditorPane() {
-         override protected def processKeyEvent( e: KeyEvent ) {
-            super.processKeyEvent( customKeyProcessAction.map( fun => {
-               fun.apply( e )
-            }) getOrElse e )
-         }
-      }
-      res.setBackground( new Color( 0x14, 0x1F, 0x2E ))  // stupid... this cannot be set in the kit config
-      res.setForeground( new Color( 0xF5, 0xF5, 0xF5 ))
-      res.setSelectedTextColor( new Color( 0xF5, 0xF5, 0xF5 ))
+   def defaultCodePaneSettings( settings: Settings ) : CodePane.SettingsBuilder = {
+      val res = CodePane.Settings()
+      res.text = "// Type Scala code here.\n// Press '" +
+         KeyEvent.getKeyModifiersText( settings.executeKey.getModifiers ) + " + " +
+         KeyEvent.getKeyText( settings.executeKey.getKeyCode ) + "' to execute selected text\n// or current line.\n"
       res
    }
-   private val progressPane      = new JPanel()
-   private val ggProgress        = new JProgressBar()
-   private val ggProgressInvis   = new JComponent {
-      override def getMinimumSize   = ggProgress.getMinimumSize
-      override def getPreferredSize = ggProgress.getPreferredSize
-      override def getMaximumSize   = ggProgress.getMaximumSize
+
+   def wrap( interpreter: Interpreter, codePane: CodePane ) : InterpreterPane =
+      new Impl( Some( interpreter ), codePane )
+
+   def apply( settings: Settings = Settings().build )(
+              interpreterSettings: Interpreter.Settings = Interpreter.Settings().build,
+              codePaneSettings: CodePane.Settings = defaultCodePaneSettings( settings ).build ) : InterpreterPane = {
+
+      val codePane   = CodePane( codePaneSettings )
+      val impl       = new Impl( None, codePane )
+      impl.status    = "Initializing..."
+      impl
    }
 
-   def interpreter: Option[ IMain ] = compVar.map( _.intp )
-   def doc: Option[ SyntaxDocument ] = docVar
-
-   def init() {
-      // spawn interpreter creation
-      (new SwingWorker[ Unit, Unit ] {
-         override def doInBackground() {
-            val settings = {
-               val set = new Settings()
-               set.classpath.value += File.pathSeparator + System.getProperty( "java.class.path" )
-               set
-            }
-
-//            val cfg = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
-//            cfg.put( "Action.completion", "de.sciss.scalainterpreter.actions.CompletionAction, control SPACE" )
-            DefaultSyntaxKit.initKit()
-            DefaultSyntaxKit.registerContentType( "text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit" )
-            val synCfg = DefaultSyntaxKit.getConfig( classOf[ ScalaSyntaxKit ])
-            // this is currently wrong in the config.properties!
-//            synCfg.put( "Action.toggle-comments.LineComments", "// " )
-            // colors
-            synCfg.put( "Style.DEFAULT",  "0xf5f5f5, 0" )
-            synCfg.put( "Style.KEYWORD",  "0x0099ff, 1" )
-            synCfg.put( "Style.OPERATOR", "0xf5f5f5, 0" )
-            synCfg.put( "Style.COMMENT",  "0x50f050, 2" )   // XXX somewhat appears too dark
-//            synCfg.put( "Style.COMMENT2", "0x50f050, 2" )
-            synCfg.put( "Style.NUMBER",   "0xff8080, 0" )
-            synCfg.put( "Style.STRING",   "0xa0ffa0, 0" )
-            synCfg.put( "Style.STRING2",  "0xa0ffa0, 0" )
-            synCfg.put( "Style.IDENTIFIER",  "0xf5f5f5, 0" )
-//            synCfg.put( "Style.DELIMITER", "0xff0000, 0" )
-            synCfg.put( "Style.TYPE",      "0x91ccff, 0" )
-            synCfg.put( "LineNumbers.CurrentBack", "0x1b2b40" )
-            synCfg.put( "LineNumbers.Foreground", "0x808080" )
-//            synCfg.put( "LineNumbers.Background", "141f2e" ) // XXX has no effect
-            synCfg.put( "SingleColorSelect", "true" )
-            synCfg.put( "SelectionColor", "0x375780" )
-            synCfg.put( "CaretColor", "0xffffff" )
-            synCfg.put( "PairMarker.Color", "0x3c5f8c" )
-//            synCfg.put( "TextAA", ... )   // XXX has no effect
-
-            val in = new IMain( settings, new NewLinePrintWriter( out getOrElse (new ConsoleWriter), true )) {
-               override protected def parentClassLoader = pane.getClass.getClassLoader
-            }
-
-            in.setContextClassLoader()
-//            bindingsCreator.foreach( _.apply( in ))
-            customBindings.foreach( in.bind( _ ))
-            in.addImports( customImports: _* )
-
-            initialCode.foreach( in.interpret( _ ))
-            val cmp = new JLineCompletion( in )
-            compVar = Some( cmp )
-//            interpreterVar = Some( in )
+   private final class Impl( interpreter: Option[ Interpreter ], codePane: CodePane )
+   extends InterpreterPane {
+      private val ggStatus = {
+         val lb = new JLabel( "" )
+         lb.putClientProperty( "JComponent.sizeVariant", "small" )
+         lb
+      }
+      private val ggProgress = {
+         val p = new JProgressBar()
+         p.putClientProperty( "JProgressBar.style", "circular" )
+         p.setIndeterminate( true )
+         p
+      }
+      private val ggProgressInvis = {
+         val p = new JComponent {
+            override def getMinimumSize   = ggProgress.getMinimumSize
+            override def getPreferredSize = ggProgress.getPreferredSize
+            override def getMaximumSize   = ggProgress.getMaximumSize
          }
+         p.setVisible( false )
+         p
+      }
+      private val progressPane = {
+         val p = new JPanel()
+         p.setLayout( new OverlayLayout( p ))
+         p.add( ggProgress )
+         p.add( ggProgressInvis )
+         p
+      }
 
-         override protected def done() {
-            ggProgressInvis.setVisible( true )
-            ggProgress.setVisible( false )
-            editorPane.setContentType( "text/scala" )
-            editorPane.setText( initialText )
-            docVar = editorPane.getDocument match {
-               case sdoc: SyntaxDocument => Some( sdoc )
-               case _ => None
+      private val statusPane = {
+         val b = Box.createHorizontalBox()
+         b.add( Box.createHorizontalStrut( 4 ))
+         b.add( progressPane )
+         b.add( Box.createHorizontalStrut( 4 ))
+         b.add( ggStatus )
+         b
+      }
+
+      private val ggScroll = {
+         val editor = codePane.component
+         editor.setEnabled( interpreter.isDefined )
+         new JScrollPane( editor, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_ALWAYS  )
+      }
+
+      val component = {
+         val p = new JPanel( new BorderLayout() )
+         p.add( ggScroll, BorderLayout.CENTER )
+         p.add( statusPane, BorderLayout.SOUTH )
+         p
+      }
+
+      def status: String = {
+         val res = ggStatus.getText
+         if( res == null ) "" else res
+      }
+
+      def status_=( value: String ) { ggStatus.setText( value )}
+
+      def interpret( code: String ) {
+         interpreter.foreach { in =>
+            status = ""
+            in.interpret( code ) match {
+               case Interpreter.Success( name, _ ) => status = "Ok. <" + name + ">"
+               case Interpreter.Error              => status = "! Error !"
+               case Interpreter.Incomplete         => status = "! Code incomplete !"
             }
-
-            editorPane.setFont( createFont )
-            editorPane.setEnabled( true )
-            editorPane.requestFocus()
-            status( "Ready." )
          }
-      }).execute()
-
-      val ggScroll   = new JScrollPane( editorPane, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_ALWAYS  )
-//      ggScroll.putClientProperty( "JComponent.sizeVariant", "small" )
-
-      ggProgress.putClientProperty( "JProgressBar.style", "circular" )
-      ggProgress.setIndeterminate( true )
-      ggProgressInvis.setVisible( false )
-      editorPane.setEnabled( false )
-
-      val imap = editorPane.getInputMap( JComponent.WHEN_FOCUSED )
-      val amap = editorPane.getActionMap
-      imap.put( executeKeyStroke, "de.sciss.exec" )
-      amap.put( "de.sciss.exec", new AbstractAction {
-         def actionPerformed( e: ActionEvent ) {
-            getSelectedTextOrCurrentLine.foreach( interpret( _ ))
-         }
-      })
-      imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, InputEvent.CTRL_MASK ), "de.sciss.comp" )
-      amap.put( "de.sciss.comp", new CompletionAction( compVar.map( _.completer() )))
-
-      customKeyMapActions.iterator.zipWithIndex.foreach( tup => {
-         val (spec, idx) = tup
-         val name = "de.sciss.user" + idx
-         imap.put( spec._1, name )
-         amap.put( name, new AbstractAction {
-            def actionPerformed( e: ActionEvent ) {
-               spec._2.apply()
-            }
-         })
-      })
-
-      progressPane.setLayout( new OverlayLayout( progressPane ))
-      progressPane.add( ggProgress )
-      progressPane.add( ggProgressInvis )
-      ggStatus.putClientProperty( "JComponent.sizeVariant", "small" )
-      val statusPane = Box.createHorizontalBox()
-      statusPane.add( Box.createHorizontalStrut( 4 ))
-      statusPane.add( progressPane )
-      statusPane.add( Box.createHorizontalStrut( 4 ))
-      statusPane.add( ggStatus )
-
-//      setLayout( new BorderLayout )
-      setLayout( new BorderLayout() )
-      add( ggScroll, BorderLayout.CENTER )
-      add( statusPane, BorderLayout.SOUTH )
-   }
-
-   def getSelectedText : Option[ String ] = {
-      val txt = editorPane.getSelectedText
-      if( txt != null ) Some( txt ) else None
-   }
-
-   def getCurrentLine : Option[ String ] =
-      docVar.map( _.getLineAt( editorPane.getCaretPosition ))
-
-   def getSelectedTextOrCurrentLine : Option[ String ] =
-      getSelectedText.orElse( getCurrentLine )
-
-   protected def status( s: String ) {
-      ggStatus.setText( s )
-   }
-
-   def interpret( code: String ) {
-      interpreter.foreach { in =>
-         status( null )
-         try { in.interpret( code ) match {
-            case Results.Error       => status( "! Error !" )
-            case Results.Success     => status( "Ok. <" + in.mostRecentVar + ">" )
-            case Results.Incomplete  => status( "! Code incomplete !" )
-            case _ =>
-         }}
-         catch { case e: Throwable => e.printStackTrace() }
       }
    }
 }
+sealed trait InterpreterPane {
+   def component: JComponent
+   def status: String
+   def status_=( value: String ) : Unit
+
+   def interpret( code: String ) : Unit
+}
+
+
+//      // spawn interpreter creation
+//      (new SwingWorker[ Unit, Unit ] {
+//         override def doInBackground() {
+//            initialCode.foreach( in.interpret( _ ))
+//         }
+//
+//         override protected def done() {
+//            ggProgressInvis.setVisible( true )
+//            ggProgress.setVisible( false )
+//            editorPane.setContentType( "text/scala" )
+//            editorPane.setText( initialText )
+//            docVar = editorPane.getDocument match {
+//               case sdoc: SyntaxDocument => Some( sdoc )
+//               case _ => None
+//            }
+//
+//            editorPane.setFont( createFont )
+//            editorPane.setEnabled( true )
+//            editorPane.requestFocus()
+//            status( "Ready." )
+//         }
+//      }).execute()

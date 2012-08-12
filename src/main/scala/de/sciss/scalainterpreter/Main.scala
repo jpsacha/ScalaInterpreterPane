@@ -3,23 +3,21 @@ package de.sciss.scalainterpreter
 import java.awt.{ EventQueue, GraphicsEnvironment }
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 
-object Main extends Runnable {
-   def main( args: Array[ String ]) {
-      EventQueue.invokeLater( this )
-   }
+object Main extends App with Runnable {
+   EventQueue.invokeLater( this )
 
    def run() {
-      val ip = new ScalaInterpreterPane
+      val ip = InterpreterPane()()
       val lp = new LogPane
       lp.init()
-      ip.out = Some( lp.writer )
+//      ip.out = Some( lp.writer )
       Console.setOut( lp.outputStream )
       Console.setErr( lp.outputStream )
-      ip.init()
+//      ip.init()
 
       val frame = new JFrame( "Scala Interpreter" )
       val sp = new JSplitPane( SwingConstants.HORIZONTAL )
-      sp.setTopComponent( ip )
+      sp.setTopComponent( ip.component )
       sp.setBottomComponent( lp )
       val cp = frame.getContentPane
       cp.add( sp )
