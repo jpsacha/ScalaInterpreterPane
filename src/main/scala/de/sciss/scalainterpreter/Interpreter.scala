@@ -26,22 +26,32 @@ import tools.nsc.interpreter.{JLineCompletion, Completion, Results, NamedParam, 
 import java.util.concurrent.Executors
 
 object Interpreter {
-   object Settings {
-      def apply() : SettingsBuilder = new SettingsBuilderImpl
+   object Config {
+      def apply() : ConfigBuilder = new ConfigBuilderImpl
    }
-   sealed trait Settings {
-      implicit def fromBuilder( b: SettingsBuilder ) : Settings = b.build
+   sealed trait ConfigLike {
+      implicit def build( b: ConfigBuilder ) : Config = b.build
       def imports: Seq[ String ]
       def bindings: Seq[ NamedParam ]
       def out: Option[ Writer ]
-      def toBuilder : SettingsBuilder
    }
-   sealed trait SettingsBuilder extends Settings {
+   sealed trait Config extends ConfigLike
+   object ConfigBuilder {
+      def apply( config: Config ) : ConfigBuilder = {
+         import config._
+         val b = new ConfigBuilderImpl
+         b.imports = imports
+         b.bindings = bindings
+         b.out = out
+         b
+      }
+   }
+   sealed trait ConfigBuilder extends ConfigLike {
       def imports_=( value: Seq[ String ]) : Unit
       def bindings_=( value: Seq[ NamedParam ]) : Unit
       def out_=( value: Option[ Writer ]) : Unit
 
-      def build: Settings
+      def build: Config
    }
 
    sealed trait Result
@@ -49,51 +59,43 @@ object Interpreter {
    case object Error extends Result // can't find a way to get the exception right now
    case object Incomplete extends Result
 
-   private final class SettingsBuilderImpl extends SettingsBuilder {
+   private final class ConfigBuilderImpl extends ConfigBuilder {
       var imports    = Seq.empty[ String ]
       var bindings   = Seq.empty[ NamedParam ]
       var out        = Option.empty[ Writer ]
 
-      def build : Settings = new SettingsImpl( imports, bindings, out )
-      def toBuilder : SettingsBuilder = this
-      override def toString = "Interpreter.SettingsBuilder@" + hashCode().toHexString
+      def build : Config = new ConfigImpl( imports, bindings, out )
+      override def toString = "Interpreter.ConfigBuilder@" + hashCode().toHexString
    }
 
-   private final case class SettingsImpl( imports: Seq[ String ], bindings: Seq[ NamedParam ], out: Option[ Writer ])
-   extends Settings {
-      override def toString = "Interpreter.Settings@" + hashCode().toHexString
-      def toBuilder : SettingsBuilder = {
-         val b = new SettingsBuilderImpl
-         b.imports = imports
-         b.bindings = bindings
-         b.out = out
-         b
-      }
+   private final case class ConfigImpl( imports: Seq[ String ], bindings: Seq[ NamedParam ], out: Option[ Writer ])
+   extends Config {
+      override def toString = "Interpreter.Config@" + hashCode().toHexString
    }
 
-   def apply( settings: Settings = Settings().build ) : Interpreter = {
-      val in = makeIMain( settings )
+   def apply( config: Config = Config().build ) : Interpreter = {
+      val in = makeIMain( config )
       new Impl( in )
    }
 
-   private def makeIMain( settings: Settings ) : IMain = {
+   private def makeIMain( config: Config ) : IMain = {
       val cset = new CompilerSettings()
       cset.classpath.value += File.pathSeparator + System.getProperty( "java.class.path" )
-      val in = new IMain( cset, new NewLinePrintWriter( settings.out getOrElse (new ConsoleWriter), true )) {
+      val in = new IMain( cset, new NewLinePrintWriter( config.out getOrElse (new ConsoleWriter), true )) {
          override protected def parentClassLoader = Interpreter.getClass.getClassLoader
       }
 
       in.setContextClassLoader()
-      settings.bindings.foreach( in.bind )
-      in.addImports( settings.imports: _* )
+      config.bindings.foreach( in.bind )
+      in.addImports( config.imports: _* )
       in
    }
 
-   def async( settings: Settings = Settings().build )( done: Interpreter => Unit ) {
+   def async( config: Config = Config().build )( done: Interpreter => Unit ) {
       val exec = Executors.newSingleThreadExecutor()
       exec.submit( new Runnable {
          def run() {
-            val res = apply( settings )
+            val res = apply( config )
             done( res )
          }
       })

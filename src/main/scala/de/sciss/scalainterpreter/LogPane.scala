@@ -22,11 +22,9 @@
 
 package de.sciss.scalainterpreter
 
-import java.awt.{ BorderLayout, Color }
-import java.io.{ IOException, OutputStream, Writer }
+import java.io.{OutputStream, Writer}
 import java.awt.event.{ActionEvent, MouseEvent, MouseAdapter}
-import javax.swing.{JComponent, JPopupMenu, AbstractAction, JPanel, JScrollPane, JTextArea, ScrollPaneConstants}
-import ScrollPaneConstants._
+import javax.swing.{JComponent, JPopupMenu, AbstractAction, JScrollPane, JTextArea, ScrollPaneConstants}
 
 object LogPane {
    object Settings {
@@ -134,7 +132,9 @@ object LogPane {
          }
       }
 
-      val component = new JScrollPane( textPane, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER )
+      val component = new JScrollPane( textPane,
+         ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER )
 
       private val popup = {
          val p = new JPopupMenu()
@@ -150,17 +150,44 @@ object LogPane {
          textPane.setText( null )
       }
 
-      def makeDefault() : LogPane = {
+      def makeDefault( error: Boolean ) : LogPane = {
          Console.setOut( outputStream )
-         Console.setErr( outputStream )
+         if( error ) Console.setErr( outputStream )
          this
       }
    }
 }
+
+/**
+ * A pane widget which can be used to log text output, and which can be hooked up to capture the
+ * default console output.
+ */
 trait LogPane {
+   /**
+    * The Swing component which can be added to a Swing parent container.
+    */
    def component: JComponent
+
+   /**
+    * A `Writer` which will write to the pane.
+    */
    def writer : Writer
+
+   /**
+    * An `OutputStream` which will write to the pane.
+    */
    def outputStream : OutputStream
+
+   /**
+    * Clears the contents of the pane.
+    */
    def clear() : Unit
-   def makeDefault() : LogPane
+
+   /**
+    * Make this log pane the default text output for
+    * `Console.out` and optionally for `Console.err` as well.
+    *
+    * @return  the method returns the log pane itself for convenience and method concatenation
+    */
+   def makeDefault( error: Boolean = true ) : LogPane
 }

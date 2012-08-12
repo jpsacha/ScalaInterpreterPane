@@ -20,7 +20,7 @@
 
 package de.sciss.scalainterpreter
 
-import javax.swing.{AbstractAction, ScrollPaneConstants, Box, JComponent, JLabel, JPanel, JProgressBar, JScrollPane, KeyStroke, OverlayLayout}
+import javax.swing.{AbstractAction, Box, JComponent, JLabel, JPanel, JProgressBar, KeyStroke, OverlayLayout}
 import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
 import java.awt.{EventQueue, BorderLayout}
 
@@ -31,11 +31,11 @@ import java.awt.{EventQueue, BorderLayout}
 //}
 
 object InterpreterPane {
-   object Settings {
-      implicit def fromBuilder( b: SettingsBuilder ) : Settings = b.build
-      def apply() : SettingsBuilder = new SettingsBuilderImpl
+   object Config {
+      implicit def build( b: ConfigBuilder ) : Config = b.build
+      def apply() : ConfigBuilder = new ConfigBuilderImpl
    }
-   sealed trait Settings {
+   sealed trait ConfigLike {
       /**
        * Key stroke to trigger interpreter execution of selected text
        */
@@ -45,46 +45,66 @@ object InterpreterPane {
        * Code to initially execute once the interpreter is initialized.
        */
       def code: String
+
+      /**
+       * Whether to prepend an information text with the execution key info
+       * to the code pane's text
+       */
+      def prependExecutionInfo : Boolean
    }
-   sealed trait SettingsBuilder extends Settings {
+   sealed trait Config extends ConfigLike
+   object ConfigBuilder {
+      def apply( config: Config ) : ConfigBuilder = {
+         import config._
+         val b = new ConfigBuilderImpl
+         b.executeKey = executeKey
+         b.code = code
+         b.prependExecutionInfo = prependExecutionInfo
+         b
+      }
+   }
+   sealed trait ConfigBuilder extends ConfigLike {
       def executeKey_=( value: KeyStroke ) : Unit
       def code_=( value: String ) : Unit
+      def prependExecutionInfo_=( value: Boolean ) : Unit
 
       // subclasses may override this
       var initialCode: Option[ String ] = None
-      def build: Settings
+      def build: Config
    }
 
-   private final class SettingsBuilderImpl extends SettingsBuilder {
+   private final class ConfigBuilderImpl extends ConfigBuilder {
       var executeKey = KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK )
       var code       = ""
-      def build : Settings = SettingsImpl( executeKey, code )
-      override def toString = "InterpreterPane.SettingsBuilder@" + hashCode().toHexString
+      var prependExecutionInfo = true
+      def build : Config = ConfigImpl( executeKey, code, prependExecutionInfo )
+      override def toString = "InterpreterPane.ConfigBuilder@" + hashCode().toHexString
    }
 
-   private final case class SettingsImpl( executeKey: KeyStroke, code: String ) extends Settings {
-      override def toString = "InterpreterPane.Settings@" + hashCode().toHexString
+   private final case class ConfigImpl( executeKey: KeyStroke, code: String, prependExecutionInfo: Boolean )
+   extends Config {
+      override def toString = "InterpreterPane.Config@" + hashCode().toHexString
    }
 
-   private def incorporate( settings: Settings, code: CodePane.Settings ) : CodePane.Settings = {
-      val res = code.toBuilder
+   private def incorporate( config: Config, code: CodePane.Config ) : CodePane.Config = {
+      val res = CodePane.ConfigBuilder( code )
       res.text = "// Type Scala code here.\n// Press '" +
-         KeyEvent.getKeyModifiersText( settings.executeKey.getModifiers ) + " + " +
-         KeyEvent.getKeyText( settings.executeKey.getKeyCode ) + "' to execute selected text\n// or current line.\n" + res.text
+         KeyEvent.getKeyModifiersText( config.executeKey.getModifiers ) + " + " +
+         KeyEvent.getKeyText( config.executeKey.getKeyCode ) + "' to execute selected text\n// or current line.\n" + res.text
       res.build
    }
 
    def wrap( interpreter: Interpreter, codePane: CodePane ) : InterpreterPane =
-      new Impl( Settings().build, Some( interpreter ), codePane )
+      new Impl( Config().build, Some( interpreter ), codePane )
 
-   def apply( settings: Settings = Settings().build,
-              interpreterSettings: Interpreter.Settings = Interpreter.Settings().build,
-              codePaneSettings: CodePane.Settings = CodePane.Settings().build ) : InterpreterPane = {
+   def apply( config: Config = Config().build,
+              interpreterConfig: Interpreter.Config = Interpreter.Config().build,
+              codePaneConfig: CodePane.Config = CodePane.Config().build ) : InterpreterPane = {
 
-      val cpSet      = incorporate( settings, codePaneSettings )
+      val cpSet      = if( config.prependExecutionInfo ) incorporate( config, codePaneConfig ) else codePaneConfig
       val codePane   = CodePane( cpSet )
-      val impl       = new Impl( settings, None, codePane )
-      Interpreter.async( interpreterSettings ) { in =>
+      val impl       = new Impl( config, None, codePane )
+      Interpreter.async( interpreterConfig ) { in =>
          EventQueue.invokeLater( new Runnable {
             def run() {
                impl.setInterpreter( in )
@@ -94,14 +114,14 @@ object InterpreterPane {
       impl
    }
 
-   private final class Impl( settings: Settings, private var interpreter: Option[ Interpreter ], codePane: CodePane )
+   private final class Impl( config: Config, private var interpreter: Option[ Interpreter ], codePane: CodePane )
    extends InterpreterPane {
       private def checkInterpreter() {
          val has = interpreter.isDefined
          codePane.editor.setEnabled( has )
          ggProgressInvis.setVisible( has )
          ggProgress.setVisible( !has )
-         if( settings.code != "" ) interpreter.foreach( _.interpret( settings.code ))
+         if( config.code != "" ) interpreter.foreach( _.interpret( config.code ))
          status = if( has ) "Ready." else "Initializing..."
       }
 
@@ -178,7 +198,7 @@ object InterpreterPane {
          val ed   = codePane.editor
          val imap = ed.getInputMap( JComponent.WHEN_FOCUSED )
          val amap = ed.getActionMap
-         imap.put( settings.executeKey, "de.sciss.exec" )
+         imap.put( config.executeKey, "de.sciss.exec" )
          amap.put( "de.sciss.exec", new AbstractAction {
             def actionPerformed( e: ActionEvent ) {
                codePane.getSelectedTextOrCurrentLine.foreach( interpret )

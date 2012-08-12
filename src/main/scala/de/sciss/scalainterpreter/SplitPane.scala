@@ -23,13 +23,13 @@ package de.sciss.scalainterpreter
 import javax.swing.{SwingConstants, JSplitPane}
 
 object SplitPane {
-   def apply( paneSettings: InterpreterPane.Settings = InterpreterPane.Settings().build,
-              interpreterSettings: Interpreter.Settings = Interpreter.Settings().build,
-              codePaneSettings: CodePane.Settings = CodePane.Settings().build ) : SplitPane = {
+   def apply( paneConfig: InterpreterPane.Config = InterpreterPane.Config().build,
+              interpreterConfig: Interpreter.Config = Interpreter.Config().build,
+              codePaneConfig: CodePane.Config = CodePane.Config().build ) : SplitPane = {
       val lp   = LogPane().makeDefault()
-      val intSet = interpreterSettings.toBuilder
-      intSet.out = Some( lp.writer )
-      val ip = InterpreterPane( paneSettings, intSet.build, codePaneSettings )
+      val intCfg = Interpreter.ConfigBuilder( interpreterConfig )
+      intCfg.out = Some( lp.writer )
+      val ip = InterpreterPane( paneConfig, intCfg.build, codePaneConfig )
       val sp = new JSplitPane( SwingConstants.HORIZONTAL )
       sp.setTopComponent( ip.component )
       sp.setBottomComponent( lp.component )

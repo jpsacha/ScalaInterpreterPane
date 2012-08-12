@@ -28,11 +28,11 @@ import java.awt.Color
 import jsyntaxpane.util.Configuration
 
 object CodePane {
-   object Settings {
-      implicit def fromBuilder( b: SettingsBuilder ) : Settings = b.build
-      def apply() : SettingsBuilder = new SettingsBuilderImpl
+   object Config {
+      implicit def build( b: ConfigBuilder ) : Config = b.build
+      def apply() : ConfigBuilder = new ConfigBuilderImpl
    }
-   sealed trait Settings {
+   sealed trait ConfigLike {
       /**
        * The initial text to be shown in the pane
        */
@@ -61,37 +61,13 @@ object CodePane {
        */
       def font: Seq[ (String, Int) ]
 
-      def toBuilder : SettingsBuilder
+//      def toBuilder : ConfigBuilder
    }
-   sealed trait SettingsBuilder extends Settings {
-      def text_=( value: String ) : Unit
-      def style_=( value: Style ) : Unit
-      def keyMap_=( value: Map[ KeyStroke, () => Unit ]) : Unit
-      def keyProcessor_=( value: KeyEvent => KeyEvent ) : Unit
-      def font_=( value: Seq[ (String, Int) ]) : Unit
-      def build : Settings
-   }
-
-   private final class SettingsBuilderImpl extends SettingsBuilder {
-      var text = ""
-      var style: Style = Style.BlueForest
-      var keyMap = Map.empty[ KeyStroke, () => Unit ]
-      var keyProcessor: KeyEvent => KeyEvent = identity
-      var font = aux.Helper.defaultFonts
-
-      def build: Settings = SettingsImpl( text, keyMap, keyProcessor, font, style )
-      def toBuilder : SettingsBuilder = this
-      override def toString = "CodePane.SettingsBuilder@" + hashCode().toHexString
-   }
-
-   private final case class SettingsImpl( text: String, keyMap: Map[ KeyStroke, () => Unit ],
-                                          keyProcessor: KeyEvent => KeyEvent, font: Seq[ (String, Int) ],
-                                          style: Style )
-   extends Settings {
-      override def toString = "CodePane.Settings@" + hashCode().toHexString
-
-      def toBuilder : SettingsBuilder = {
-         val b = new SettingsBuilderImpl
+   sealed trait Config extends ConfigLike
+   object ConfigBuilder {
+      def apply( config: Config ) : ConfigBuilder = {
+         import config._
+         val b = new ConfigBuilderImpl
          b.text = text
          b.keyMap = keyMap
          b.keyProcessor = keyProcessor
@@ -99,6 +75,32 @@ object CodePane {
          b.style = style
          b
       }
+   }
+   sealed trait ConfigBuilder extends ConfigLike {
+      def text_=( value: String ) : Unit
+      def style_=( value: Style ) : Unit
+      def keyMap_=( value: Map[ KeyStroke, () => Unit ]) : Unit
+      def keyProcessor_=( value: KeyEvent => KeyEvent ) : Unit
+      def font_=( value: Seq[ (String, Int) ]) : Unit
+      def build : Config
+   }
+
+   private final class ConfigBuilderImpl extends ConfigBuilder {
+      var text = ""
+      var style: Style = Style.BlueForest
+      var keyMap = Map.empty[ KeyStroke, () => Unit ]
+      var keyProcessor: KeyEvent => KeyEvent = identity
+      var font = aux.Helper.defaultFonts
+
+      def build: Config = ConfigImpl( text, keyMap, keyProcessor, font, style )
+      override def toString = "CodePane.ConfigBuilder@" + hashCode().toHexString
+   }
+
+   private final case class ConfigImpl( text: String, keyMap: Map[ KeyStroke, () => Unit ],
+                                          keyProcessor: KeyEvent => KeyEvent, font: Seq[ (String, Int) ],
+                                          style: Style )
+   extends Config {
+      override def toString = "CodePane.Config@" + hashCode().toHexString
    }
 
    private def put( cfg: Configuration, key: String, pair: (Color, Style.Face) ) {
@@ -111,11 +113,11 @@ object CodePane {
       cfg.put( key, value )
    }
 
-   def initKit( settings: Settings ) {
+   def initKit( config: Config ) {
       DefaultSyntaxKit.initKit()
       DefaultSyntaxKit.registerContentType( "text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit" )
       val syn = DefaultSyntaxKit.getConfig( classOf[ ScalaSyntaxKit ])
-      val style = settings.style
+      val style = config.style
       put( syn, "Style.DEFAULT",    style.default    )
       put( syn, "Style.KEYWORD",    style.keyword    )
       put( syn, "Style.OPERATOR",   style.operator   )
@@ -136,20 +138,20 @@ object CodePane {
       syn.put( "SingleColorSelect", style.singleColorSelect.toString )
    }
 
-   def apply( settings: Settings = Settings().build ) : CodePane = {
-      initKit( settings )
-      val res = createPlain( settings )
+   def apply( config: Config = Config().build ) : CodePane = {
+      initKit( config )
+      val res = createPlain( config )
       res.init()
       res
    }
 
-   private[scalainterpreter] def createPlain( settings: Settings ) : CodePane = {
+   private[scalainterpreter] def createPlain( config: Config ) : CodePane = {
       val ed: JEditorPane = new JEditorPane() {
          override protected def processKeyEvent( e: KeyEvent ) {
-            super.processKeyEvent( settings.keyProcessor( e ))
+            super.processKeyEvent( config.keyProcessor( e ))
          }
       }
-      val style = settings.style
+      val style = config.style
       ed.setBackground( style.background )  // stupid... this cannot be set in the kit config
       ed.setForeground( style.foreground )
       ed.setSelectedTextColor( style.foreground )
@@ -157,7 +159,7 @@ object CodePane {
       val imap = ed.getInputMap( JComponent.WHEN_FOCUSED )
       val amap = ed.getActionMap
 
-      settings.keyMap.iterator.zipWithIndex.foreach { case (spec, idx) =>
+      config.keyMap.iterator.zipWithIndex.foreach { case (spec, idx) =>
          val name = "de.sciss.user" + idx
          imap.put( spec._1, name )
          amap.put( name, new AbstractAction {
@@ -167,10 +169,10 @@ object CodePane {
          })
       }
 
-      new Impl( ed, settings )
+      new Impl( ed, config )
    }
 
-   private final class Impl( val editor: JEditorPane, settings: Settings ) extends CodePane {
+   private final class Impl( val editor: JEditorPane, config: Config ) extends CodePane {
       def docOption: Option[ SyntaxDocument ] = {
          val doc = editor.getDocument
          if( doc == null ) return None
@@ -186,8 +188,8 @@ object CodePane {
 
       def init() {
          editor.setContentType( "text/scala" )
-         editor.setText( settings.text )
-         editor.setFont( aux.Helper.createFont( settings.font ))
+         editor.setText( config.text )
+         editor.setFont( aux.Helper.createFont( config.font ))
       }
 
       def getSelectedText : Option[ String ] = {

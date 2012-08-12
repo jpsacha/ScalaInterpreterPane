@@ -23,6 +23,9 @@ package de.sciss.scalainterpreter
 import java.awt.{ EventQueue, GraphicsEnvironment }
 import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
 
+/**
+ * The standalone application object
+ */
 object Main extends App with Runnable {
    EventQueue.invokeLater( this )
 
