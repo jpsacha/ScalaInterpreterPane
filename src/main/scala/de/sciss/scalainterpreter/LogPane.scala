@@ -50,7 +50,7 @@ extends JPanel with CustomizableFont {
          try {
             setCaretPosition( math.max( 0, totalLength - 1 ))
          }
-         catch { case _ => /* ignore */ }
+         catch { case _: Throwable => /* ignore */ }
       }
    }
 

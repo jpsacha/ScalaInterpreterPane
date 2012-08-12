@@ -20,8 +20,9 @@
 
 package de.sciss.scalainterpreter
 
+import actions.CompletionAction
 import javax.swing.{AbstractAction, JEditorPane, KeyStroke, JComponent}
-import java.awt.event.{ActionEvent, KeyEvent}
+import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
 import jsyntaxpane.{DefaultSyntaxKit, SyntaxDocument}
 import java.awt.Color
 import jsyntaxpane.util.Configuration
@@ -103,7 +104,7 @@ object CodePane {
       cfg.put( key, value )
    }
 
-   def apply( settings: Settings = Settings().build ) : CodePane = {
+   private def initKit( settings: Settings ) {
       DefaultSyntaxKit.initKit()
       DefaultSyntaxKit.registerContentType( "text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit" )
       val syn = DefaultSyntaxKit.getConfig( classOf[ ScalaSyntaxKit ])
@@ -126,7 +127,9 @@ object CodePane {
       put( syn, "PairMarker.Color",        style.pair )
 
       syn.put( "SingleColorSelect", style.singleColorSelect.toString )
+   }
 
+   def apply( settings: Settings = Settings().build ) : CodePane = {
       val ed: JEditorPane = new JEditorPane() {
          override protected def processKeyEvent( e: KeyEvent ) {
             super.processKeyEvent( settings.keyProcessor( e ))
@@ -174,6 +177,24 @@ object CodePane {
       def getSelectedTextOrCurrentLine : Option[ String ] =
          getSelectedText.orElse( getCurrentLine )
 
+      def installAutoCompletion( interpreter: Interpreter ) {
+         val imap = component.getInputMap( JComponent.WHEN_FOCUSED )
+         val amap = component.getActionMap
+         imap.put( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, InputEvent.CTRL_MASK ), "de.sciss.comp" )
+         amap.put( "de.sciss.comp", new CompletionAction( interpreter.completer ))
+      }
+
+//      def installExecutionAction( interpreter: Interpreter, key: KeyStroke ) {
+//         val imap = ed.getInputMap( JComponent.WHEN_FOCUSED )
+//         val amap = ed.getActionMap
+//         imap.put( executeKeyStroke, "de.sciss.exec" )
+//         amap.put( "de.sciss.exec", new AbstractAction {
+//            def actionPerformed( e: ActionEvent ) {
+//               getSelectedTextOrCurrentLine.foreach( interpret( _ ))
+//            }
+//         })
+//      }
+
       override def toString = "CodePane@" + hashCode().toHexString
    }
 }
@@ -197,4 +218,7 @@ trait CodePane {
     * Convenience method for `getSelectedText orElse getCurrentLine`.
     */
    def getSelectedTextOrCurrentLine : Option[ String ]
+
+   def installAutoCompletion( interpreter: Interpreter ) : Unit
+//   def installExecutionAction( interpreter: Interpreter, key: KeyStroke ) : Unit
 }
