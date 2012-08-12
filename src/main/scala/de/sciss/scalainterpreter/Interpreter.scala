@@ -116,6 +116,11 @@ object Interpreter {
          in.interpret( code ) match {
             case Results.Success =>
                val resName = in.mostRecentVar
+//               val reqOpt  = in.requestForIdent( resName )
+//               val resOpt  = reqOpt.flatMap { req =>
+//                  req.getEval
+//               }
+//               val resVal  = resOpt.getOrElse( () )
                val resVal  = in.valueOfTerm( resName ).getOrElse( () )
                Interpreter.Success( resName, resVal )
             case Results.Error =>

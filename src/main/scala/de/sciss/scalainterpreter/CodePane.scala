@@ -159,9 +159,9 @@ object CodePane {
             super.processKeyEvent( config.keyProcessor( e ))
          }
 
-         override def paintComponent( g: java.awt.Graphics ) {
-            super.paintComponent( g )
-         }
+//         override def paintComponent( g: java.awt.Graphics ) {
+//            super.paintComponent( g )
+//         }
       }
       val style = config.style
       ed.setBackground( style.background )  // stupid... this cannot be set in the kit config
