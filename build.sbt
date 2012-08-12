@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name := "ScalaInterpreterPane"
 
-version := "1.0.0-SNAPSHOT"
+version := "1.0.0"
 
 organization := "de.sciss"
 
@@ -80,6 +80,8 @@ test in assembly := {}
 seq( appbundle.settings: _* )
 
 appbundle.icon := Some( file( "application.icns" ))
+
+appbundle.target <<= baseDirectory
 
 // ---- ls.implicit.ly ----
 

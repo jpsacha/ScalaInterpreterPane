@@ -23,7 +23,7 @@ package de.sciss.scalainterpreter
 import actions.CompletionAction
 import javax.swing.{JScrollPane, ScrollPaneConstants, AbstractAction, JEditorPane, KeyStroke, JComponent}
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
-import jsyntaxpane.{DefaultSyntaxKit, SyntaxDocument}
+import jsyntaxpane.{SyntaxStyle, TokenType, SyntaxStyles, DefaultSyntaxKit, SyntaxDocument}
 import java.awt.Color
 import jsyntaxpane.util.Configuration
 
@@ -77,10 +77,15 @@ object CodePane {
       }
    }
    sealed trait ConfigBuilder extends ConfigLike {
+      def text: String // need to restate that to get reassignment sugar
       def text_=( value: String ) : Unit
+      def style: Style // need to restate that to get reassignment sugar
       def style_=( value: Style ) : Unit
+      def keyMap: Map[ KeyStroke, () => Unit ] // need to restate that to get reassignment sugar
       def keyMap_=( value: Map[ KeyStroke, () => Unit ]) : Unit
+      def keyProcessor: KeyEvent => KeyEvent // need to restate that to get reassignment sugar
       def keyProcessor_=( value: KeyEvent => KeyEvent ) : Unit
+      def font: Seq[ (String, Int) ] // need to restate that to get reassignment sugar
       def font_=( value: Seq[ (String, Int) ]) : Unit
       def build : Config
    }
@@ -135,6 +140,9 @@ object CodePane {
       put( syn, "CaretColor",              style.caret )
       put( syn, "PairMarker.Color",        style.pair )
 
+      // ssssssssssuckers - we need to override the default which is black here
+      SyntaxStyles.getInstance().put( TokenType.DEFAULT, new SyntaxStyle( style.default._1, style.default._2.code ))
+
       syn.put( "SingleColorSelect", style.singleColorSelect.toString )
    }
 
@@ -149,6 +157,10 @@ object CodePane {
       val ed: JEditorPane = new JEditorPane() {
          override protected def processKeyEvent( e: KeyEvent ) {
             super.processKeyEvent( config.keyProcessor( e ))
+         }
+
+         override def paintComponent( g: java.awt.Graphics ) {
+            super.paintComponent( g )
          }
       }
       val style = config.style

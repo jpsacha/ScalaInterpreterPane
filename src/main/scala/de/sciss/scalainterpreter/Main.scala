@@ -21,7 +21,7 @@
 package de.sciss.scalainterpreter
 
 import java.awt.{ EventQueue, GraphicsEnvironment }
-import javax.swing.{ JFrame, JSplitPane, SwingConstants, WindowConstants }
+import javax.swing.{JFrame, WindowConstants}
 
 /**
  * The standalone application object
@@ -30,11 +30,37 @@ object Main extends App with Runnable {
    EventQueue.invokeLater( this )
 
    def run() {
-      val split   = SplitPane()
-      val frame = new JFrame( "Scala Interpreter" )
-      val cp = frame.getContentPane
+//      javax.swing.UIManager.setLookAndFeel( "javax.swing.plaf.metal.MetalLookAndFeel" )
+
+      val pCfg    = InterpreterPane.Config()
+      val bi      = Class.forName( "de.sciss.scalainterpreter.BuildInfo" )
+      try {
+         val name    = bi.getMethod( "name" ).invoke( null )
+         val version = bi.getMethod( "version" ).invoke( null )
+         pCfg.code   = "println( \"Welcome to " + name + " v" + version + "\" )"
+      } catch {
+         case _: Throwable =>
+      }
+//      pCfg.prependExecutionInfo = false
+//      pCfg.executeKey = javax.swing.KeyStroke.getKeyStroke( java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.META_MASK )
+
+      val iCfg    = Interpreter.Config()
+//      iCfg.bindings :+= tools.nsc.interpreter.NamedParam( "gaga", 33 )
+//      iCfg.imports = iCfg.imports :+ "javax.swing._"
+
+      val cCfg    = CodePane.Config()
+//      cCfg.font = Seq( "Helvetica" -> 16 )
+//      cCfg.keyProcessor = { k: java.awt.event.KeyEvent => println( "Pling" ); k }
+//      cCfg.text = "math.Pi"
+//      cCfg.style = Style.Light
+//      cCfg.keyMap += javax.swing.KeyStroke.getKeyStroke( java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.META_MASK ) ->
+//         { () => println( "Tschuschu" )}
+
+      val split   = SplitPane( paneConfig = pCfg, interpreterConfig = iCfg, codePaneConfig = cCfg )
+      val frame   = new JFrame( "Scala Interpreter" )
+      val cp      = frame.getContentPane
+      val b       = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
       cp.add( split.component )
-      val b = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
       frame.setSize( b.width / 2, b.height * 5 / 6 )
       split.component.setDividerLocation( b.height * 2 / 3 )
       frame.setLocationRelativeTo( null )

@@ -12,7 +12,7 @@ To use it in your own project, add the following to `build.sbt`:
 
     resolvers += "Clojars Repository" at "http://clojars.org/repo"
 
-    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "1.0.0-SNAPSHOT"
+    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "1.0.+"
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
@@ -22,7 +22,7 @@ To develop the source, if you haven't globally installed the sbt-idea plugin yet
 
     resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
     
-    addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.0.0")
+    addSbtPlugin( "com.github.mpeltonen" % "sbt-idea" % "1.0.0" )
 
 Then to create the IDEA project, run `sbt gen-idea`.
 

@@ -27,6 +27,7 @@ import java.util.concurrent.Executors
 
 object Interpreter {
    object Config {
+      implicit def build( b: ConfigBuilder ) : Config = b.build
       def apply() : ConfigBuilder = new ConfigBuilderImpl
    }
    sealed trait ConfigLike {
@@ -47,8 +48,11 @@ object Interpreter {
       }
    }
    sealed trait ConfigBuilder extends ConfigLike {
+      def imports: Seq[ String ] // need to restate that to get reassignment sugar
       def imports_=( value: Seq[ String ]) : Unit
+      def bindings: Seq[ NamedParam ] // need to restate that to get reassignment sugar
       def bindings_=( value: Seq[ NamedParam ]) : Unit
+      def out: Option[ Writer ] // need to restate that to get reassignment sugar
       def out_=( value: Option[ Writer ]) : Unit
 
       def build: Config

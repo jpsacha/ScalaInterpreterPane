@@ -87,7 +87,7 @@ object LogPane {
          })
 
          override def append( str: String ) {
-            super.append( str );
+            super.append( str )
             totalLength += str.length
             updateCaret()
          }
@@ -113,7 +113,7 @@ object LogPane {
          def flush() {}
 
          def write( ch: Array[ Char ], off: Int, len: Int ) {
-            val str = new String( ch, off, len );
+            val str = new String( ch, off, len )
             textPane.append( str )
          }
       }

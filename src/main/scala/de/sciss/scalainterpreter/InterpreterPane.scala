@@ -64,8 +64,11 @@ object InterpreterPane {
       }
    }
    sealed trait ConfigBuilder extends ConfigLike {
+      def executeKey: KeyStroke // need to restate that to get reassignment sugar
       def executeKey_=( value: KeyStroke ) : Unit
+      def code: String // need to restate that to get reassignment sugar
       def code_=( value: String ) : Unit
+      def prependExecutionInfo : Boolean // need to restate that to get reassignment sugar
       def prependExecutionInfo_=( value: Boolean ) : Unit
 
       // subclasses may override this
@@ -90,7 +93,7 @@ object InterpreterPane {
       val res = CodePane.ConfigBuilder( code )
       res.text = "// Type Scala code here.\n// Press '" +
          KeyEvent.getKeyModifiersText( config.executeKey.getModifiers ) + " + " +
-         KeyEvent.getKeyText( config.executeKey.getKeyCode ) + "' to execute selected text\n// or current line.\n" + res.text
+         KeyEvent.getKeyText( config.executeKey.getKeyCode ) + "' to execute selected text\n// or current line.\n\n" + res.text
       res.build
    }
 
@@ -139,7 +142,18 @@ object InterpreterPane {
          lb
       }
       private val ggProgress = {
-         val p = new JProgressBar()
+         val p = new JProgressBar() {
+            override def getPreferredSize = {
+               val d = super.getPreferredSize
+               d.width = math.min( 32, d.width )
+               d
+            }
+            override def getMaximumSize = {
+               val d = super.getMaximumSize
+               d.width = math.min( 32, d.width )
+               d
+            }
+         }
          p.putClientProperty( "JProgressBar.style", "circular" )
          p.setIndeterminate( true )
          p
