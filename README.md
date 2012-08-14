@@ -39,7 +39,7 @@ For example, to create a plain code view:
 
     val codePane    = CodePane(codeCfg)         // create the pane
     val f           = new javax.swing.JFrame("REPL Test")
-       // the actual javax.swing.JComponent is found at codePane.component.
+    // the actual javax.swing.JComponent is found at codePane.component.
     f.getContentPane.add(codePane.component, "Center")
     f.pack()
     f.setVisible(true)
@@ -61,7 +61,7 @@ To create an interpreter:
 
 The result of `interpret` is either of `Interpreter.Result`, e.g. `Interpreter.Success` carrying the name and value of the result.
 
-`CodePane` and `Interpreter` can be manually patched together using an entry in the code pane's `keyMap` setting which queries the currently selected text using `codePane.getSelectedText` and feeding that into the `interpret` method. But it is more convenient to use `InterpreterPane` instead, which already combines the two. Furthermore, there is a utility widget `LogPane` which can be used to direct the console output to. Using `SplitPane` a fully self-contained system can be set up, containing a code pane in the top, a status bar in the middle, and a console log in the bottom:
+`CodePane` and `Interpreter` can be manually patched together using an entry in the code pane's `keyMap` setting which queries the currently selected text using `codePane.getSelectedText` and feeding that into the `interpret` method. But it is more convenient to use `InterpreterPane` instead, which already combines the two. Furthermore, there is a utility widget `LogPane` which can be used to direct the console output to. Using `SplitPane`, a fully self-contained system can be set up, containing a code pane in the top, a status bar in the middle, and a console log in the bottom:
 
 ```scala
 
