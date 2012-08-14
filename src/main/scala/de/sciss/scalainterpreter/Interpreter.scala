@@ -93,19 +93,25 @@ object Interpreter {
       val in = new IMain( cset, new NewLinePrintWriter( config.out getOrElse (new ConsoleWriter), true )) with ResultIntp {
          override protected def parentClassLoader = Interpreter.getClass.getClassLoader
 
-         private def lastRequest = prevRequestList.last
+         // note `lastRequest` was added in 2.10
+         private def _lastRequest = prevRequestList.last
 
-         def interpretWithResult( line: String, synthetic: Boolean ) : Result =
-            interpretWithoutResult( line, synthetic ) match {
-//            case Success( name, _ ) =>
-//
-               case other => other
+         def interpretWithResult( line: String, synthetic: Boolean ) : Result = {
+            val res0 = interpretWithoutResult( line, synthetic )
+            res0 match {
+               case Success( name, _ ) => try {
+                  Success( name, _lastRequest.lineRep.call( "$result" ))
+               } catch {
+                  case e: Throwable => res0
+               }
+               case _ => res0
             }
+         }
 
          def interpretWithoutResult( line: String, synthetic: Boolean ) : Result = {
             interpret( line, synthetic ) match {
                case Results.Success => Success( mostRecentVar, () )
-               case Results.Error => Error( lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
+               case Results.Error => Error( _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
                case Results.Incomplete => Incomplete
             }
          }

@@ -24,7 +24,7 @@ import actions.CompletionAction
 import javax.swing.{JScrollPane, ScrollPaneConstants, AbstractAction, JEditorPane, KeyStroke, JComponent}
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
 import jsyntaxpane.{SyntaxStyle, TokenType, SyntaxStyles, DefaultSyntaxKit, SyntaxDocument}
-import java.awt.Color
+import java.awt.{Dimension, Color}
 import jsyntaxpane.util.Configuration
 
 object CodePane {
@@ -61,6 +61,11 @@ object CodePane {
        */
       def font: Seq[ (String, Int) ]
 
+      /**
+       * Preferred width and height of the component
+       */
+      def preferredSize: (Int, Int)
+
 //      def toBuilder : ConfigBuilder
    }
    sealed trait Config extends ConfigLike
@@ -73,6 +78,7 @@ object CodePane {
          b.keyProcessor = keyProcessor
          b.font = font
          b.style = style
+         b.preferredSize = preferredSize
          b
       }
    }
@@ -87,6 +93,8 @@ object CodePane {
       def keyProcessor_=( value: KeyEvent => KeyEvent ) : Unit
       def font: Seq[ (String, Int) ] // need to restate that to get reassignment sugar
       def font_=( value: Seq[ (String, Int) ]) : Unit
+      def preferredSize: (Int, Int)
+      def preferredSize_=( value: (Int, Int) ) : Unit
       def build : Config
    }
 
@@ -96,14 +104,15 @@ object CodePane {
       var keyMap = Map.empty[ KeyStroke, () => Unit ]
       var keyProcessor: KeyEvent => KeyEvent = identity
       var font = aux.Helper.defaultFonts
+      var preferredSize = (500, 500)
 
-      def build: Config = ConfigImpl( text, keyMap, keyProcessor, font, style )
+      def build: Config = ConfigImpl( text, keyMap, keyProcessor, font, style, preferredSize )
       override def toString = "CodePane.ConfigBuilder@" + hashCode().toHexString
    }
 
    private final case class ConfigImpl( text: String, keyMap: Map[ KeyStroke, () => Unit ],
                                           keyProcessor: KeyEvent => KeyEvent, font: Seq[ (String, Int) ],
-                                          style: Style )
+                                          style: Style, preferredSize: (Int, Int) )
    extends Config {
       override def toString = "CodePane.Config@" + hashCode().toHexString
    }
@@ -164,6 +173,7 @@ object CodePane {
 //            super.paintComponent( g )
 //         }
       }
+      ed.setPreferredSize( new Dimension( config.preferredSize._1, config.preferredSize._2 ))
       val style = config.style
       ed.setBackground( style.background )  // stupid... this cannot be set in the kit config
       ed.setForeground( style.foreground )

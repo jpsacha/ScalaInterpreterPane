@@ -201,9 +201,9 @@ object InterpreterPane {
       def interpret( code: String ) {
          interpreter.foreach { in =>
             status = ""
-            status = in.interpret( code ) match {
-               case Interpreter.Success( name, value ) =>
-                  "Ok. <" + name + " = " + value + ">"
+            status = in.interpretWithoutResult( code ) match {
+               case Interpreter.Success( name, _ ) =>
+                  "Ok. <" + name + ">"
                case Interpreter.Error( message ) =>
                   "! Error : " + message
                case Interpreter.Incomplete =>

@@ -45,7 +45,7 @@ object Main extends App with Runnable {
 //      pCfg.executeKey = javax.swing.KeyStroke.getKeyStroke( java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.META_MASK )
 
       val iCfg    = Interpreter.Config()
-//      iCfg.bindings :+= tools.nsc.interpreter.NamedParam( "gaga", 33 )
+//      iCfg.bindings :+= NamedParam( "gaga", 33 )
 //      iCfg.imports = iCfg.imports :+ "javax.swing._"
 
       val cCfg    = CodePane.Config()
