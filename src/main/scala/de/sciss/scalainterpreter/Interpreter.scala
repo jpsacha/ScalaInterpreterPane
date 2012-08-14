@@ -100,7 +100,7 @@ object Interpreter {
                    *  output checking, we have to take one off to balance.
                    */
                   case Right( result ) =>
-                     if( !quiet /* printResults */ && result != () ) {
+                     if( !quiet /* printResults */ && result != null ) {
                         val resString = result.toString
                         reporter.printMessage( resString.stripSuffix( "\n" ))
                      } else if( interpreter.isReplDebug ) { // show quiet-mode activity
@@ -232,10 +232,17 @@ object Interpreter {
             import interpreter.Line._
 
             try {
-               val execution = lineManager.set( req.originalLine )( req.lineRep call naming.sessionNames.print )
+               val execution = lineManager.set( req.originalLine )(
+//                  try {
+                     req.lineRep call naming.sessionNames.print
+//                  } catch {
+//                     case np: NullPointerException => ()
+//                  }
+               )
                execution.await()
                execution.state match {
-                  case Done       => Right( execution.get() )
+//                  case Done       => Right( execution.get() )
+                  case Done       => execution.get(); Right( req.lineRep.call( "$result" ))
                   case Threw      => Left( req.lineRep.bindError( execution.caught() ))
                   case Cancelled  => Left( "Execution interrupted by signal.\n" )
                   case Running    => Left( "Execution still running! Seems impossible." )
