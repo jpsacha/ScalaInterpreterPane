@@ -68,7 +68,7 @@ The result of `interpret` is either of `Interpreter.Result`, e.g. `Interpreter.S
     import de.sciss.scalainterpreter._
     val split = SplitPane()
     val f     = new javax.swing.JFrame("REPL Test")
-    f.getContentPane.add(codePane.component, "Center")
+    f.getContentPane.add(split.component, "Center")
     f.pack()
     f.setVisible(true)
 ```
