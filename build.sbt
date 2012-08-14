@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name := "ScalaInterpreterPane"
 
-version := "1.0.0"
+version := "1.1.0-SNAPSHOT"
 
 organization := "de.sciss"
 
@@ -38,7 +38,10 @@ buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq[ Scoped ]( name, organization, version, scalaVersion, description, homepage, licenses )
+buildInfoKeys := Seq( name, organization, version, scalaVersion, description,
+   BuildInfo.map( homepage ) { case (k, opt) => k -> opt.get },
+   BuildInfo.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
+)
 
 buildInfoPackage := "de.sciss.scalainterpreter"
 
