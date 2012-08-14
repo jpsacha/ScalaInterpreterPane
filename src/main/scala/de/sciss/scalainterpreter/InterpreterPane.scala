@@ -131,7 +131,8 @@ object InterpreterPane {
       def setInterpreter( in: Interpreter ) {
          require( interpreter.isEmpty )
          interpreter = Some( in )
-         codePane.init()
+//         codePane.init()
+         codePane.installAutoCompletion( in )
          codePane.editor.requestFocus()
          checkInterpreter()
       }
@@ -200,10 +201,13 @@ object InterpreterPane {
       def interpret( code: String ) {
          interpreter.foreach { in =>
             status = ""
-            in.interpret( code ) match {
-               case Interpreter.Success( name, _ ) => status = "Ok. <" + name + ">"
-               case Interpreter.Error              => status = "! Error !"
-               case Interpreter.Incomplete         => status = "! Code incomplete !"
+            status = in.interpret( code ) match {
+               case Interpreter.Success( name, value ) =>
+                  "Ok. <" + name + " = " + value + ">"
+               case Interpreter.Error( message ) =>
+                  "! Error : " + message
+               case Interpreter.Incomplete =>
+                  "! Code incomplete"
             }
          }
       }

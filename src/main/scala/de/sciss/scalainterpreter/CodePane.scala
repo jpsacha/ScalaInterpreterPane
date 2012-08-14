@@ -121,6 +121,7 @@ object CodePane {
    def initKit( config: Config ) {
       DefaultSyntaxKit.initKit()
       DefaultSyntaxKit.registerContentType( "text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit" )
+//      val synDef = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
       val syn = DefaultSyntaxKit.getConfig( classOf[ ScalaSyntaxKit ])
       val style = config.style
       put( syn, "Style.DEFAULT",    style.default    )
@@ -136,14 +137,14 @@ object CodePane {
 
       put( syn, "LineNumbers.CurrentBack", style.lineBackground )
       put( syn, "LineNumbers.Foreground",  style.lineForeground )
+      syn.put( "SingleColorSelect", style.singleColorSelect.toString ) // XXX TODO currently broken - has no effect
+//      synDef.put( "SingleColorSelect", style.singleColorSelect.toString )
       put( syn, "SelectionColor",          style.selection )
       put( syn, "CaretColor",              style.caret )
       put( syn, "PairMarker.Color",        style.pair )
 
       // ssssssssssuckers - we need to override the default which is black here
       SyntaxStyles.getInstance().put( TokenType.DEFAULT, new SyntaxStyle( style.default._1, style.default._2.code ))
-
-      syn.put( "SingleColorSelect", style.singleColorSelect.toString )
    }
 
    def apply( config: Config = Config().build ) : CodePane = {
@@ -153,7 +154,7 @@ object CodePane {
       res
    }
 
-   private[scalainterpreter] def createPlain( config: Config ) : CodePane = {
+   private def createPlain( config: Config ) : Impl = {
       val ed: JEditorPane = new JEditorPane() {
          override protected def processKeyEvent( e: KeyEvent ) {
             super.processKeyEvent( config.keyProcessor( e ))
@@ -251,5 +252,5 @@ trait CodePane {
    def installAutoCompletion( interpreter: Interpreter ) : Unit
 //   def installExecutionAction( interpreter: Interpreter, key: KeyStroke ) : Unit
 
-   private[scalainterpreter] def init() : Unit
+//   private[scalainterpreter] def init() : Unit
 }
