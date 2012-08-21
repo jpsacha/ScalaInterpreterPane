@@ -8,7 +8,7 @@ organization := "de.sciss"
 
 scalaVersion := "2.9.2"
 
-crossScalaVersions := Seq( "2.10.0-M6", "2.9.2" )
+// crossScalaVersions := Seq( "2.10.0-M6", "2.9.2" )
 
 description := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -39,8 +39,8 @@ buildInfoSettings
 sourceGenerators in Compile <+= buildInfo
 
 buildInfoKeys := Seq( name, organization, version, scalaVersion, description,
-   BuildInfo.map( homepage ) { case (k, opt) => k -> opt.get },
-   BuildInfo.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
+   BuildInfoKey.map( homepage ) { case (k, opt) => k -> opt.get },
+   BuildInfoKey.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
 )
 
 buildInfoPackage := "de.sciss.scalainterpreter"

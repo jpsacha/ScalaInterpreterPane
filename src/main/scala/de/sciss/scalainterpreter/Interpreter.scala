@@ -111,7 +111,7 @@ object Interpreter {
          def interpretWithoutResult( line: String, synthetic: Boolean ) : Result = {
             interpret( line, synthetic ) match {
                case Results.Success => Success( mostRecentVar, () )
-               case Results.Error => Error( _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
+               case Results.Error => Error( "Error" ) // doesn't work anymore with 2.10.0-M7: _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
                case Results.Incomplete => Incomplete
             }
          }
