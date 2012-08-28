@@ -103,7 +103,7 @@ object CodePane {
       var style: Style = Style.BlueForest
       var keyMap = Map.empty[ KeyStroke, () => Unit ]
       var keyProcessor: KeyEvent => KeyEvent = identity
-      var font = aux.Helper.defaultFonts
+      var font = Helper.defaultFonts
       var preferredSize = (500, 500)
 
       def build: Config = ConfigImpl( text, keyMap, keyProcessor, font, style, preferredSize )
@@ -212,7 +212,7 @@ object CodePane {
       def init() {
          editor.setContentType( "text/scala" )
          editor.setText( config.text )
-         editor.setFont( aux.Helper.createFont( config.font ))
+         editor.setFont( Helper.createFont( config.font ))
       }
 
       def getSelectedText : Option[ String ] = {

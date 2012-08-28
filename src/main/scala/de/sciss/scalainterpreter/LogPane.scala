@@ -48,7 +48,7 @@ object LogPane {
       var rows    = 10
       var columns = 60
       var style : Style = Style.BlueForest
-      var font = aux.Helper.defaultFonts
+      var font    = Helper.defaultFonts
       def build : Settings = SettingsImpl( rows, columns, style, font )
       override def toString = "LogPane.SettingsBuilder@" + hashCode.toHexString
    }
@@ -69,7 +69,7 @@ object LogPane {
 
          private var totalLength = 0
 
-         setFont( aux.Helper.createFont( settings.font ))
+         setFont( Helper.createFont( settings.font ))
          setEditable( false )
          setLineWrap( true )
          setBackground( settings.style.background ) // Color.black )
