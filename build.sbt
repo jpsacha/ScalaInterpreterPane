@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name := "ScalaInterpreterPane"
 
-version := "1.1.1-SNAPSHOT"
+version := "1.2.0"
 
 organization := "de.sciss"
 

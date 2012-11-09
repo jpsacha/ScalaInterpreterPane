@@ -12,7 +12,7 @@ To use it in your own project, add the following to `build.sbt`:
 
     resolvers += "Clojars Repository" at "http://clojars.org/repo"
 
-    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "1.1.+"
+    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "1.2.+"
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
