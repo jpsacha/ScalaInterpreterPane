@@ -22,7 +22,7 @@ package de.sciss.scalainterpreter
 
 import tools.nsc.{Settings => CompilerSettings, ConsoleWriter, NewLinePrintWriter}
 import java.io.{Writer, File}
-import tools.nsc.interpreter.{Results, JLineCompletion, Completion, NamedParam, IMain}
+import tools.nsc.interpreter.{Results, JLineCompletion, Completion, IMain}
 import java.util.concurrent.Executors
 
 object Interpreter {

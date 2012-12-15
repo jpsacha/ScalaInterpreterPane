@@ -2,7 +2,7 @@
 
 ### statement
 
-ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](http://code.google.com/p/jsyntaxpane/). ScalaInterpreterPane is (C)opyright 2010-2012 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010-2012 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ### requirements
 
@@ -10,9 +10,7 @@ ScalaInterpreterPane currently compiles against Scala 2.9.2 and is build with sb
 
 To use it in your own project, add the following to `build.sbt`:
 
-    resolvers += "Clojars Repository" at "http://clojars.org/repo"
-
-    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "1.2.+"
+    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "1.3.+"
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
@@ -79,9 +77,7 @@ If you use scala-swing, the components can be wrapped using `swing.Component.wra
 
 To develop the source, if you haven't globally installed the sbt-idea plugin yet, create the following contents in `~/.sbt/plugins/build.sbt`:
 
-    resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
-    
-    addSbtPlugin( "com.github.mpeltonen" % "sbt-idea" % "1.0.0" )
+    addSbtPlugin( "com.github.mpeltonen" % "sbt-idea" % "1.1.0" )
 
 Then to create the IDEA project, run `sbt gen-idea`.
 

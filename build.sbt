@@ -2,13 +2,11 @@ import AssemblyKeys._
 
 name := "ScalaInterpreterPane"
 
-version := "1.2.0"
+version := "1.3.0"
 
 organization := "de.sciss"
 
 scalaVersion := "2.9.2"
-
-// crossScalaVersions := Seq( "2.10.0-M6", "2.9.2" )
 
 description := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -16,10 +14,8 @@ homepage := Some( url( "https://github.com/Sciss/ScalaInterpreterPane" ))
 
 licenses := Seq( "LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt" ))
 
-resolvers += "Clojars Repository" at "http://clojars.org/repo"
-
 libraryDependencies ++= Seq(
-   "jsyntaxpane" % "jsyntaxpane" % "0.9.5-b29"
+   "de.sciss" % "jsyntaxpane" % "1.0.+"
 )
 
 libraryDependencies <+= scalaVersion { sv =>
