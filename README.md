@@ -6,7 +6,7 @@ ScalaInterpreterPane is a Swing component for editing code in the Scala programm
 
 ### requirements
 
-ScalaInterpreterPane currently compiles against Scala 2.9.2 and is build with sbt 0.12.
+ScalaInterpreterPane currently compiles against Scala 2.10 (default) and 2.9.2 and is build with sbt 0.12.
 
 To use it in your own project, add the following to `build.sbt`:
 

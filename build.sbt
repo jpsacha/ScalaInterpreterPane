@@ -6,7 +6,9 @@ version := "1.3.0"
 
 organization := "de.sciss"
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.0"
+
+crossScalaVersions in ThisBuild := Seq( "2.10.0", "2.9.2" )
 
 description := "A Swing based front-end for the Scala REPL (interpreter)"
 
