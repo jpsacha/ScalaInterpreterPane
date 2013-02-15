@@ -25,96 +25,180 @@ import java.io.{Writer, File}
 import tools.nsc.interpreter.{Results, JLineCompletion, Completion, IMain}
 import java.util.concurrent.Executors
 
+/**
+ * The `Interpreter` wraps the underlying Scala interpreter functionality.
+ */
 object Interpreter {
-   object Config {
-      implicit def build( b: ConfigBuilder ) : Config = b.build
-      def apply() : ConfigBuilder = new ConfigBuilderImpl
-   }
-   sealed trait ConfigLike {
-      implicit def build( b: ConfigBuilder ) : Config = b.build
-      def imports: Seq[ String ]
-      def bindings: Seq[ NamedParam ]
-      def out: Option[ Writer ]
-   }
-   sealed trait Config extends ConfigLike
-   object ConfigBuilder {
-      def apply( config: Config ) : ConfigBuilder = {
-         import config._
-         val b = new ConfigBuilderImpl
-         b.imports = imports
-         b.bindings = bindings
-         b.out = out
-         b
+
+  /**
+   * Factory object for creating new configuration builders.
+   */
+  object Config {
+    /**
+     * A configuration builder is automatically converted to an immutable configuration
+     */
+    implicit def build(b: ConfigBuilder): Config = b.build
+
+    /**
+     * Creates a new configuration builder with defaults.
+     */
+    def apply(): ConfigBuilder = new ConfigBuilderImpl
+  }
+  sealed trait ConfigLike {
+    implicit def build(b: ConfigBuilder): Config = b.build
+
+    /**
+     * A list of package names to import to the scope of the interpreter.
+     */
+    def imports:      Seq[String]
+
+    /**
+     * A list of bindings which make objects in the hosting environment available to the interpreter under a given name.
+     */
+    def bindings:     Seq[NamedParam]
+
+    /**
+     * An injected code fragment which precedes the evaluation of the each interpreted line's wrapping object.
+     *
+     * For example if the interpreted code was `val foo = 33`, the actually compiled code looks like
+     *
+     * {{{
+     *   val res = <execution> { object <synthetic> { val foo = 33 }}
+     * }}}
+     *
+     * The executor can be used for example to set a particular context needed during the evaluation of the object's
+     * body. Then most probably it will be defined to take a thunk argument, for instance:
+     *
+     * {{{
+     *   object MyExecutor { def apply[A](thunk: => A): A = concurrent.stm.atomic(_ => thunk)
+     *   config.executor = "MyExecutor"
+     * }}}
+     *
+     * Then the evaluated code may find the STM transaction using `Txn.findCurrent`
+     */
+    def executor: String
+
+    /**
+     * The interpreter's output printing device.
+     */
+    def out:          Option[Writer]
+
+    /**
+     * Whether initial imports should be performed silently (`true`) or not (`false`). Not silent means the imported
+     * packages' names will be printed to the default printing device (`out`).
+     */
+    def quietImports: Boolean
+  }
+
+  /**
+   * Configuration for an interpreter.
+   */
+  sealed trait Config extends ConfigLike
+
+  object ConfigBuilder {
+    /**
+     * Creates a new configuration builder initialized to the values taken from an existing configuration.
+     *
+     * @param config  the configuration from which to take the initial settings
+     * @return        the new mutable configuration builder
+     */
+    def apply(config: Config): ConfigBuilder = {
+      import config._
+      val b           = new ConfigBuilderImpl
+      b.imports       = imports
+      b.bindings      = bindings
+      b.executor      = executor
+      b.out           = out
+      b.quietImports  = quietImports
+      b
+    }
+  }
+
+  sealed trait ConfigBuilder extends ConfigLike {
+    // need to restate the getter methods to get reassignment sugar
+    def imports: Seq[String]
+    def imports_=(value: Seq[String]): Unit
+    def bindings: Seq[NamedParam]
+    def bindings_=(value: Seq[NamedParam]): Unit
+    def executor: String
+    def executor_=(value: String): Unit
+    def out: Option[Writer]
+    def out_=(value: Option[Writer]): Unit
+    def quietImports: Boolean
+    def quietImports_=(value: Boolean): Unit
+
+    def build: Config
+  }
+
+  sealed trait Result
+  case class Success(resultName: String, resultValue: Any) extends Result
+  case class Error(message: String) extends Result // can't find a way to get the exception right now
+  case object Incomplete extends Result
+
+  private final class ConfigBuilderImpl extends ConfigBuilder {
+    var imports       = Seq.empty[String]
+    var bindings      = Seq.empty[NamedParam]
+    var executor      = ""
+    var out           = Option.empty[Writer]
+    var quietImports  = true
+
+    def build : Config = new ConfigImpl(
+      imports = imports, bindings = bindings, executor = executor, out = out, quietImports = quietImports)
+
+    override def toString = "Interpreter.ConfigBuilder@" + hashCode().toHexString
+  }
+
+  private final case class ConfigImpl(imports: Seq[String], bindings: Seq[NamedParam],
+                                      executor: String, out: Option[Writer], quietImports: Boolean)
+    extends Config {
+
+    override def toString = "Interpreter.Config@" + hashCode().toHexString
+  }
+
+  /**
+   * Creates a new interpreter with the given settings.
+   *
+   * @param config  the configuration for the interpreter.
+   * @return  the new Scala interpreter
+   */
+  def apply(config: Config = Config().build): Interpreter = {
+    val in = makeIMain(config)
+    new Impl(in)
+  }
+
+  private trait ResultIntp {
+    def interpretWithResult(   line: String, synthetic: Boolean = false): Result
+    def interpretWithoutResult(line: String, synthetic: Boolean = false): Result
+  }
+
+  private def makeIMain(config: Config): IMain with ResultIntp = {
+    val cset = new CompilerSettings()
+    cset.classpath.value += File.pathSeparator + sys.props("java.class.path")
+    val in = new IMain(cset, new NewLinePrintWriter(config.out getOrElse (new ConsoleWriter), true)) with ResultIntp {
+      override protected def parentClassLoader = Interpreter.getClass.getClassLoader
+
+      // note `lastRequest` was added in 2.10
+      private def _lastRequest = prevRequestList.last
+
+      def interpretWithResult(line: String, synthetic: Boolean): Result = {
+        val res0 = interpretWithoutResult(line, synthetic)
+        res0 match {
+          case Success(name, _) => try {
+            Success(name, _lastRequest.lineRep.call("$result"))
+          } catch {
+            case e: Throwable => res0
+          }
+          case _ => res0
+        }
       }
-   }
-   sealed trait ConfigBuilder extends ConfigLike {
-      def imports: Seq[ String ] // need to restate that to get reassignment sugar
-      def imports_=( value: Seq[ String ]) : Unit
-      def bindings: Seq[ NamedParam ] // need to restate that to get reassignment sugar
-      def bindings_=( value: Seq[ NamedParam ]) : Unit
-      def out: Option[ Writer ] // need to restate that to get reassignment sugar
-      def out_=( value: Option[ Writer ]) : Unit
 
-      def build: Config
-   }
-
-   sealed trait Result
-   case class Success( resultName: String, resultValue: Any ) extends Result
-   case class Error( message: String ) extends Result // can't find a way to get the exception right now
-   case object Incomplete extends Result
-
-   private final class ConfigBuilderImpl extends ConfigBuilder {
-      var imports    = Seq.empty[ String ]
-      var bindings   = Seq.empty[ NamedParam ]
-      var out        = Option.empty[ Writer ]
-
-      def build : Config = new ConfigImpl( imports, bindings, out )
-      override def toString = "Interpreter.ConfigBuilder@" + hashCode().toHexString
-   }
-
-   private final case class ConfigImpl( imports: Seq[ String ], bindings: Seq[ NamedParam ], out: Option[ Writer ])
-   extends Config {
-      override def toString = "Interpreter.Config@" + hashCode().toHexString
-   }
-
-   def apply( config: Config = Config().build ) : Interpreter = {
-      val in = makeIMain( config )
-      new Impl( in )
-   }
-
-   private trait ResultIntp {
-      def interpretWithResult(    line: String, synthetic: Boolean = false ) : Result
-      def interpretWithoutResult( line: String, synthetic: Boolean = false ) : Result
-   }
-
-   private def makeIMain( config: Config ) : IMain with ResultIntp  = {
-      val cset = new CompilerSettings()
-      cset.classpath.value += File.pathSeparator + System.getProperty( "java.class.path" )
-      val in = new IMain( cset, new NewLinePrintWriter( config.out getOrElse (new ConsoleWriter), true )) with ResultIntp {
-         override protected def parentClassLoader = Interpreter.getClass.getClassLoader
-
-         // note `lastRequest` was added in 2.10
-         private def _lastRequest = prevRequestList.last
-
-         def interpretWithResult( line: String, synthetic: Boolean ) : Result = {
-            val res0 = interpretWithoutResult( line, synthetic )
-            res0 match {
-               case Success( name, _ ) => try {
-                  Success( name, _lastRequest.lineRep.call( "$result" ))
-               } catch {
-                  case e: Throwable => res0
-               }
-               case _ => res0
-            }
-         }
-
-         def interpretWithoutResult( line: String, synthetic: Boolean ) : Result = {
-            interpret( line, synthetic ) match {
-               case Results.Success => Success( mostRecentVar, () )
-               case Results.Error => Error( "Error" ) // doesn't work anymore with 2.10.0-M7: _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
-               case Results.Incomplete => Incomplete
-            }
-         }
+      def interpretWithoutResult(line: String, synthetic: Boolean): Result = {
+        interpret(line, synthetic) match {
+          case Results.Success    => Success(mostRecentVar, ())
+          case Results.Error      => Error("Error") // doesn't work anymore with 2.10.0-M7: _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
+          case Results.Incomplete => Incomplete
+        }
+      }
 
 //         def interpretWithResult( line: String, synthetic: Boolean, quiet: Boolean ) : Result = {
 //            def loadAndRunReq( req: Request ) = {
@@ -276,63 +360,71 @@ object Interpreter {
 //               lineManager.clear()
 //            }
 //         }
+    }
+
+    in.setContextClassLoader()
+    config.bindings.foreach(in.bind)
+    if (config.quietImports) in.quietImport(config.imports: _*) else in.addImports(config.imports: _*)
+    in.setExecutionWrapper(config.executor)
+    in
+  }
+
+  def async(config: Config = Config().build)(done: Interpreter => Unit) {
+    val exec = Executors.newSingleThreadExecutor()
+    exec.submit(new Runnable {
+      def run() {
+        val res = apply(config)
+        done(res)
       }
+    })
+  }
 
-      in.setContextClassLoader()
-      config.bindings.foreach( in.bind )
-      in.addImports( config.imports: _* )
-      in
-   }
+  private final class Impl( in: IMain with ResultIntp ) extends Interpreter {
+    private val cmp = new JLineCompletion(in)
 
-   def async( config: Config = Config().build )( done: Interpreter => Unit ) {
-      val exec = Executors.newSingleThreadExecutor()
-      exec.submit( new Runnable {
-         def run() {
-            val res = apply( config )
-            done( res )
-         }
-      })
-   }
+    override def toString = "Interpreter@" + hashCode().toHexString
 
-   private final class Impl( in: IMain with ResultIntp ) extends Interpreter {
-      private val cmp = new JLineCompletion( in )
+    def completer: Completion.ScalaCompleter = cmp.completer()
 
-      override def toString = "Interpreter@" + hashCode().toHexString
-
-      def completer: Completion.ScalaCompleter = cmp.completer()
-
-      def interpret( code: String, quiet: Boolean ) : Interpreter.Result = {
-         if( quiet ) {
-            in.beQuietDuring( in.interpretWithResult( code ))
-         } else {
-            in.interpretWithResult( code )
-         }
+    def interpret(code: String, quiet: Boolean): Interpreter.Result = {
+      if (quiet) {
+        in.beQuietDuring(in.interpretWithResult(code))
+      } else {
+        in.interpretWithResult(code)
       }
+    }
 
-      def interpretWithoutResult( code: String, quiet: Boolean ) : Interpreter.Result = {
-         if( quiet ) {
-            in.beQuietDuring( in.interpretWithoutResult( code ))
-         } else {
-            in.interpretWithoutResult( code )
-         }
+    def interpretWithoutResult(code: String, quiet: Boolean): Interpreter.Result = {
+      if (quiet) {
+        in.beQuietDuring(in.interpretWithoutResult(code))
+      } else {
+        in.interpretWithoutResult(code)
       }
-   }
+    }
+  }
 }
+/**
+ * The `Interpreter` wraps the underlying Scala interpreter functionality.
+ */
 trait Interpreter {
-   /**
-    * Interpret a piece of code
-    *
-    * @param code    the source code to interpret
-    * @param quiet   whether to suppress result printing (`true`) or not (`false`)
-    *
-    * @return        the result of the execution of the interpreted code
-    */
-   def interpret( code: String, quiet: Boolean = false ) : Interpreter.Result
+  /**
+   * Interprets a piece of code
+   *
+   * @param code    the source code to interpret
+   * @param quiet   whether to suppress result printing (`true`) or not (`false`)
+   *
+   * @return        the result of the execution of the interpreted code
+   */
+  def interpret(code: String, quiet: Boolean = false): Interpreter.Result
 
-   /**
-    * Just as `interpret` but without evaluating the result value. That is, in the case
-    * off `Success` the result value will always be `()`.
-    */
-   def interpretWithoutResult( code: String, quiet: Boolean = false ) : Interpreter.Result
-   def completer: Completion.ScalaCompleter
+  /**
+   * Interprets a piece of code. Unlike `interpret` the result is not evaluated. That is, in the case
+   * off `Success` the result value will always be `()`.
+   */
+  def interpretWithoutResult(code: String, quiet: Boolean = false): Interpreter.Result
+
+  /**
+   * A code completion component which may be attached to an editor.
+   */
+  def completer: Completion.ScalaCompleter
 }

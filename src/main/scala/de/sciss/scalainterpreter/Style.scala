@@ -23,7 +23,7 @@ package de.sciss.scalainterpreter
 import java.awt.Color
 
 object Style {
-   private def c( hex: Int ) : Color = new Color( hex )
+  private def c(hex: Int): Color = new Color(hex)
 
    /**
     * A simple light color scheme.
@@ -90,26 +90,25 @@ object Style {
       val singleColorSelect= true
    }
 }
+
 trait Style {
-   import Style.Pair
+  import Style.Pair
 
-   def default: Pair
-   def keyword: Pair
-   def operator: Pair
-   def comment: Pair
-   def number: Pair
-   def string: Pair
-   def identifier: Pair
-   def tpe: Pair
-   def delimiter: Pair
-
-   def background: Color
-   def foreground: Color
-   def selection: Color
-   def caret: Color
-   def pair: Color
-   def lineBackground: Color
-   def lineForeground: Color
-
-   def singleColorSelect: Boolean
+  def default: Pair
+  def keyword: Pair
+  def operator: Pair
+  def comment: Pair
+  def number: Pair
+  def string: Pair
+  def identifier: Pair
+  def tpe: Pair
+  def delimiter: Pair
+  def background: Color
+  def foreground: Color
+  def selection: Color
+  def caret: Color
+  def pair: Color
+  def lineBackground: Color
+  def lineForeground: Color
+  def singleColorSelect: Boolean
 }

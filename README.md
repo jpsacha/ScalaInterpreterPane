@@ -10,7 +10,9 @@ ScalaInterpreterPane currently compiles against Scala 2.10 (default) and 2.9.2 a
 
 To use it in your own project, add the following to `build.sbt`:
 
-    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % "1.3.+"
+    libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
+
+The current version `v` is `1.4.+`.
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
