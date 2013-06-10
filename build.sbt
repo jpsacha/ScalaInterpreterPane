@@ -2,13 +2,13 @@ import AssemblyKeys._
 
 name := "ScalaInterpreterPane"
 
-version := "1.4.0"
+version := "1.4.1-SNAPSHOT"
 
 organization := "de.sciss"
 
-scalaVersion := "2.10.0"
+scalaVersion := "2.10.2"
 
-crossScalaVersions in ThisBuild := Seq("2.10.0", "2.9.2")
+crossScalaVersions in ThisBuild := Seq("2.10.2", "2.9.3")
 
 description := "A Swing based front-end for the Scala REPL (interpreter)"
 
