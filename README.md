@@ -1,22 +1,22 @@
-## ScalaInterpreterPane
+# ScalaInterpreterPane
 
-### statement
+## statement
 
-ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010-2012 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010-2013 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
-### requirements
+## requirements
 
-ScalaInterpreterPane currently compiles against Scala 2.10 (default) and 2.9.2 and is build with sbt 0.12.
+ScalaInterpreterPane currently compiles against Scala 2.10 (default) and 2.9.3 and is build with sbt 0.13.
 
 To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `1.4.+`.
+The current version `v` is `1.4.1+`.
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
-### overview
+## overview
 
 There are two independent components, `CodePane` and `Interpreter`. The former encapsulates the Swing widget for editing source code with syntax highlighting. The latter encapsulates the Scala REPL.
 
@@ -75,14 +75,3 @@ The result of `interpret` is either of `Interpreter.Result`, e.g. `Interpreter.S
 
 If you use scala-swing, the components can be wrapped using `swing.Component.wrap(_)`.
 
-### creating an IntelliJ IDEA project
-
-To develop the source, if you haven't globally installed the sbt-idea plugin yet, create the following contents in `~/.sbt/plugins/build.sbt`:
-
-    addSbtPlugin( "com.github.mpeltonen" % "sbt-idea" % "1.1.0" )
-
-Then to create the IDEA project, run `sbt gen-idea`.
-
-### download
-
-The current sources can be downloaded from [github.com/Sciss/ScalaInterpreterPane](http://github.com/Sciss/ScalaInterpreterPane).

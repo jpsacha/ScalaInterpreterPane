@@ -1,8 +1,8 @@
 import AssemblyKeys._
 
-name := "ScalaInterpreterPane"
+name         := "ScalaInterpreterPane"
 
-version := "1.4.1-SNAPSHOT"
+version      := "1.4.1"
 
 organization := "de.sciss"
 
@@ -10,11 +10,11 @@ scalaVersion := "2.10.2"
 
 crossScalaVersions in ThisBuild := Seq("2.10.2", "2.9.3")
 
-description := "A Swing based front-end for the Scala REPL (interpreter)"
+description  := "A Swing based front-end for the Scala REPL (interpreter)"
 
-homepage := Some(url("https://github.com/Sciss/ScalaInterpreterPane"))
+homepage     := Some(url("https://github.com/Sciss/" + name.value))
 
-licenses := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
+licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
 libraryDependencies += "de.sciss" % "jsyntaxpane" % "1.0.+"
 
@@ -57,19 +57,18 @@ buildInfoPackage := "de.sciss.scalainterpreter"
 
 publishMavenStyle := true
 
-publishTo <<= version { (v: String) =>
-  Some( if( v.endsWith( "-SNAPSHOT" ))
+publishTo :=
+  Some(if (version.value endsWith "-SNAPSHOT")
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
   )
-}
 
 publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
 
-pomExtra <<= name { n =>
+pomExtra := { val n = name.value
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>
@@ -87,7 +86,7 @@ pomExtra <<= name { n =>
 
 seq(assemblySettings: _*)
 
-test in assembly := {}
+test in assembly := ()
 
 seq(appbundle.settings: _*)
 
@@ -99,11 +98,9 @@ appbundle.target <<= baseDirectory
 
 seq(lsSettings :_*)
 
-(LsKeys.tags in LsKeys.lsync) := Seq("repl", "interpreter")
+(LsKeys.tags   in LsKeys.lsync) := Seq("repl", "interpreter")
 
 (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
 
-(LsKeys.ghRepo in LsKeys.lsync) <<= name(Option.apply)
+(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
 
-// bug in ls -- doesn't find the licenses from global scope
-(licenses in LsKeys.lsync) := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
