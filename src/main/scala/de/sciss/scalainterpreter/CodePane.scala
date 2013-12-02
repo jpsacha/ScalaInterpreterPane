@@ -2,7 +2,7 @@
  *  CodePane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -27,46 +27,36 @@ import jsyntaxpane.{SyntaxStyle, TokenType, SyntaxStyles, DefaultSyntaxKit, Synt
 import java.awt.{Dimension, Color}
 import jsyntaxpane.util.Configuration
 import javax.swing.text.PlainDocument
+import collection.immutable.{Seq => ISeq}
 
 object CodePane {
   object Config {
-    implicit def build(b: ConfigBuilder): Config = b.build
+    implicit def build(b: ConfigBuilder): Config = b.build()
 
     def apply(): ConfigBuilder = new ConfigBuilderImpl
   }
 
   sealed trait ConfigLike {
-    /**
-     * The initial text to be shown in the pane
-     */
+    /** The initial text to be shown in the pane */
     def text: String
 
-    /**
-     * The color scheme to use
-     */
+    /** The color scheme to use */
     def style: Style
 
-    /**
-     * A map of custom keyboard action bindings
-     */
+    /** A map of custom keyboard action bindings */
     def keyMap: Map[KeyStroke, () => Unit]
 
-    /**
-     * A pre-processor function for key events
-     */
+    /** A pre-processor function for key events */
     def keyProcessor: KeyEvent => KeyEvent
 
-    /**
-     * A list of preferred font faces, given as pairs of font name and font size.
-     * The code pane tries to find the first matching font, therefore put the
-     * preferred faces in the beginning of the sequence, and the fall-back faces
-     * in the end.
-     */
-    def font: Seq[(String, Int)]
+    /** A list of preferred font faces, given as pairs of font name and font size.
+      * The code pane tries to find the first matching font, therefore put the
+      * preferred faces in the beginning of the sequence, and the fall-back faces
+      * in the end.
+      */
+    def font: ISeq[(String, Int)]
 
-    /**
-     * Preferred width and height of the component
-     */
+    /** Preferred width and height of the component */
     def preferredSize: (Int, Int)
 
     //      def toBuilder : ConfigBuilder
@@ -78,57 +68,57 @@ object CodePane {
     def apply(config: Config): ConfigBuilder = {
       import config._
       val b = new ConfigBuilderImpl
-      b.text = text
-      b.keyMap = keyMap
-      b.keyProcessor = keyProcessor
-      b.font = font
-      b.style = style
+      b.text          = text
+      b.keyMap        = keyMap
+      b.keyProcessor  = keyProcessor
+      b.font          = font
+      b.style         = style
       b.preferredSize = preferredSize
       b
     }
   }
 
   sealed trait ConfigBuilder extends ConfigLike {
-    var text: String
-    var style: Style
-    var keyMap: Map[KeyStroke, () => Unit]
-    var keyProcessor: KeyEvent => KeyEvent
-    var font: Seq[(String, Int)]
-    var preferredSize: (Int, Int)
-    def build: Config
+    var text          : String
+    var style         : Style
+    var keyMap        : Map[KeyStroke, () => Unit]
+    var keyProcessor  : KeyEvent => KeyEvent
+    var font          : ISeq[(String, Int)]
+    var preferredSize : (Int, Int)
+    def build()       : Config
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
     var text          = ""
     var style: Style  = Style.BlueForest
     var keyMap        = Map.empty[KeyStroke, () => Unit]
-    var keyProcessor: KeyEvent => KeyEvent = identity
+    var keyProcessor  = identity: KeyEvent => KeyEvent
     var font          = Helper.defaultFonts
     var preferredSize = (500, 500)
 
-    def build: Config = ConfigImpl(text, keyMap, keyProcessor, font, style, preferredSize)
+    def build(): Config = ConfigImpl(text, keyMap, keyProcessor, font, style, preferredSize)
 
     override def toString = "CodePane.ConfigBuilder@" + hashCode().toHexString
   }
 
   private final case class ConfigImpl(text: String, keyMap: Map[KeyStroke, () => Unit],
-                                      keyProcessor: KeyEvent => KeyEvent, font: Seq[(String, Int)],
+                                      keyProcessor: KeyEvent => KeyEvent, font: ISeq[(String, Int)],
                                       style: Style, preferredSize: (Int, Int))
     extends Config {
     override def toString = "CodePane.Config@" + hashCode().toHexString
   }
 
-  private def put(cfg: Configuration, key: String, pair: (Color, Style.Face)) {
+  private def put(cfg: Configuration, key: String, pair: (Color, Style.Face)): Unit = {
     val value = "0x" + (pair._1.getRGB | 0xFF000000).toHexString.substring(2) + ", " + pair._2.code
     cfg.put(key, value)
   }
 
-  private def put(cfg: Configuration, key: String, color: Color) {
+  private def put(cfg: Configuration, key: String, color: Color): Unit = {
     val value = "0x" + (color.getRGB | 0xFF000000).toHexString.substring(2)
     cfg.put(key, value)
   }
 
-  def initKit(config: Config) {
+  def initKit(config: Config): Unit = {
     DefaultSyntaxKit.initKit()
     DefaultSyntaxKit.registerContentType("text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit")
     //      val synDef = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
@@ -157,18 +147,16 @@ object CodePane {
     SyntaxStyles.getInstance().put(TokenType.DEFAULT, new SyntaxStyle(style.default._1, style.default._2.code))
   }
 
-  def apply(config: Config = Config().build): CodePane = {
+  def apply(config: Config = Config().build()): CodePane = {
     initKit(config)
     val res = createPlain(config)
     res.init()
     res
   }
 
-  private def createPlain( config: Config ) : Impl = {
+  private def createPlain(config: Config): Impl = {
     val ed: JEditorPane = new JEditorPane() {
-      override protected def processKeyEvent(e: KeyEvent) {
-        super.processKeyEvent(config.keyProcessor(e))
-      }
+      override protected def processKeyEvent(e: KeyEvent): Unit = super.processKeyEvent(config.keyProcessor(e))
     }
     ed.setPreferredSize(new Dimension(config.preferredSize._1, config.preferredSize._2))
     val style = config.style
@@ -207,7 +195,7 @@ object CodePane {
       ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS)
 
-    def init() {
+    def init(): Unit = {
       editor.setContentType("text/scala")
       editor.setText(config.text)
       editor.setFont(Helper.createFont(config.font))
@@ -223,7 +211,7 @@ object CodePane {
 
     def getSelectedTextOrCurrentLine: Option[String] = getSelectedText.orElse(getCurrentLine)
 
-    def installAutoCompletion(interpreter: Interpreter) {
+    def installAutoCompletion(interpreter: Interpreter): Unit = {
       val imap = editor.getInputMap(JComponent.WHEN_FOCUSED)
       val amap = editor.getActionMap
       imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK), "de.sciss.comp")
@@ -235,26 +223,18 @@ object CodePane {
 }
 
 trait CodePane {
-  /**
-   * The peer swing component which can be added to the parent swing container.
-   */
+  /** The peer swing component which can be added to the parent swing container. */
   def component: JComponent
 
   def editor: JEditorPane
 
-  /**
-   * The currently selected text, or `None` if no selection has been made.
-   */
+  /** The currently selected text, or `None` if no selection has been made. */
   def getSelectedText: Option[String]
 
-  /**
-   * The text on the current line, or `None` if the document is empty or unavailable.
-   */
+  /** The text on the current line, or `None` if the document is empty or unavailable. */
   def getCurrentLine: Option[String]
 
-  /**
-   * Convenience method for `getSelectedText orElse getCurrentLine`.
-   */
+  /** Convenience method for `getSelectedText orElse getCurrentLine`. */
   def getSelectedTextOrCurrentLine: Option[String]
 
   def installAutoCompletion(interpreter: Interpreter): Unit

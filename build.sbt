@@ -2,13 +2,11 @@ import AssemblyKeys._
 
 name         := "ScalaInterpreterPane"
 
-version      := "1.4.1"
+version      := "1.5.0-SNAPSHOT"
 
 organization := "de.sciss"
 
-scalaVersion := "2.10.2"
-
-crossScalaVersions in ThisBuild := Seq("2.10.2", "2.9.3")
+scalaVersion := "2.10.3"
 
 description  := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -16,17 +14,16 @@ homepage     := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-libraryDependencies += "de.sciss" % "jsyntaxpane" % "1.0.+"
-
-libraryDependencies <+= scalaVersion { sv =>
-  "org.scala-lang" % "scala-compiler" % sv
-}
+libraryDependencies ++= Seq(
+  "de.sciss" % "jsyntaxpane" % "1.0.+",
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value
+)
 
 retrieveManaged := true
 
-scalacOptions ++= Seq("-deprecation", "-unchecked")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
-scalacOptions <++= scalaVersion.map { sv =>
+scalacOptions ++= { val sv = scalaVersion.value
   def versionSeq(a: String) = a split '.' map (_.toInt)
   def compareVersion(a: String, b: String) = {
     versionSeq(a) zip versionSeq(b) map { case (i, j) => i compare j } find (_ != 0) getOrElse 0
@@ -90,9 +87,9 @@ test in assembly := ()
 
 seq(appbundle.settings: _*)
 
-appbundle.icon := Some(file("application.icns"))
+appbundle.icon   := Some(file("application.icns"))
 
-appbundle.target <<= baseDirectory
+appbundle.target := baseDirectory.value
 
 // ---- ls.implicit.ly ----
 
