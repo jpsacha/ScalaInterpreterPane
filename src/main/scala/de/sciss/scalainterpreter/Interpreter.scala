@@ -362,6 +362,10 @@ object Interpreter {
   }
 
   private final class Impl(in: IMain with ResultIntp) extends Interpreter {
+    // private var importMap = Map.empty[in.memberHandlers.ImportHandler, Option[CompletionAware]]
+
+    private var importMap = Map.empty[String, Option[CompletionAware]]  // XXX TODO: should we use weak hash map?
+
     private lazy val cmp: ScalaCompleter = {
       val jlineComp = new JLineCompletion(in) {
         //        private def imported: List[ImportCompletion] = {
@@ -413,27 +417,57 @@ object Interpreter {
           // res.foreach(println)
           // val add: List[CompletionAware] = testCmp :: Nil // CompletionAware(() => intp.importedTypes.map(_.decode)) :: Nil
 
-          val add: List[CompletionAware] = ihs.flatMap { ih =>
-            if (!ih.importsWildcard) None else {
-              // println(ih.expr.getClass)
-              import global.{rootMirror, NoSymbol}
-              // rm.findMemberFromRoot()
-              val sym = rootMirror.getModuleIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
-              // val sym = rootMirror.getPackageObjectIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
-              // val pkg = rm.getPackage(global.newTermNameCached(ih.expr.toString))
-              if (sym == NoSymbol) None else {
-                val pc = new PackageCompletion(sym.tpe)
-                Some(pc)
-              }
+          val res = new ListBuffer[CompletionAware]
+          res ++= sup
+
+          // try {
+          ihs.foreach { ih =>
+            val key = ih.expr.toString
+            importMap.get(key) match {
+              case Some(Some(c)) => res += c
+              case None =>
+                val value = if (ih.importsWildcard) {
+                  import global.{rootMirror, NoSymbol}
+                  // rm.findMemberFromRoot()
+                  val sym = rootMirror.getModuleIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
+                  // val sym = rootMirror.getPackageObjectIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
+                  // val pkg = rm.getPackage(global.newTermNameCached(ih.expr.toString))
+                  if (sym == NoSymbol) None else {
+                    val pc = new PackageCompletion(sym.tpe)
+                    res += pc
+                    Some(pc)
+                  }
+                } else None
+                importMap += key -> value
+
+              case _ =>
             }
           }
+          //} catch {
+          //  case NonFatal(ex) => ex.printStackTrace()
+          //}
+
+          //          val add: List[CompletionAware] = ihs.flatMap { ih =>
+          //            if (!ih.importsWildcard) None else {
+          //              // println(ih.expr.getClass)
+          //              import global.{rootMirror, NoSymbol}
+          //              // rm.findMemberFromRoot()
+          //              val sym = rootMirror.getModuleIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
+          //              // val sym = rootMirror.getPackageObjectIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
+          //              // val pkg = rm.getPackage(global.newTermNameCached(ih.expr.toString))
+          //              if (sym == NoSymbol) None else {
+          //                val pc = new PackageCompletion(sym.tpe)
+          //                Some(pc)
+          //              }
+          //            }
+          //          }
           //          try {
           //          } catch {
           //            case NonFatal(ex) => ex.printStackTrace()
           //              throw ex
           //          }
-          val res = sup ++ add
-          res
+          // val res = sup ++ add
+          res.toList
         }
 
         // the first tier of top level objects (doesn't include file completion)
