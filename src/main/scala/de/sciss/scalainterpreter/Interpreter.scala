@@ -365,6 +365,7 @@ object Interpreter {
       val jlineComp = new JLineCompletion(in) {
         //        private def imported: List[ImportCompletion] = {
         //          val wc  = intp.sessionWildcards
+        //          intp.sessionImportedSymbols
         //          val res = wc.map(TypeMemberCompletion.imported)
         //          res
         //        }
@@ -372,31 +373,40 @@ object Interpreter {
         override def topLevel: List[CompletionAware] = {
           // println("--topLevel--")
           val sup   = super.topLevel
-          val ihs   = intp.importHandlers.headOption
-          ihs.foreach { ih =>
-            println("---imported symbols---")
-            ih.importedSymbols.foreach(println)
-            println(s"isLegalTopLevel? ${ih.isLegalTopLevel} isPredefImport? ${ih.isPredefImport} importsWildcard? ${ih.importsWildcard}")
-            println(s"importString: ${ih.importString}")
-            println(s"targetType: ${ih.targetType}")
-            println("---imported names---")
-            ih.importedNames.foreach(println)
-            println("---selectors---")
-            ih.selectors.foreach(println)
-            println("---wildcard names---")
-            ih.wildcardNames.foreach(println)
-          }
-          println("---all seen types---")
-          intp.allSeenTypes.foreach(println)
-          println("---definedTerms---")
-          intp.definedTerms.foreach(println)
-          println("---definedTypes---")
-          intp.definedTypes.foreach(println)
-          println("---visibleTermNames---")
-          intp.visibleTermNames.foreach(println)
+          //                    val ihs   = intp.importHandlers.headOption
+          //                    ihs.foreach { ih =>
+          //                      println("---imported symbols---")
+          //                      ih.importedSymbols.foreach(println)
+          //                      println(s"isLegalTopLevel? ${ih.isLegalTopLevel} isPredefImport? ${ih.isPredefImport} importsWildcard? ${ih.importsWildcard}")
+          //                      println(s"importString: ${ih.importString}")
+          //                      println(s"targetType: ${ih.targetType}")
+          //                      println("---imported names---")
+          //                      ih.importedNames.foreach(println)
+          //                      println("---selectors---")
+          //                      ih.selectors.foreach(println)
+          //                      println("---wildcard names---")
+          //                      ih.wildcardNames.foreach(println)
+          //                    }
+          //          println("---all seen types---")
+          //          intp.allSeenTypes.foreach(println)
+          //          println("---definedTerms---")
+          //          intp.definedTerms.foreach(println)
+          //          println("---definedTypes---")
+          //          intp.definedTypes.foreach(println)
+          //          println("---visibleTermNames---")
+          //          intp.visibleTermNames.foreach(println)
+          //          println("---allDefinedNames---")
+          //          intp.allDefinedNames.foreach(println)
+
+          intp.global.definitions
+          // val global  = intp.global
+          val rm      = global.rootMirror
+          val testPck = rm.getPackage(global.newTermNameCached("scala.concurrent"))
+          val testCmp = new PackageCompletion(testPck.tpe)
+
           // val res = topLevelBase ++ imported
           // res.foreach(println)
-          val add: List[CompletionAware] = Nil // CompletionAware(() => intp.importedTypes.map(_.decode)) :: Nil
+          val add: List[CompletionAware] = testCmp :: Nil // CompletionAware(() => intp.importedTypes.map(_.decode)) :: Nil
           val res = sup ++ add // .map(TypeMemberCompletion.imported)
           res
         }
