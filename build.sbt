@@ -16,6 +16,7 @@ licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.t
 
 libraryDependencies ++= Seq(
   "de.sciss" % "jsyntaxpane" % "1.0.+",
+  "org.scala-lang" % "jline" % scalaVersion.value,
   "org.scala-lang" % "scala-compiler" % scalaVersion.value
 )
 

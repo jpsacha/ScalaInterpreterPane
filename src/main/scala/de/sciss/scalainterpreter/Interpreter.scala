@@ -22,10 +22,13 @@ package de.sciss.scalainterpreter
 
 import tools.nsc.{Settings => CompilerSettings, ConsoleWriter, NewLinePrintWriter}
 import java.io.{Writer, File}
-import tools.nsc.interpreter.{Results, JLineCompletion, Completion, IMain}
+import scala.tools.nsc.interpreter._
 import java.util.concurrent.Executors
 import collection.immutable.{Seq => ISeq}
 import scala.util.control.NonFatal
+import scala.tools.nsc.interpreter.Completion.{Candidates, ScalaCompleter}
+import scala.tools.jline.console.completer.{Completer, ArgumentCompleter}
+import scala.collection.{breakOut, JavaConverters}
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */
 object Interpreter {
@@ -356,12 +359,39 @@ object Interpreter {
     })
   }
 
-  private final class Impl( in: IMain with ResultIntp ) extends Interpreter {
-    private val cmp = new JLineCompletion(in)
+  private final class Impl(in: IMain with ResultIntp) extends Interpreter {
+    private lazy val cmp: ScalaCompleter = {
+      val jlineComp = new JLineCompletion(in)
+      val tc        = jlineComp.completer()
+
+      val comp = new Completer {
+        def complete(buf: String, cursor: Int, candidates: JList[CharSequence]): Int = {
+          val buf1 = if (buf == null) "" else buf
+          val Candidates(newCursor, newCandidates) = tc.complete(buf1, cursor)
+          newCandidates.foreach(candidates.add)
+          newCursor
+        }
+      }
+
+      val argComp = new ArgumentCompleter(new JLineDelimiter, comp)
+      argComp.setStrict(false)
+
+      new ScalaCompleter {
+        def complete(buf: String, cursor: Int): Candidates = {
+          val jlist     = new java.util.ArrayList[CharSequence]
+          val newCursor = argComp.complete(buf, cursor, jlist)
+          import JavaConverters._
+          val list: List[String] = jlist.asScala.collect {
+            case c if c.length > 0 => c.toString
+          } (breakOut)
+          Candidates(newCursor, list)
+        }
+      }
+    }
 
     override def toString = "Interpreter@" + hashCode().toHexString
 
-    def completer: Completion.ScalaCompleter = cmp.completer()
+    def completer: Completion.ScalaCompleter = cmp
 
     def interpret(code: String, quiet: Boolean): Interpreter.Result = {
       if (quiet) {
