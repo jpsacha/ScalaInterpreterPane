@@ -29,6 +29,7 @@ import scala.util.control.NonFatal
 import scala.tools.nsc.interpreter.Completion.{Candidates, ScalaCompleter}
 import scala.tools.jline.console.completer.{Completer, ArgumentCompleter}
 import scala.collection.{breakOut, JavaConverters}
+import scala.collection.mutable.ListBuffer
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */
 object Interpreter {
@@ -361,8 +362,60 @@ object Interpreter {
 
   private final class Impl(in: IMain with ResultIntp) extends Interpreter {
     private lazy val cmp: ScalaCompleter = {
-      val jlineComp = new JLineCompletion(in)
-      val tc        = jlineComp.completer()
+      val jlineComp = new JLineCompletion(in) {
+        //        private def imported: List[ImportCompletion] = {
+        //          val wc  = intp.sessionWildcards
+        //          val res = wc.map(TypeMemberCompletion.imported)
+        //          res
+        //        }
+
+        override def topLevel: List[CompletionAware] = {
+          // println("--topLevel--")
+          val sup   = super.topLevel
+          val ihs   = intp.importHandlers.headOption
+          ihs.foreach { ih =>
+            println("---imported symbols---")
+            ih.importedSymbols.foreach(println)
+            println(s"isLegalTopLevel? ${ih.isLegalTopLevel} isPredefImport? ${ih.isPredefImport} importsWildcard? ${ih.importsWildcard}")
+            println(s"importString: ${ih.importString}")
+            println(s"targetType: ${ih.targetType}")
+            println("---imported names---")
+            ih.importedNames.foreach(println)
+            println("---selectors---")
+            ih.selectors.foreach(println)
+            println("---wildcard names---")
+            ih.wildcardNames.foreach(println)
+          }
+          println("---all seen types---")
+          intp.allSeenTypes.foreach(println)
+          println("---definedTerms---")
+          intp.definedTerms.foreach(println)
+          println("---definedTypes---")
+          intp.definedTypes.foreach(println)
+          println("---visibleTermNames---")
+          intp.visibleTermNames.foreach(println)
+          // val res = topLevelBase ++ imported
+          // res.foreach(println)
+          val add: List[CompletionAware] = Nil // CompletionAware(() => intp.importedTypes.map(_.decode)) :: Nil
+          val res = sup ++ add // .map(TypeMemberCompletion.imported)
+          res
+        }
+
+        // the first tier of top level objects (doesn't include file completion)
+        override def topLevelFor(parsed: Parsed): List[String] = {
+          val buf = new ListBuffer[String]
+          val tl  = topLevel
+          tl.foreach { ca =>
+            val cac = ca.completionsFor(parsed)
+            buf ++= cac
+
+            if (buf.size > topLevelThreshold)
+              return buf.toList.sorted
+          }
+          buf.toList
+        }
+      }
+      val tc = jlineComp.completer()
 
       val comp = new Completer {
         def complete(buf: String, cursor: Int, candidates: JList[CharSequence]): Int = {
