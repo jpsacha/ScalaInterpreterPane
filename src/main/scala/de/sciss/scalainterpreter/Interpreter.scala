@@ -23,7 +23,6 @@ package de.sciss.scalainterpreter
 import tools.nsc.{Settings => CompilerSettings, ConsoleWriter, NewLinePrintWriter}
 import java.io.{Writer, File}
 import scala.tools.nsc.interpreter._
-import java.util.concurrent.Executors
 import collection.immutable.{Seq => ISeq}
 import scala.util.control.NonFatal
 import scala.tools.nsc.interpreter.Completion.{Candidates, ScalaCompleter}
@@ -31,9 +30,14 @@ import scala.tools.jline.console.completer.{Completer, ArgumentCompleter}
 import scala.collection.{breakOut, JavaConverters}
 import scala.collection.mutable.ListBuffer
 import language.implicitConversions
+import scala.concurrent.{ExecutionContext, Future, future, blocking}
+import java.util.concurrent.Executors
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */
 object Interpreter {
+  val defaultInitializeContext: ExecutionContext =
+    ExecutionContext fromExecutorService Executors.newSingleThreadExecutor()
+
   /** Factory object for creating new configuration builders. */
   object Config {
     /** A configuration builder is automatically converted to an immutable configuration */
@@ -351,14 +355,10 @@ object Interpreter {
     in
   }
 
-  def async(config: Config = Config().build())(done: Interpreter => Unit): Unit = {
-    val exec = Executors.newSingleThreadExecutor()
-    exec.submit(new Runnable {
-      def run(): Unit = {
-        val res = apply(config)
-        done(res)
-      }
-    })
+  /** Convenience constructor with calls `apply` inside a blocking future. */
+  def async(config: Config = Config().build())
+           (implicit exec: ExecutionContext = defaultInitializeContext): Future[Interpreter] = future {
+    blocking(apply(config))
   }
 
   private final class Impl(in: IMain with ResultIntp) extends Interpreter {

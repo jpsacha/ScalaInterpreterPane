@@ -24,6 +24,8 @@ import javax.swing.{AbstractAction, Box, JComponent, JLabel, JPanel, JProgressBa
 import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
 import java.awt.{EventQueue, BorderLayout}
 import language.implicitConversions
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 object InterpreterPane {
   object Config {
@@ -89,16 +91,27 @@ object InterpreterPane {
   }
 
   def wrap(interpreter: Interpreter, codePane: CodePane): InterpreterPane =
-    new Impl(Config().build(), Some(interpreter), codePane)
+    create(Config().build(), Future.successful(interpreter), codePane)(ExecutionContext.global)
+
+  def wrapAsync(interpreter: Future[Interpreter], codePane: CodePane)
+               (implicit exec: ExecutionContext = Interpreter.defaultInitializeContext): InterpreterPane =
+    create(Config().build(), interpreter, codePane)
 
   def apply(config: Config = Config().build(),
-            interpreterConfig: Interpreter.Config = Interpreter.Config().build(),
-            codePaneConfig: CodePane.Config = CodePane.Config().build()): InterpreterPane = {
+            interpreterConfig : Interpreter .Config = Interpreter .Config().build(),
+            codePaneConfig    : CodePane    .Config = CodePane    .Config().build())
+           (implicit exec: ExecutionContext = Interpreter.defaultInitializeContext): InterpreterPane = {
 
     val cpSet     = if (config.prependExecutionInfo) incorporate(config, codePaneConfig) else codePaneConfig
     val codePane  = CodePane(cpSet)
-    val impl      = new Impl(config, None, codePane)
-    Interpreter.async(interpreterConfig) { in =>
+    val fut       = Interpreter.async(interpreterConfig)
+    create(config, fut, codePane)
+  }
+
+  private def create(config: Config, fut: Future[Interpreter], codePane: CodePane)
+                    (implicit exec: ExecutionContext): InterpreterPane = {
+    val impl = new Impl(config, fut, codePane)
+    fut.onSuccess { case in =>
       EventQueue.invokeLater(new Runnable {
         def run(): Unit = impl.setInterpreter(in)
       })
@@ -106,25 +119,22 @@ object InterpreterPane {
     impl
   }
 
-  private final class Impl(config: Config, private var interpreter: Option[Interpreter], codePane: CodePane)
+  private final class Impl(config: Config, interpreter: Future[Interpreter], val codePane: CodePane)
     extends InterpreterPane {
 
     private def checkInterpreter() {
-      val has = interpreter.isDefined
+      val has = interpreter.isCompleted // .isDefined
       codePane.editor.setEnabled(has)
       ggProgressInvis.setVisible(has)
       ggProgress.setVisible(!has)
-      if (config.code != "") interpreter.foreach(_.interpret(config.code))
       status = if (has) "Ready." else "Initializing..."
     }
 
     def setInterpreter(in: Interpreter) {
-      require(interpreter.isEmpty)
-      interpreter = Some(in)
-      //         codePane.init()
       codePane.installAutoCompletion(in)
       codePane.editor.requestFocus()
       checkInterpreter()
+      if (config.code != "") in.interpret(config.code)
     }
 
     private val ggStatus = {
@@ -192,16 +202,19 @@ object InterpreterPane {
 
     def status_=(value: String): Unit = ggStatus.setText(value)
 
-    def interpret(code: String): Unit = interpreter.foreach { in =>
-      status = ""
-      status = in.interpretWithoutResult(code) match {
-        case Interpreter.Success(name, _) =>
-          "Ok. <" + name + ">"
-        case Interpreter.Error(message) =>
-          "! Error : " + message
-        case Interpreter.Incomplete =>
-          "! Code incomplete"
-      }
+    def interpret(code: String): Unit = interpreter.value.foreach {
+      case Success(in) =>
+        status = ""
+        status = in.interpretWithoutResult(code) match {
+          case Interpreter.Success(name, _) =>
+            "Ok. <" + name + ">"
+          case Interpreter.Error(message) =>
+            "! Error : " + message
+          case Interpreter.Incomplete =>
+            "! Code incomplete"
+        }
+
+      case _ =>
     }
 
     def installExecutionAction(): Unit = {
@@ -221,6 +234,8 @@ object InterpreterPane {
 }
 sealed trait InterpreterPane {
   def component: JComponent
+
+  def codePane: CodePane
 
   var status: String
 

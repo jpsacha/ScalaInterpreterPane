@@ -12,7 +12,7 @@ To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current stable version `v` is `"1.4.1+"`. The current development snapshot is `"1.5.+"`
+The current version `v` is `"1.5.+"`
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
@@ -81,3 +81,16 @@ If you use scala-swing, the components can be wrapped using `swing.Component.wra
   executed in the interpreter before
 - auto-completion does not handle wildcard imports executed in the interpreter. completion for wildcard imports defined
   in the configuration should work as excepted
+- the result value of an evaluation is currently not directly available
+
+## related
+
+There are various projects which provide similar functionality or part of the functionality:
+
+- https://github.com/Bridgewater/scala-notebook - console in a browser interface
+- https://github.com/jedesah/scala-codesheet-api - code sheet is a slightly different concept with respect to execution
+- https://github.com/MasseGuillaume/ScalaKata - console in a browser interface
+- https://github.com/bobbylight/RSyntaxTextArea - an alternative to JSyntaxPane
+- http://code.google.com/p/scalide/ - Swing based REPL, stopped in 2009
+- https://github.com/kjellwinblad/ScalaEdit - Swing based editor based on RSyntaxTextArea, stopped in 2011
+- https://bitbucket.org/centaur/scalaconsole/wiki/Home - Swing based console, stopped in 2011
