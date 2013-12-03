@@ -23,6 +23,7 @@ package de.sciss.scalainterpreter
 import java.awt.{ EventQueue, GraphicsEnvironment }
 import javax.swing.{JFrame, WindowConstants}
 import scala.util.control.NonFatal
+import de.sciss.synth.swing.ScalaColliderSwing
 
 /** The standalone application object */
 object Main extends App with Runnable {
@@ -44,8 +45,28 @@ object Main extends App with Runnable {
     //      pCfg.executeKey = javax.swing.KeyStroke.getKeyStroke( java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.META_MASK )
 
     val iCfg = Interpreter.Config()
-    //      iCfg.bindings :+= NamedParam( "gaga", 33 )
-    //      iCfg.imports = iCfg.imports :+ "javax.swing._"
+    // iCfg.imports :+= "javax.swing._"
+    iCfg.imports = List(
+      //         "Predef.{any2stringadd => _}",
+      "scala.math._",
+      "de.sciss.osc",
+      "de.sciss.osc.{TCP, UDP}",
+      "de.sciss.osc.Dump.{Off, Both, Text}",
+      "de.sciss.osc.Implicits._",
+      "de.sciss.synth._",
+      "de.sciss.synth.Ops._",
+      "de.sciss.synth.swing.SynthGraphPanel._",
+      "de.sciss.synth.swing.Implicits._",
+      "de.sciss.synth.ugen._",
+      "replSupport._"
+    )
+
+    class Foo {
+      def bar = 33
+    }
+
+    val replSupport = new Foo //  null: ScalaColliderSwing.REPLSupport // new ScalaColliderSwing.REPLSupport(null, null)
+    iCfg.bindings = List(NamedParam("replSupport", replSupport))
 
     val cCfg = CodePane.Config()
     //      cCfg.font = Seq( "Helvetica" -> 16 )

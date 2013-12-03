@@ -15,6 +15,7 @@ homepage     := Some(url("https://github.com/Sciss/" + name.value))
 licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
 libraryDependencies ++= Seq(
+  "de.sciss" %% "scalacolliderswing" % "1.10.+",
   "de.sciss" % "jsyntaxpane" % "1.0.+",
   "org.scala-lang" % "jline" % scalaVersion.value,
   "org.scala-lang" % "scala-compiler" % scalaVersion.value

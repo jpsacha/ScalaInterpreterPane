@@ -75,3 +75,9 @@ The result of `interpret` is either of `Interpreter.Result`, e.g. `Interpreter.S
 
 If you use scala-swing, the components can be wrapped using `swing.Component.wrap(_)`.
 
+## limitations
+
+- auto-completion is based on the standard Scala REPL's auto completion, thus will only see values which have been
+  executed in the interpreter before
+- auto-completion does not handle wildcard imports executed in the interpreter. completion for wildcard imports defined
+  in the configuration should work as excepted
