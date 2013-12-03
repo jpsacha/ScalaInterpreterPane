@@ -30,6 +30,7 @@ import scala.tools.nsc.interpreter.Completion.{Candidates, ScalaCompleter}
 import scala.tools.jline.console.completer.{Completer, ArgumentCompleter}
 import scala.collection.{breakOut, JavaConverters}
 import scala.collection.mutable.ListBuffer
+import language.implicitConversions
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */
 object Interpreter {
@@ -412,14 +413,26 @@ object Interpreter {
           // res.foreach(println)
           // val add: List[CompletionAware] = testCmp :: Nil // CompletionAware(() => intp.importedTypes.map(_.decode)) :: Nil
 
-          val add: List[CompletionAware] = ihs collect {
-            case ih if ih.importsWildcard =>
+          val add: List[CompletionAware] = ihs.flatMap { ih =>
+            if (!ih.importsWildcard) None else {
               // println(ih.expr.getClass)
-              val pkg = global.rootMirror.getPackage(global.newTermNameCached(ih.expr.toString))
-              new PackageCompletion(pkg.tpe)
+              import global.{rootMirror, NoSymbol}
+              // rm.findMemberFromRoot()
+              val sym = rootMirror.getModuleIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
+              // val sym = rootMirror.getPackageObjectIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
+              // val pkg = rm.getPackage(global.newTermNameCached(ih.expr.toString))
+              if (sym == NoSymbol) None else {
+                val pc = new PackageCompletion(sym.tpe)
+                Some(pc)
+              }
+            }
           }
-
-          val res = sup ++ add // .map(TypeMemberCompletion.imported)
+          //          try {
+          //          } catch {
+          //            case NonFatal(ex) => ex.printStackTrace()
+          //              throw ex
+          //          }
+          val res = sup ++ add
           res
         }
 

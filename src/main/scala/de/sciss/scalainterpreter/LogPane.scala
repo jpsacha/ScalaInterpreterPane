@@ -27,6 +27,7 @@ import java.awt.event.{ActionEvent, MouseEvent, MouseAdapter}
 import javax.swing.{JComponent, JPopupMenu, AbstractAction, JScrollPane, JTextArea, ScrollPaneConstants}
 import collection.immutable.{Seq => ISeq}
 import scala.util.control.NonFatal
+import language.implicitConversions
 
 object LogPane {
   object Config {

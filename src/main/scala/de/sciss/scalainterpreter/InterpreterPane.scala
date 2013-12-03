@@ -23,6 +23,7 @@ package de.sciss.scalainterpreter
 import javax.swing.{AbstractAction, Box, JComponent, JLabel, JPanel, JProgressBar, KeyStroke, OverlayLayout}
 import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
 import java.awt.{EventQueue, BorderLayout}
+import language.implicitConversions
 
 object InterpreterPane {
   object Config {

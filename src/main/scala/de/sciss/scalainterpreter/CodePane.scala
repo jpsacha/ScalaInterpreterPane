@@ -28,6 +28,7 @@ import java.awt.{Dimension, Color}
 import jsyntaxpane.util.Configuration
 import javax.swing.text.PlainDocument
 import collection.immutable.{Seq => ISeq}
+import language.implicitConversions
 
 object CodePane {
   object Config {
