@@ -20,15 +20,16 @@
 
 package de.sciss.scalainterpreter
 
-import actions.CompletionAction
+import de.sciss.scalainterpreter.actions.CompletionAction
 import javax.swing.{JScrollPane, ScrollPaneConstants, AbstractAction, JEditorPane, KeyStroke, JComponent}
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
-import jsyntaxpane.{SyntaxStyle, TokenType, SyntaxStyles, DefaultSyntaxKit, SyntaxDocument}
+import jsyntaxpane._
 import java.awt.{Dimension, Color}
 import jsyntaxpane.util.Configuration
 import javax.swing.text.PlainDocument
 import collection.immutable.{Seq => ISeq}
 import language.implicitConversions
+import scala.Some
 
 object CodePane {
   object Config {
@@ -138,7 +139,7 @@ object CodePane {
 
     put(syn, "LineNumbers.CurrentBack", style.lineBackground)
     put(syn, "LineNumbers.Foreground",  style.lineForeground)
-    syn.put("SingleColorSelect",        style.singleColorSelect.toString) // XXX TODO currently broken - has no effect
+    syn.put(SyntaxView.PROPERTY_SINGLE_COLOR_SELECT, style.singleColorSelect.toString) // XXX TODO currently broken - has no effect
     //      synDef.put( "SingleColorSelect", style.singleColorSelect.toString )
     put(syn, "SelectionColor",          style.selection)
     put(syn, "CaretColor",              style.caret)
@@ -162,7 +163,14 @@ object CodePane {
     ed.setPreferredSize(new Dimension(config.preferredSize._1, config.preferredSize._2))
     val style = config.style
     ed.setBackground(style.background) // stupid... this cannot be set in the kit config
-    ed.setForeground(style.foreground)
+
+    // this is very stupid: the foreground is not used by the syntax kit,
+    // however the plain view compares normal and selectd foreground. if
+    // they are the same, it doesn't invoke drawSelectedText. therefore,
+    // to achieve single color selection, we must ensure that the
+    // foreground is _any_ color, as long as it is different from `style.foreground`.
+    // fixes #3
+    ed.setForeground(if (style.foreground == Color.white) Color.black else Color.white)
     ed.setSelectedTextColor(style.foreground)
 
     val imap = ed.getInputMap(JComponent.WHEN_FOCUSED)
