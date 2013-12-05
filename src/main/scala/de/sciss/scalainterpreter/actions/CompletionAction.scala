@@ -21,17 +21,17 @@
 package de.sciss.scalainterpreter
 package actions
 
-import jsyntaxpane.SyntaxDocument
 import javax.swing.text.{BadLocationException, JTextComponent}
-import jsyntaxpane.actions.gui.EscapeListener
-import jsyntaxpane.actions.DefaultSyntaxAction
 import tools.nsc.interpreter.Completion.ScalaCompleter
 import java.awt.Dialog.ModalityType
 import javax.swing.event.{DocumentListener, DocumentEvent}
-import jsyntaxpane.util.{StringUtils, SwingUtils}
 import java.awt.Point
 import javax.swing.{GroupLayout, JList, JScrollPane, JTextField, JDialog, SwingUtilities}
 import java.awt.event.{ActionEvent, MouseEvent, MouseAdapter, KeyEvent, KeyAdapter}
+import de.sciss.syntaxpane.actions.gui.EscapeListener
+import de.sciss.syntaxpane.util.{StringUtils, SwingUtils}
+import de.sciss.syntaxpane.SyntaxDocument
+import de.sciss.syntaxpane.actions.DefaultSyntaxAction
 
 object CompletionAction {
   private final val escapeChars = ";(= \t\n\r"

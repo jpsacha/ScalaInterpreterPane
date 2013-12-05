@@ -41,13 +41,13 @@ object Interpreter {
   /** Factory object for creating new configuration builders. */
   object Config {
     /** A configuration builder is automatically converted to an immutable configuration */
-    implicit def build(b: ConfigBuilder): Config = b.build()
+    implicit def build(b: ConfigBuilder): Config = b.build
 
     /** Creates a new configuration builder with defaults. */
     def apply(): ConfigBuilder = new ConfigBuilderImpl
   }
   sealed trait ConfigLike {
-    implicit def build(b: ConfigBuilder): Config = b.build()
+    implicit def build(b: ConfigBuilder): Config = b.build
 
     /** A list of package names to import to the scope of the interpreter. */
     def imports: ISeq[String]
@@ -114,7 +114,7 @@ object Interpreter {
     var out         : Option[Writer]
     var quietImports: Boolean
 
-    def build(): Config
+    def build: Config
   }
 
   sealed trait Result
@@ -129,7 +129,7 @@ object Interpreter {
     var out           = Option.empty[Writer]
     var quietImports  = true
 
-    def build(): Config = new ConfigImpl(
+    def build: Config = new ConfigImpl(
       imports = imports, bindings = bindings, executor = executor, out = out, quietImports = quietImports)
 
     override def toString = "Interpreter.ConfigBuilder@" + hashCode().toHexString
@@ -147,7 +147,7 @@ object Interpreter {
     * @param config  the configuration for the interpreter.
     * @return  the new Scala interpreter
     */
-  def apply(config: Config = Config().build()): Interpreter = {
+  def apply(config: Config = Config().build): Interpreter = {
     val in = makeIMain(config)
     new Impl(in)
   }
@@ -356,7 +356,7 @@ object Interpreter {
   }
 
   /** Convenience constructor with calls `apply` inside a blocking future. */
-  def async(config: Config = Config().build())
+  def async(config: Config = Config().build)
            (implicit exec: ExecutionContext = defaultInitializeContext): Future[Interpreter] = future {
     blocking(apply(config))
   }

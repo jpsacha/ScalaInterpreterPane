@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name         := "ScalaInterpreterPane"
 
-version      := "1.5.1-SNAPSHOT"
+version      := "1.6.0"
 
 organization := "de.sciss"
 
@@ -15,9 +15,8 @@ homepage     := Some(url("https://github.com/Sciss/" + name.value))
 licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
 libraryDependencies ++= Seq(
-  // "de.sciss" %% "scalacolliderswing" % "1.10.+",
-  "de.sciss"       % "jsyntaxpane"    % "1.0.+",
-  "org.scala-lang" % "jline"          % scalaVersion.value,
+  "de.sciss"       % "syntaxpane"     % "1.1.+",
+ ("org.scala-lang" % "jline"          % scalaVersion.value).exclude("org.fusesource.jansi", "jansi"), // duplicate stuff in jansi!
   "org.scala-lang" % "scala-compiler" % scalaVersion.value
 )
 
@@ -86,6 +85,18 @@ pomExtra := { val n = name.value
 seq(assemblySettings: _*)
 
 test in assembly := ()
+
+// cf. https://github.com/sbt/sbt-assembly/issues/92
+//mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => {
+//  case PathList("org", "fusesource", "jansi", xs @ _*) => MergeStrategy.first
+//  case x => old(x)
+//}}
+
+// mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => { case _ => MergeStrategy.discard } }
+
+//excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
+//  cp filter {_.data.getName == "jansi-1.4.jar"}
+//}
 
 seq(appbundle.settings: _*)
 

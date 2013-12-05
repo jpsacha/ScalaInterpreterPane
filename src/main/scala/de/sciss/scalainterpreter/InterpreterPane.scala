@@ -29,7 +29,7 @@ import scala.util.Success
 
 object InterpreterPane {
   object Config {
-    implicit def build(b: ConfigBuilder): Config = b.build()
+    implicit def build(b: ConfigBuilder): Config = b.build
 
     def apply(): ConfigBuilder = new ConfigBuilderImpl
   }
@@ -63,7 +63,7 @@ object InterpreterPane {
     var code                : String
     var prependExecutionInfo: Boolean
 
-    def build(): Config
+    def build: Config
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
@@ -71,7 +71,7 @@ object InterpreterPane {
     var code                  = ""
     var prependExecutionInfo  = true
 
-    def build(): Config = ConfigImpl(executeKey, code, prependExecutionInfo)
+    def build: Config = ConfigImpl(executeKey, code, prependExecutionInfo)
 
     override def toString = "InterpreterPane.ConfigBuilder@" + hashCode().toHexString
   }
@@ -87,19 +87,19 @@ object InterpreterPane {
     res.text = "// Type Scala code here.\n// Press '" +
       KeyEvent.getKeyModifiersText(config.executeKey.getModifiers) + " + " +
       KeyEvent.getKeyText(config.executeKey.getKeyCode) + "' to execute selected text\n// or current line.\n\n" + res.text
-    res.build()
+    res.build
   }
 
   def wrap(interpreter: Interpreter, codePane: CodePane): InterpreterPane =
-    create(Config().build(), Future.successful(interpreter), codePane)(ExecutionContext.global)
+    create(Config().build, Future.successful(interpreter), codePane)(ExecutionContext.global)
 
   def wrapAsync(interpreter: Future[Interpreter], codePane: CodePane)
                (implicit exec: ExecutionContext = Interpreter.defaultInitializeContext): InterpreterPane =
-    create(Config().build(), interpreter, codePane)
+    create(Config().build, interpreter, codePane)
 
-  def apply(config: Config = Config().build(),
-            interpreterConfig : Interpreter .Config = Interpreter .Config().build(),
-            codePaneConfig    : CodePane    .Config = CodePane    .Config().build())
+  def apply(config: Config = Config().build,
+            interpreterConfig : Interpreter .Config = Interpreter .Config().build,
+            codePaneConfig    : CodePane    .Config = CodePane    .Config().build)
            (implicit exec: ExecutionContext = Interpreter.defaultInitializeContext): InterpreterPane = {
 
     val cpSet     = if (config.prependExecutionInfo) incorporate(config, codePaneConfig) else codePaneConfig

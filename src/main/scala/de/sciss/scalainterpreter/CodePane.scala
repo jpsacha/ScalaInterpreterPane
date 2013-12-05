@@ -23,17 +23,17 @@ package de.sciss.scalainterpreter
 import de.sciss.scalainterpreter.actions.CompletionAction
 import javax.swing.{JScrollPane, ScrollPaneConstants, AbstractAction, JEditorPane, KeyStroke, JComponent}
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
-import jsyntaxpane._
 import java.awt.{Dimension, Color}
-import jsyntaxpane.util.Configuration
+import de.sciss.syntaxpane.util.Configuration
 import javax.swing.text.PlainDocument
 import collection.immutable.{Seq => ISeq}
 import language.implicitConversions
-import scala.Some
+import de.sciss.syntaxpane.{SyntaxDocument, SyntaxStyles, TokenType, SyntaxStyle, SyntaxView, DefaultSyntaxKit}
+import de.sciss.syntaxpane.syntaxkits.ScalaSyntaxKit
 
 object CodePane {
   object Config {
-    implicit def build(b: ConfigBuilder): Config = b.build()
+    implicit def build(b: ConfigBuilder): Config = b.build
 
     def apply(): ConfigBuilder = new ConfigBuilderImpl
   }
@@ -87,7 +87,7 @@ object CodePane {
     var keyProcessor  : KeyEvent => KeyEvent
     var font          : ISeq[(String, Int)]
     var preferredSize : (Int, Int)
-    def build()       : Config
+    def build         : Config
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
@@ -98,7 +98,7 @@ object CodePane {
     var font          = Helper.defaultFonts
     var preferredSize = (500, 500)
 
-    def build(): Config = ConfigImpl(text, keyMap, keyProcessor, font, style, preferredSize)
+    def build: Config = ConfigImpl(text, keyMap, keyProcessor, font, style, preferredSize)
 
     override def toString = "CodePane.ConfigBuilder@" + hashCode().toHexString
   }
@@ -122,7 +122,7 @@ object CodePane {
 
   def initKit(config: Config): Unit = {
     DefaultSyntaxKit.initKit()
-    DefaultSyntaxKit.registerContentType("text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit")
+    // DefaultSyntaxKit.registerContentType("text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit")
     //      val synDef = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
     val syn = DefaultSyntaxKit.getConfig(classOf[ScalaSyntaxKit])
     val style = config.style
@@ -149,7 +149,7 @@ object CodePane {
     SyntaxStyles.getInstance().put(TokenType.DEFAULT, new SyntaxStyle(style.default._1, style.default._2.code))
   }
 
-  def apply(config: Config = Config().build()): CodePane = {
+  def apply(config: Config = Config().build): CodePane = {
     initKit(config)
     val res = createPlain(config)
     res.init()

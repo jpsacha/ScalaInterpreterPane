@@ -31,7 +31,7 @@ import language.implicitConversions
 
 object LogPane {
   object Config {
-    implicit def fromBuilder(b: ConfigBuilder): Config = b.build()
+    implicit def fromBuilder(b: ConfigBuilder): Config = b.build
 
     def apply(): ConfigBuilder = new ConfigBuilderImpl
   }
@@ -48,7 +48,7 @@ object LogPane {
     var columns : Int
     var style   : Style
     var font    : ISeq[(String, Int)]
-    def build() : Config
+    def build   : Config
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
@@ -57,7 +57,7 @@ object LogPane {
     var style   = Style.BlueForest: Style
     var font    = Helper.defaultFonts
 
-    def build(): Config = ConfigImpl(rows, columns, style, font)
+    def build: Config = ConfigImpl(rows, columns, style, font)
 
     override def toString = "LogPane.ConfigBuilder@" + hashCode.toHexString
   }
@@ -68,7 +68,7 @@ object LogPane {
     override def toString = "LogPane.Config@" + hashCode.toHexString
   }
 
-  def apply(config: Config = Config().build()): LogPane = new Impl(config)
+  def apply(config: Config = Config().build): LogPane = new Impl(config)
 
   private final class Impl(config: Config) extends LogPane {
     pane =>
