@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=ScalaInterpreterPane
+Version=1.0
+GenericName=ScalaInterpreterPane
+Comment=Scala Interpreter Application
+Exec=java -Xmx1024m -jar /home/hhrutz/Documents/devel/ScalaInterpreterPane/ScalaInterpreterPane.jar
+StartupWMClass=de-sciss-scalainterpreter-Main
+Icon=/home/hhrutz/Documents/devel/ScalaInterpreterPane/icons/application.png
+Categories=Development;
+Terminal=false
+Type=Application

@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-compiler" % scalaVersion.value
 )
 
-retrieveManaged := true
+// retrieveManaged := true
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
@@ -86,21 +86,13 @@ seq(assemblySettings: _*)
 
 test in assembly := ()
 
-// cf. https://github.com/sbt/sbt-assembly/issues/92
-//mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => {
-//  case PathList("org", "fusesource", "jansi", xs @ _*) => MergeStrategy.first
-//  case x => old(x)
-//}}
+target in assembly := baseDirectory.value
 
-// mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => { case _ => MergeStrategy.discard } }
-
-//excludedJars in assembly <<= (fullClasspath in assembly) map { cp =>
-//  cp filter {_.data.getName == "jansi-1.4.jar"}
-//}
+jarName in assembly := s"${name.value}.jar"
 
 seq(appbundle.settings: _*)
 
-appbundle.icon   := Some(file("application.icns"))
+appbundle.icon   := Some(file("icons") / "application.icns"))
 
 appbundle.target := baseDirectory.value
 
