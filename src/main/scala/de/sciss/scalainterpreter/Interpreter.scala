@@ -30,7 +30,7 @@ import scala.tools.jline.console.completer.{Completer, ArgumentCompleter}
 import scala.collection.{breakOut, JavaConverters}
 import scala.collection.mutable.ListBuffer
 import language.implicitConversions
-import scala.concurrent.{ExecutionContext, Future, future, blocking}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 import java.util.concurrent.Executors
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */
@@ -348,16 +348,24 @@ object Interpreter {
       //         }
     }
 
+    // this was removed in Scala 2.11
+    def quietImport(ids: Seq[String]): IR.Result = in.beQuietDuring(addImports(ids))
+
+    // this was removed in Scala 2.11
+    def addImports(ids: Seq[String]): IR.Result =
+      if (ids.isEmpty) IR.Success
+      else in.interpret("import " + ids.mkString(", "))
+
     in.setContextClassLoader()
     config.bindings.foreach(in.bind)
-    // if (config.quietImports) in.quietImport(config.imports: _*) else in.addImports(config.imports: _*)
+    if (config.quietImports) quietImport(config.imports) else addImports(config.imports)
     in.setExecutionWrapper(config.executor)
     in
   }
 
   /** Convenience constructor with calls `apply` inside a blocking future. */
   def async(config: Config = Config().build)
-           (implicit exec: ExecutionContext = defaultInitializeContext): Future[Interpreter] = future {
+           (implicit exec: ExecutionContext = defaultInitializeContext): Future[Interpreter] = Future {
     blocking(apply(config))
   }
 
@@ -422,14 +430,14 @@ object Interpreter {
 
           // try {
           ihs.foreach { ih =>
-            val key = ih.expr.toString
+            val key = ih.expr.toString()
             importMap.get(key) match {
               case Some(Some(c)) => res += c
               case None =>
                 val value = if (ih.importsWildcard) {
                   import global.{rootMirror, NoSymbol}
                   // rm.findMemberFromRoot()
-                  val sym = rootMirror.getModuleIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
+                  val sym = rootMirror.getModuleIfDefined(ih.expr.toString()) // (ih.expr.symbol.name)
                   // val sym = rootMirror.getPackageObjectIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
                   // val pkg = rm.getPackage(global.newTermNameCached(ih.expr.toString))
                   if (sym == NoSymbol) None else {
@@ -484,23 +492,23 @@ object Interpreter {
           buf.toList
         }
       }
-      val tc = jlineComp.completer()
-
-      val comp = new Completer {
-        def complete(buf: String, cursor: Int, candidates: JList[CharSequence]): Int = {
-          val buf1 = if (buf == null) "" else buf
-          val Candidates(newCursor, newCandidates) = tc.complete(buf1, cursor)
-          newCandidates.foreach(candidates.add)
-          newCursor
-        }
-      }
-
+//      val tc = jlineComp.completer()
+//
+//      val comp = new Completer {
+//        def complete(buf: String, cursor: Int, candidates: JList[CharSequence]): Int = {
+//          val buf1 = if (buf == null) "" else buf
+//          val Candidates(newCursor, newCandidates) = tc.complete(buf1, cursor)
+//          newCandidates.foreach(candidates.add)
+//          newCursor
+//        }
+//      }
+//
 //      val argComp = new ArgumentCompleter(new JLineDelimiter, comp)
 //      argComp.setStrict(false)
 //
       new ScalaCompleter {
         def complete(buf: String, cursor: Int): Candidates = {
-          val jlist     = new java.util.ArrayList[CharSequence]
+//          val jlist     = new java.util.ArrayList[CharSequence]
 //          val newCursor = argComp.complete(buf, cursor, jlist)
 //          import JavaConverters._
 //          val list: List[String] = jlist.asScala.collect {
