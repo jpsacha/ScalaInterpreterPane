@@ -6,7 +6,7 @@ version      := "1.6.0"
 
 organization := "de.sciss"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.0-RC1"
 
 description  := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -14,11 +14,21 @@ homepage     := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-libraryDependencies ++= Seq(
-  "de.sciss"       % "syntaxpane"     % "1.1.+",
- ("org.scala-lang" % "jline"          % scalaVersion.value).exclude("org.fusesource.jansi", "jansi"), // duplicate stuff in jansi!
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value
-)
+libraryDependencies ++= {
+  val sv    = scalaVersion.value
+  val jline = if (sv startsWith "2.11") {
+    // Nil /* "jline % "jline" % "2.11" */
+    val a = ("org.scala-lang" % "jline" % "2.11.0-M3").exclude("org.fusesource.jansi", "jansi")
+    a :: Nil
+  } else {
+    val a = ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!
+    a :: Nil
+  }
+  Seq(
+    "de.sciss"       % "syntaxpane"     % "1.1.+",
+    "org.scala-lang" % "scala-compiler" % sv
+  ) ++ jline
+}
 
 // retrieveManaged := true
 
@@ -92,7 +102,7 @@ jarName in assembly := s"${name.value}.jar"
 
 seq(appbundle.settings: _*)
 
-appbundle.icon   := Some(file("icons") / "application.icns"))
+appbundle.icon   := Some(file("icons") / "application.icns")
 
 appbundle.target := baseDirectory.value
 

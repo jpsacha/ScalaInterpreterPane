@@ -350,7 +350,7 @@ object Interpreter {
 
     in.setContextClassLoader()
     config.bindings.foreach(in.bind)
-    if (config.quietImports) in.quietImport(config.imports: _*) else in.addImports(config.imports: _*)
+    // if (config.quietImports) in.quietImport(config.imports: _*) else in.addImports(config.imports: _*)
     in.setExecutionWrapper(config.executor)
     in
   }
@@ -495,17 +495,18 @@ object Interpreter {
         }
       }
 
-      val argComp = new ArgumentCompleter(new JLineDelimiter, comp)
-      argComp.setStrict(false)
-
+//      val argComp = new ArgumentCompleter(new JLineDelimiter, comp)
+//      argComp.setStrict(false)
+//
       new ScalaCompleter {
         def complete(buf: String, cursor: Int): Candidates = {
           val jlist     = new java.util.ArrayList[CharSequence]
-          val newCursor = argComp.complete(buf, cursor, jlist)
-          import JavaConverters._
-          val list: List[String] = jlist.asScala.collect {
-            case c if c.length > 0 => c.toString
-          } (breakOut)
+//          val newCursor = argComp.complete(buf, cursor, jlist)
+//          import JavaConverters._
+//          val list: List[String] = jlist.asScala.collect {
+//            case c if c.length > 0 => c.toString
+//          } (breakOut)
+val newCursor = cursor; val list = Nil
           Candidates(newCursor, list)
         }
       }
