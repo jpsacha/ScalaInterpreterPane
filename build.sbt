@@ -8,7 +8,7 @@ organization := "de.sciss"
 
 scalaVersion := "2.11.0-RC1"
 
-crossScalaVersions := Seq("2.11.0-RC1", "2.10.3")
+// crossScalaVersions := Seq("2.11.0-RC1", "2.10.3")
 
 description  := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -19,8 +19,8 @@ licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.t
 libraryDependencies ++= {
   val sv    = scalaVersion.value
   val jline = if (sv startsWith "2.11") {
-    // Nil /* "jline % "jline" % "2.11" */
-    val a = ("org.scala-lang" % "jline" % "2.11.0-M3").exclude("org.fusesource.jansi", "jansi")
+    val a = "jline" % "jline" % "2.11"  // note: jline version is pure coincidence
+    // val a = ("org.scala-lang" % "jline" % "2.11.0-M3").exclude("org.fusesource.jansi", "jansi")
     a :: Nil
   } else {
     val a = ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!

@@ -26,7 +26,7 @@ import scala.tools.nsc.interpreter._
 import collection.immutable.{Seq => ISeq}
 import scala.util.control.NonFatal
 import scala.tools.nsc.interpreter.Completion.{Candidates, ScalaCompleter}
-import scala.tools.jline.console.completer.{Completer, ArgumentCompleter}
+import jline.console.completer.{Completer, ArgumentCompleter}
 import scala.collection.{breakOut, JavaConverters}
 import scala.collection.mutable.ListBuffer
 import language.implicitConversions
@@ -231,7 +231,7 @@ object Interpreter {
       //            }
       //         }
 
-      //         // FUCK why is this private in IMain ???
+      //         // FUCK why is this private in IMain ?!
       //         private def createRequest( line: String, synthetic: Boolean ): Either[ Result, Request ] = {
       //            val content = formatting.indentCode( line )
       //            val trees = parse( content ) match {
@@ -492,29 +492,28 @@ object Interpreter {
           buf.toList
         }
       }
-//      val tc = jlineComp.completer()
-//
-//      val comp = new Completer {
-//        def complete(buf: String, cursor: Int, candidates: JList[CharSequence]): Int = {
-//          val buf1 = if (buf == null) "" else buf
-//          val Candidates(newCursor, newCandidates) = tc.complete(buf1, cursor)
-//          newCandidates.foreach(candidates.add)
-//          newCursor
-//        }
-//      }
-//
-//      val argComp = new ArgumentCompleter(new JLineDelimiter, comp)
-//      argComp.setStrict(false)
+      val tc = jlineComp.completer()
+
+      val comp = new Completer {
+        def complete(buf: String, cursor: Int, candidates: JList[CharSequence]): Int = {
+          val buf1 = if (buf == null) "" else buf
+          val Candidates(newCursor, newCandidates) = tc.complete(buf1, cursor)
+          newCandidates.foreach(candidates.add)
+          newCursor
+        }
+      }
+
+      val argComp = new ArgumentCompleter(new JLineDelimiter, comp)
+      argComp.setStrict(false)
 //
       new ScalaCompleter {
         def complete(buf: String, cursor: Int): Candidates = {
-//          val jlist     = new java.util.ArrayList[CharSequence]
-//          val newCursor = argComp.complete(buf, cursor, jlist)
-//          import JavaConverters._
-//          val list: List[String] = jlist.asScala.collect {
-//            case c if c.length > 0 => c.toString
-//          } (breakOut)
-val newCursor = cursor; val list = Nil
+          val jlist     = new java.util.ArrayList[CharSequence]
+          val newCursor = argComp.complete(buf, cursor, jlist)
+          import JavaConverters._
+          val list: List[String] = jlist.asScala.collect {
+            case c if c.length > 0 => c.toString
+          } (breakOut)
           Candidates(newCursor, list)
         }
       }
