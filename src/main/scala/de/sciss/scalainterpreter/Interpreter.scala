@@ -20,13 +20,14 @@
 
 package de.sciss.scalainterpreter
 
-import tools.nsc.{Settings => CompilerSettings, ConsoleWriter, NewLinePrintWriter}
-import java.io.{Writer, File}
-import scala.tools.nsc.interpreter._
-import collection.immutable.{Seq => ISeq}
-import scala.util.control.NonFatal
-import scala.tools.nsc.interpreter.Completion.{Candidates, ScalaCompleter}
+import scala.tools._
+import nsc.{Settings => CompilerSettings, ConsoleWriter, NewLinePrintWriter}
+import nsc.interpreter.{Completion, CompletionAware, IMain, JLineCompletion, JLineDelimiter, JList, Parsed, Results, IR}
+import Completion.{Candidates, ScalaCompleter}
 import jline.console.completer.{Completer, ArgumentCompleter}
+import java.io.{Writer, File}
+import scala.collection.immutable.{Seq => ISeq}
+import scala.util.control.NonFatal
 import scala.collection.{breakOut, JavaConverters}
 import scala.collection.mutable.ListBuffer
 import language.implicitConversions

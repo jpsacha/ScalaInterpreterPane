@@ -8,7 +8,7 @@ organization := "de.sciss"
 
 scalaVersion := "2.11.0-RC1"
 
-// crossScalaVersions := Seq("2.11.0-RC1", "2.10.3")
+crossScalaVersions := Seq("2.11.0-RC1", "2.10.3")
 
 description  := "A Swing based front-end for the Scala REPL (interpreter)"
 
