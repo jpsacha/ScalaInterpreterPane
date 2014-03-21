@@ -6,15 +6,17 @@ version      := "1.6.1-SNAPSHOT"
 
 organization := "de.sciss"
 
-scalaVersion := "2.11.0-RC1"
+scalaVersion := "2.11.0-RC3"
 
-crossScalaVersions := Seq("2.11.0-RC1", "2.10.3")
+crossScalaVersions := Seq("2.11.0-RC3", "2.10.4")
 
 description  := "A Swing based front-end for the Scala REPL (interpreter)"
 
 homepage     := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
+
+lazy val syntaxPaneVersion = "1.1.+"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
@@ -27,7 +29,7 @@ libraryDependencies ++= {
     a :: Nil
   }
   Seq(
-    "de.sciss"       % "syntaxpane"     % "1.1.+",
+    "de.sciss"       % "syntaxpane"     % syntaxPaneVersion,
     "org.scala-lang" % "scala-compiler" % sv
   ) ++ jline
 }
