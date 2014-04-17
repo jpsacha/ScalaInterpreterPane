@@ -2,17 +2,17 @@
 
 ## statement
 
-ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010-2013 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010-2014 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ## requirements
 
-ScalaInterpreterPane currently compiles against Scala 2.10 and is build with sbt 0.13.
+ScalaInterpreterPane currently compiles against Scala 2.11, 2.10 and is build with sbt 0.13. To compile, sbt must run on a Java 1.6 system, because there is a source incompatibility with generified Swing classes in Java 1.7.
 
 To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `"1.6.+"`
+The current version `v` is `"1.6.1+"`
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 

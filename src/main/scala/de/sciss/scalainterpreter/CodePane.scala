@@ -181,9 +181,7 @@ object CodePane {
         val name = "de.sciss.user" + idx
         imap.put(spec._1, name)
         amap.put(name, new AbstractAction {
-          def actionPerformed(e: ActionEvent) {
-            spec._2.apply()
-          }
+          def actionPerformed(e: ActionEvent): Unit = spec._2.apply()
         })
     }
 
