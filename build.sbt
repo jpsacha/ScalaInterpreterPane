@@ -1,22 +1,22 @@
 import AssemblyKeys._
 
-name         := "ScalaInterpreterPane"
+name                := "ScalaInterpreterPane"
 
-version      := "1.6.1"
+version             := "1.6.2"
 
-organization := "de.sciss"
+organization        := "de.sciss"
 
-scalaVersion := "2.11.0"
+scalaVersion        := "2.11.0"
 
-crossScalaVersions := Seq("2.11.0", "2.10.4")
+crossScalaVersions  := Seq("2.11.0", "2.10.4")
 
-description  := "A Swing based front-end for the Scala REPL (interpreter)"
+description         := "A Swing based front-end for the Scala REPL (interpreter)"
 
-homepage     := Some(url("https://github.com/Sciss/" + name.value))
+homepage            := Some(url("https://github.com/Sciss/" + name.value))
 
-licenses     := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
+licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-lazy val syntaxPaneVersion = "1.1.2"
+def syntaxPaneVersion = "1.1.2"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
@@ -35,19 +35,7 @@ libraryDependencies ++= {
 
 // retrieveManaged := true
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
-
-//scalacOptions ++= { val sv = scalaVersion.value
-//  def versionSeq(a: String) = a split '.' map (_.toInt)
-//  def compareVersion(a: String, b: String) = {
-//    versionSeq(a) zip versionSeq(b) map { case (i, j) => i compare j } find (_ != 0) getOrElse 0
-//  }
-//  def versionGeq(a: String, b: String) = compareVersion(a, b) >= 0
-//  if (versionGeq(sv, "2.10.0"))
-//    "-feature" :: "-language:implicitConversions" :: Nil
-//  else
-//    Nil
-//}
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
 
 fork in run := true
 

@@ -2,17 +2,9 @@
  *  ScalaInterpreterPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 3 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ *  This software is published under the GNU Lesser General Public License v2.1+
  *
  *  For further information, please contact Hanns Holger Rutz at
  *  contact@sciss.de
@@ -122,7 +114,7 @@ object InterpreterPane {
   private final class Impl(config: Config, interpreter: Future[Interpreter], val codePane: CodePane)
     extends InterpreterPane {
 
-    private def checkInterpreter() {
+    private def checkInterpreter(): Unit = {
       val has = interpreter.isCompleted // .isDefined
       codePane.editor.setEnabled(has)
       ggProgressInvis.setVisible(has)
@@ -130,7 +122,7 @@ object InterpreterPane {
       status = if (has) "Ready." else "Initializing..."
     }
 
-    def setInterpreter(in: Interpreter) {
+    def setInterpreter(in: Interpreter): Unit = {
       codePane.installAutoCompletion(in)
       codePane.editor.requestFocus()
       checkInterpreter()

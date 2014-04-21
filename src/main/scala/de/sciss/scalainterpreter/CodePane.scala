@@ -2,17 +2,9 @@
  *  CodePane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 3 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ *  This software is published under the GNU Lesser General Public License v2.1+
  *
  *  For further information, please contact Hanns Holger Rutz at
  *  contact@sciss.de
@@ -21,7 +13,7 @@
 package de.sciss.scalainterpreter
 
 import de.sciss.scalainterpreter.actions.CompletionAction
-import javax.swing.{JScrollPane, ScrollPaneConstants, AbstractAction, JEditorPane, KeyStroke, JComponent}
+import javax.swing._
 import java.awt.event.{InputEvent, ActionEvent, KeyEvent}
 import java.awt.{Dimension, Color}
 import de.sciss.syntaxpane.util.Configuration
@@ -145,7 +137,7 @@ object CodePane {
     put(syn, "CaretColor",              style.caret)
     put(syn, "PairMarker.Color",        style.pair)
 
-    // ssssssssssuckers - we need to override the default which is black here
+    // too bad - we need to override the default which is black here
     SyntaxStyles.getInstance().put(TokenType.DEFAULT, new SyntaxStyle(style.default._1, style.default._2.code))
   }
 
@@ -164,8 +156,23 @@ object CodePane {
     val style = config.style
     ed.setBackground(style.background) // stupid... this cannot be set in the kit config
 
+    // fix for issue #8;
+    // cf. http://stackoverflow.com/questions/15228336/changing-the-look-and-feel-changes-the-color-of-jtextpane
+    if (UIManager.getLookAndFeel.getName.contains("Nimbus")) {
+      val map = new UIDefaults()
+      // none of these work... let's leave it that way,
+      // the important thing is that the color is correct when
+      // the pane becomes editable
+      //
+      // "EditorPane[Enabled].inactiveBackgroundPainter", "EditorPane[Enabled].inactiveBackground",
+      // "EditorPane.inactiveBackgroundPainter", "EditorPane.inactiveBackground"
+      map.put("EditorPane[Enabled].backgroundPainter", style.background)
+      ed.putClientProperty("Nimbus.Overrides", map)
+      SwingUtilities.updateComponentTreeUI(ed)
+    }
+
     // this is very stupid: the foreground is not used by the syntax kit,
-    // however the plain view compares normal and selectd foreground. if
+    // however the plain view compares normal and selected foreground. if
     // they are the same, it doesn't invoke drawSelectedText. therefore,
     // to achieve single color selection, we must ensure that the
     // foreground is _any_ color, as long as it is different from `style.foreground`.
@@ -173,14 +180,14 @@ object CodePane {
     ed.setForeground(if (style.foreground == Color.white) Color.black else Color.white)
     ed.setSelectedTextColor(style.foreground)
 
-    val imap = ed.getInputMap(JComponent.WHEN_FOCUSED)
-    val amap = ed.getActionMap
+    val iMap = ed.getInputMap(JComponent.WHEN_FOCUSED)
+    val aMap = ed.getActionMap
 
     config.keyMap.iterator.zipWithIndex.foreach {
       case (spec, idx) =>
         val name = "de.sciss.user" + idx
-        imap.put(spec._1, name)
-        amap.put(name, new AbstractAction {
+        iMap.put(spec._1, name)
+        aMap.put(name, new AbstractAction {
           def actionPerformed(e: ActionEvent): Unit = spec._2.apply()
         })
     }
@@ -219,10 +226,10 @@ object CodePane {
     def getSelectedTextOrCurrentLine: Option[String] = getSelectedText.orElse(getCurrentLine)
 
     def installAutoCompletion(interpreter: Interpreter): Unit = {
-      val imap = editor.getInputMap(JComponent.WHEN_FOCUSED)
-      val amap = editor.getActionMap
-      imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK), "de.sciss.comp")
-      amap.put("de.sciss.comp", new CompletionAction(interpreter.completer))
+      val iMap = editor.getInputMap(JComponent.WHEN_FOCUSED)
+      val aMap = editor.getActionMap
+      iMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK), "de.sciss.comp")
+      aMap.put("de.sciss.comp", new CompletionAction(interpreter.completer))
     }
 
     override def toString = "CodePane@" + hashCode().toHexString
