@@ -35,7 +35,7 @@ object SplitPane {
   }
 }
 
-sealed trait SplitPane {
+trait SplitPane {
   def component: JSplitPane
 
   def interpreter: InterpreterPane

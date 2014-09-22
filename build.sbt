@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name                := "ScalaInterpreterPane"
 
-version             := "1.6.3"
+version             := "1.7.0-SNAPSHOT"
 
 organization        := "de.sciss"
 
@@ -16,7 +16,7 @@ homepage            := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-lazy val syntaxPaneVersion = "1.1.3"
+lazy val syntaxPaneVersion = "1.1.4-SNAPSHOT"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
