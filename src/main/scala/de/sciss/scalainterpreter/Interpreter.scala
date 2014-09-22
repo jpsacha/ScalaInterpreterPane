@@ -12,7 +12,7 @@
 
 package de.sciss.scalainterpreter
 
-import scala.tools._
+import scala.tools._  // this is a trick that makes it work both in Scala 2.10 and 2.11 due to 'jline' sub-package
 import nsc.{Settings => CompilerSettings, ConsoleWriter, NewLinePrintWriter}
 import scala.tools.nsc.interpreter._
 import Completion.{Candidates, ScalaCompleter}
@@ -25,7 +25,6 @@ import scala.collection.mutable.ListBuffer
 import language.implicitConversions
 import scala.concurrent.{ExecutionContext, Future, blocking}
 import java.util.concurrent.Executors
-import scala.Some
 import scala.tools.nsc.interpreter.Completion.Candidates
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */
@@ -127,14 +126,14 @@ object Interpreter {
     def build: Config = new ConfigImpl(
       imports = imports, bindings = bindings, executor = executor, out = out, quietImports = quietImports)
 
-    override def toString = "Interpreter.ConfigBuilder@" + hashCode().toHexString
+    override def toString = s"Interpreter.ConfigBuilder@${hashCode().toHexString}"
   }
 
   private final case class ConfigImpl(imports: ISeq[String], bindings: ISeq[NamedParam],
                                       executor: String, out: Option[Writer], quietImports: Boolean)
     extends Config {
 
-    override def toString = "Interpreter.Config@" + hashCode().toHexString
+    override def toString = s"Interpreter.Config@${hashCode().toHexString}"
   }
 
   /** Creates a new interpreter with the given settings.
@@ -153,19 +152,58 @@ object Interpreter {
   }
 
   private def makeIMain(config: Config): IMain with ResultIntp = {
-    val cset = new CompilerSettings()
-    cset.classpath.value += File.pathSeparator + sys.props("java.class.path")
-    val in = new IMain(cset, new NewLinePrintWriter(config.out getOrElse new ConsoleWriter, true)) with ResultIntp {
+    val cSet = new CompilerSettings()
+    cSet.classpath.value += File.pathSeparator + sys.props("java.class.path")
+    val in = new IMain(cSet, new NewLinePrintWriter(config.out getOrElse new ConsoleWriter, true)) with ResultIntp {
       override protected def parentClassLoader = Interpreter.getClass.getClassLoader
 
       // note `lastRequest` was added in 2.10
       private def _lastRequest = prevRequestList.last
 
+      // private in Scala API
+      private def mostRecentlyHandledTree: Option[global.Tree] = {
+        import naming._
+        import memberHandlers._
+        prevRequestList.reverse.foreach { req =>
+          req.handlers.reverse foreach {
+            case x: MemberDefHandler if x.definesValue && !isInternalTermName(x.name) => return Some(x.member)
+            case _ => ()
+          }
+        }
+        None
+      }
+
       def interpretWithResult(line: String, synthetic: Boolean): Result = {
         val res0 = interpretWithoutResult(line, synthetic)
         res0 match {
           case Success(name, _) => try {
-            Success(name, _lastRequest.lineRep.call("$result"))
+            import global._
+            //            val mrv = mostRecentlyHandledTree.flatMap {
+            //              case x: ValDef => Some(x.name)
+            //              case Assign(Ident(n), _)   => Some(n)
+            //              case ModuleDef(_, n, _)    => Some(n)
+            //              case _                        =>
+            //                val n = naming.mostRecentVar
+            //                if (n.isEmpty) None else Some(n)
+            //            }
+            val shouldEval = mostRecentlyHandledTree.exists {
+              case x: ValDef =>
+                // println("ValDef")
+                true
+              case Assign(Ident(_), _) =>
+                // println("Assign")
+                true
+              case ModuleDef(_, _, _)  =>
+                // println("ModuleDef")
+                true
+              case _ =>
+                // println("naming")
+                // val n = naming.mostRecentVar
+                // !n.isEmpty
+                false
+            }
+            // println(s"shouldEval = $shouldEval")
+            Success(name, if (shouldEval) _lastRequest.lineRep.call("$result") else ())
           } catch {
             case NonFatal(_) => res0
           }

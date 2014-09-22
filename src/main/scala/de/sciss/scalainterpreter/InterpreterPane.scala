@@ -65,20 +65,25 @@ object InterpreterPane {
 
     def build: Config = ConfigImpl(executeKey, code, prependExecutionInfo)
 
-    override def toString = "InterpreterPane.ConfigBuilder@" + hashCode().toHexString
+    override def toString = s"InterpreterPane.ConfigBuilder@${hashCode().toHexString}"
   }
 
   private final case class ConfigImpl(executeKey: KeyStroke, code: String, prependExecutionInfo: Boolean)
     extends Config {
 
-    override def toString = "InterpreterPane.Config@" + hashCode().toHexString
+    override def toString = s"InterpreterPane.Config@${hashCode().toHexString}"
   }
 
   private def incorporate(config: Config, code: CodePane.Config): CodePane.Config = {
     val res = CodePane.ConfigBuilder(code)
-    res.text = "// Type Scala code here.\n// Press '" +
-      KeyEvent.getKeyModifiersText(config.executeKey.getModifiers) + " + " +
-      KeyEvent.getKeyText(config.executeKey.getKeyCode) + "' to execute selected text\n// or current line.\n\n" + res.text
+    val keyMod = KeyEvent.getKeyModifiersText(config.executeKey.getModifiers)
+    val keyTxt = KeyEvent.getKeyText(config.executeKey.getKeyCode)
+    res.text =
+      s"""// Type Scala code here.
+         |// Press '$keyMod + $keyTxt' to execute selected text
+         |// or current line.
+         |
+         |${res.text}""".stripMargin
     res.build
   }
 
@@ -117,7 +122,7 @@ object InterpreterPane {
     private def checkInterpreter(): Unit = {
       val has = interpreter.isCompleted // .isDefined
       codePane.editor.setEnabled(has)
-      ggProgressInvis.setVisible(has)
+      ggProgressInvisible.setVisible(has)
       ggProgress.setVisible(!has)
       status = if (has) "Ready." else "Initializing..."
     }
@@ -126,7 +131,7 @@ object InterpreterPane {
       codePane.installAutoCompletion(in)
       codePane.editor.requestFocus()
       checkInterpreter()
-      if (config.code != "") in.interpret(config.code)
+      if (config.code != "") in.interpretWithoutResult(config.code)
     }
 
     private val ggStatus = {
@@ -154,7 +159,7 @@ object InterpreterPane {
       p
     }
 
-    private val ggProgressInvis = {
+    private val ggProgressInvisible = {
       val p = new JComponent {
         override def getMinimumSize   = ggProgress.getMinimumSize
         override def getPreferredSize = ggProgress.getPreferredSize
@@ -167,7 +172,7 @@ object InterpreterPane {
       val p = new JPanel()
       p.setLayout(new OverlayLayout(p))
       p.add(ggProgress)
-      p.add(ggProgressInvis)
+      p.add(ggProgressInvisible)
       p
     }
 
@@ -198,10 +203,11 @@ object InterpreterPane {
       case Success(in) =>
         status = ""
         status = in.interpretWithoutResult(code) match {
-          case Interpreter.Success(name, _) =>
-            "Ok. <" + name + ">"
+          case Interpreter.Success(name, _ /* value */) =>
+            // println(s"VALUE = $value")
+            s"Ok. <$name>"
           case Interpreter.Error(message) =>
-            "! Error : " + message
+            s"! Error : $message"
           case Interpreter.Incomplete =>
             "! Code incomplete"
         }
@@ -211,10 +217,10 @@ object InterpreterPane {
 
     def installExecutionAction(): Unit = {
       val ed    = codePane.editor
-      val imap  = ed.getInputMap(JComponent.WHEN_FOCUSED)
-      val amap  = ed.getActionMap
-      imap.put(config.executeKey, "de.sciss.exec")
-      amap.put("de.sciss.exec", new AbstractAction {
+      val iMap  = ed.getInputMap(JComponent.WHEN_FOCUSED)
+      val aMap  = ed.getActionMap
+      iMap.put(config.executeKey, "de.sciss.exec")
+      aMap.put("de.sciss.exec", new AbstractAction {
         def actionPerformed(e: ActionEvent): Unit =
           codePane.getSelectedTextOrCurrentLine.foreach(interpret)
       })

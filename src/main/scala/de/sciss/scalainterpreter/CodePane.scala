@@ -92,23 +92,23 @@ object CodePane {
 
     def build: Config = ConfigImpl(text, keyMap, keyProcessor, font, style, preferredSize)
 
-    override def toString = "CodePane.ConfigBuilder@" + hashCode().toHexString
+    override def toString = s"CodePane.ConfigBuilder@${hashCode().toHexString}"
   }
 
   private final case class ConfigImpl(text: String, keyMap: Map[KeyStroke, () => Unit],
                                       keyProcessor: KeyEvent => KeyEvent, font: ISeq[(String, Int)],
                                       style: Style, preferredSize: (Int, Int))
     extends Config {
-    override def toString = "CodePane.Config@" + hashCode().toHexString
+    override def toString = s"CodePane.Config@${hashCode().toHexString}"
   }
 
   private def put(cfg: Configuration, key: String, pair: (Color, Style.Face)): Unit = {
-    val value = "0x" + (pair._1.getRGB | 0xFF000000).toHexString.substring(2) + ", " + pair._2.code
+    val value = s"0x${(pair._1.getRGB | 0xFF000000).toHexString.substring(2)}, ${pair._2.code}"
     cfg.put(key, value)
   }
 
   private def put(cfg: Configuration, key: String, color: Color): Unit = {
-    val value = "0x" + (color.getRGB | 0xFF000000).toHexString.substring(2)
+    val value = s"0x${(color.getRGB | 0xFF000000).toHexString.substring(2)}"
     cfg.put(key, value)
   }
 
@@ -185,7 +185,7 @@ object CodePane {
 
     config.keyMap.iterator.zipWithIndex.foreach {
       case (spec, idx) =>
-        val name = "de.sciss.user" + idx
+        val name = s"de.sciss.user$idx"
         iMap.put(spec._1, name)
         aMap.put(name, new AbstractAction {
           def actionPerformed(e: ActionEvent): Unit = spec._2.apply()
@@ -213,7 +213,12 @@ object CodePane {
       editor.setContentType("text/scala")
       editor.setText(config.text)
       editor.setFont(Helper.createFont(config.font))
-      editor.getDocument.putProperty(PlainDocument.tabSizeAttribute, 2)
+      val doc = editor.getDocument
+      doc.putProperty(PlainDocument.tabSizeAttribute, 2)
+      doc match {
+        case synDoc: SyntaxDocument => synDoc.clearUndos()
+        case _ =>
+      }
     }
 
     def getSelectedText: Option[String] = {
@@ -232,7 +237,7 @@ object CodePane {
       aMap.put("de.sciss.comp", new CompletionAction(interpreter.completer))
     }
 
-    override def toString = "CodePane@" + hashCode().toHexString
+    override def toString = s"CodePane@${hashCode().toHexString}"
   }
 }
 

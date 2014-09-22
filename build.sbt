@@ -2,13 +2,13 @@ import AssemblyKeys._
 
 name                := "ScalaInterpreterPane"
 
-version             := "1.6.2"
+version             := "1.6.3"
 
 organization        := "de.sciss"
 
-scalaVersion        := "2.11.0"
+scalaVersion        := "2.11.2"
 
-crossScalaVersions  := Seq("2.11.0", "2.10.4")
+crossScalaVersions  := Seq("2.11.2", "2.10.4")
 
 description         := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -16,7 +16,7 @@ homepage            := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-def syntaxPaneVersion = "1.1.2"
+lazy val syntaxPaneVersion = "1.1.3"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
@@ -35,7 +35,7 @@ libraryDependencies ++= {
 
 // retrieveManaged := true
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture")
 
 fork in run := true
 
@@ -57,7 +57,7 @@ buildInfoPackage := "de.sciss.scalainterpreter"
 publishMavenStyle := true
 
 publishTo :=
-  Some(if (version.value endsWith "-SNAPSHOT")
+  Some(if (isSnapshot.value)
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"

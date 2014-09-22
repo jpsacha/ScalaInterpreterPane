@@ -31,7 +31,7 @@ object SplitPane {
   private final class Impl(val component: JSplitPane, val interpreter: InterpreterPane)
     extends SplitPane {
 
-    override def toString = "SplitPane@" + hashCode.toHexString
+    override def toString = s"SplitPane@${hashCode.toHexString}"
   }
 }
 

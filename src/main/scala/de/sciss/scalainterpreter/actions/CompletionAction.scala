@@ -38,7 +38,7 @@ object CompletionAction {
 
     private val ggText    = new JTextField
     private val ggScroll  = new JScrollPane
-    private val ggList    = new JList
+    private val ggList    = new JList[String]
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE)
     setResizable(false)
@@ -104,7 +104,7 @@ object CompletionAction {
       val prefix    = ggText.getText
       val selected  = ggList.getSelectedValue
       val filtered  = items.filter(StringUtils.camelCaseMatch(_, prefix))
-      ggList.setListData(filtered.toArray[AnyRef])
+      ggList.setListData(filtered.toArray[String])
       if (selected != null && filtered.contains(selected)) {
         ggList.setSelectedValue(selected, true)
       } else {
