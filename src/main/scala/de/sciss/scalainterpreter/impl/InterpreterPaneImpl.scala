@@ -13,13 +13,17 @@
 package de.sciss.scalainterpreter
 package impl
 
-import java.awt.{EventQueue, BorderLayout}
+import java.awt.EventQueue
 import java.awt.event.{InputEvent, KeyEvent, ActionEvent}
-import javax.swing.{KeyStroke, AbstractAction, Box, OverlayLayout, JPanel, JComponent, JProgressBar, JLabel}
+import javax.swing.{KeyStroke, AbstractAction, JComponent}
+import scala.swing.Swing
+import Swing._
 
 import de.sciss.scalainterpreter.Interpreter.Result
+import de.sciss.swingplus.OverlayPanel
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.swing.{Orientation, BoxPanel, Label, Component, ProgressBar, BorderPanel, Panel}
 
 object InterpreterPaneImpl {
   import InterpreterPane.{Config, ConfigBuilder}
@@ -105,9 +109,9 @@ object InterpreterPaneImpl {
 
     private def checkInterpreter(): Unit = {
       val has = interpreter.isCompleted // .isDefined
-      codePane.editor.setEnabled(has)
-      ggProgressInvisible.setVisible(has)
-      ggProgress.setVisible(!has)
+      codePane.editor     .enabled = has
+      ggProgressInvisible .visible = has
+      ggProgress          .visible = !has
       status = if (has) "Ready." else "Initializing..."
     }
 
@@ -118,67 +122,56 @@ object InterpreterPaneImpl {
       if (config.code != "") in.interpret(config.code)
     }
 
-    private val ggStatus: JLabel = {
-      val lb = new JLabel("")
-      lb.putClientProperty("JComponent.sizeVariant", "small")
-      lb
+    private val ggStatus: Label = new Label("") {
+      peer.putClientProperty("JComponent.sizeVariant", "small")
     }
 
-    private val ggProgress: JProgressBar = {
-      val p = new JProgressBar() {
-        override def getPreferredSize = {
-          val d = super.getPreferredSize
-          d.width = math.min(32, d.width)
-          d
-        }
-
-        override def getMaximumSize = {
-          val d = super.getMaximumSize
-          d.width = math.min(32, d.width)
-          d
-        }
+    private val ggProgress: ProgressBar = new ProgressBar() {
+      preferredSize = {
+        val d = preferredSize
+        d.width = math.min(32, d.width)
+        d
       }
-      p.putClientProperty("JProgressBar.style", "circular")
-      p.setIndeterminate(true)
-      p
+
+      maximumSize = {
+        val d = maximumSize
+        d.width = math.min(32, d.width)
+        d
+      }
+
+      peer.putClientProperty("JProgressBar.style", "circular")
+      indeterminate = true
     }
 
-    private val ggProgressInvisible: JComponent = new JComponent {
-      override def getMinimumSize   = ggProgress.getMinimumSize
-      override def getPreferredSize = ggProgress.getPreferredSize
-      override def getMaximumSize   = ggProgress.getMaximumSize
+    private val ggProgressInvisible: Component = new Component {
+      minimumSize   = ggProgress.minimumSize
+      preferredSize = ggProgress.preferredSize
+      maximumSize   = ggProgress.maximumSize
     }
 
-    private val progressPane: JPanel = {
-      val p = new JPanel()
-      p.setLayout(new OverlayLayout(p))
-      p.add(ggProgress)
-      p.add(ggProgressInvisible)
-      p
+    private val progressPane: Panel = new OverlayPanel {
+      contents += ggProgress
+      contents += ggProgressInvisible
     }
 
-    private val statusPane: Box = {
-      val b = Box.createHorizontalBox()
-      b.add(Box.createHorizontalStrut(4))
-      b.add(progressPane)
-      b.add(Box.createHorizontalStrut(4))
-      b.add(ggStatus)
-      b
+    private val statusPane: Panel = new BoxPanel(Orientation.Horizontal) {
+      contents += HStrut(4)
+      contents += progressPane
+      contents += HStrut(4)
+      contents += ggStatus
     }
 
-    val component: JPanel = {
-      val p = new JPanel(new BorderLayout())
-      p.add(codePane.component, BorderLayout.CENTER)
-      p.add(statusPane, BorderLayout.SOUTH)
-      p
+    val component: Panel = new BorderPanel {
+      add(codePane.component, BorderPanel.Position.Center)
+      add(statusPane        , BorderPanel.Position.South )
     }
 
     def status: String = {
-      val res = ggStatus.getText
+      val res = ggStatus.text
       if (res == null) "" else res
     }
 
-    def status_=(value: String): Unit = ggStatus.setText(value)
+    def status_=(value: String): Unit = ggStatus.text = value
 
     def clearStatus(): Unit = status = ""
 
@@ -202,8 +195,8 @@ object InterpreterPaneImpl {
 
     def installExecutionAction(): Unit = {
       val ed    = codePane.editor
-      val iMap  = ed.getInputMap(JComponent.WHEN_FOCUSED)
-      val aMap  = ed.getActionMap
+      val iMap  = ed.peer.getInputMap(JComponent.WHEN_FOCUSED)
+      val aMap  = ed.peer.getActionMap
       iMap.put(config.executeKey, "de.sciss.exec")
       aMap.put("de.sciss.exec", new AbstractAction {
         def actionPerformed(e: ActionEvent): Unit = codePane.activeRange.foreach { range =>

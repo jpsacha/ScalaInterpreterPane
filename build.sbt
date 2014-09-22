@@ -16,21 +16,27 @@ homepage            := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-lazy val syntaxPaneVersion = "1.1.4-SNAPSHOT"
+lazy val syntaxPaneVersion  = "1.1.4-SNAPSHOT"
+
+lazy val swingPlusVersion   = "0.2.0"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
-  val jline = if (sv startsWith "2.11") {
-    val a = "jline" % "jline" % "2.11"  // note: jline version is pure coincidence
-    a :: Nil
-  } else {
-    val a = ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!
-    a :: Nil
-  }
-  Seq(
-    "de.sciss"       % "syntaxpane"     % syntaxPaneVersion,
-    "org.scala-lang" % "scala-compiler" % sv
-  ) ++ jline
+  val jLine = if (sv startsWith "2.11")
+    "jline" % "jline" % "2.11"  // note: jline version is pure coincidence
+  else
+    ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!
+  //
+  //  val swing = if (sv startsWith "2.11")
+  //    "org.scala-lang.modules" %% "scala-swing" % "1.0.1"
+  //  else
+  //    "org.scala-lang" % "scala-swing" % sv
+  //
+  jLine :: List(
+    "de.sciss"       %  "syntaxpane"     % syntaxPaneVersion,
+    "de.sciss"       %% "swingplus"      % swingPlusVersion,
+    "org.scala-lang" %  "scala-compiler" % sv
+  )
 }
 
 // retrieveManaged := true

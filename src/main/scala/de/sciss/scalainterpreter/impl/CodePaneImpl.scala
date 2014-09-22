@@ -13,10 +13,10 @@
 package de.sciss.scalainterpreter
 package impl
 
-import java.awt.{Color, Dimension}
+import java.awt.Color
 import java.awt.event.{ActionListener, InputEvent, ActionEvent, KeyEvent}
 import javax.swing.text.PlainDocument
-import javax.swing.{AbstractAction, KeyStroke, ScrollPaneConstants, JScrollPane, JComponent, SwingUtilities, UIManager, UIDefaults, JEditorPane}
+import javax.swing.{AbstractAction, KeyStroke, JComponent, SwingUtilities, UIManager, UIDefaults, JEditorPane}
 
 import de.sciss.scalainterpreter.actions.CompletionAction
 import de.sciss.syntaxpane.components.Markers
@@ -25,6 +25,8 @@ import de.sciss.syntaxpane.util.Configuration
 import de.sciss.syntaxpane.{Token, SyntaxStyle, TokenType, SyntaxStyles, SyntaxView, DefaultSyntaxKit, SyntaxDocument}
 
 import scala.collection.immutable.{Seq => ISeq}
+import scala.swing.{Swing, EditorPane, Component, ScrollPane}
+import Swing._
 
 object CodePaneImpl {
   import CodePane.{Config, ConfigBuilder, Range}
@@ -90,12 +92,15 @@ object CodePaneImpl {
   }
 
   private def createPlain(config: Config): Impl = {
-    val ed: JEditorPane = new JEditorPane() {
-      override protected def processKeyEvent(e: KeyEvent): Unit = super.processKeyEvent(config.keyProcessor(e))
-    }
-    ed.setPreferredSize(new Dimension(config.preferredSize._1, config.preferredSize._2))
     val style = config.style
-    ed.setBackground(style.background) // stupid... this cannot be set in the kit config
+    val ed: EditorPane = new EditorPane("text/plain", "") {
+      override lazy val peer: JEditorPane = new JEditorPane("text/plain", "") with SuperMixin {
+        override protected def processKeyEvent(e: KeyEvent): Unit = super.processKeyEvent(config.keyProcessor(e))
+      }
+
+      preferredSize = (config.preferredSize._1, config.preferredSize._2)
+      background    = style.background   // stupid... this cannot be set in the kit config
+    }
 
     // fix for issue #8;
     // cf. http://stackoverflow.com/questions/15228336/changing-the-look-and-feel-changes-the-color-of-jtextpane
@@ -108,8 +113,8 @@ object CodePaneImpl {
       // "EditorPane[Enabled].inactiveBackgroundPainter", "EditorPane[Enabled].inactiveBackground",
       // "EditorPane.inactiveBackgroundPainter", "EditorPane.inactiveBackground"
       map.put("EditorPane[Enabled].backgroundPainter", style.background)
-      ed.putClientProperty("Nimbus.Overrides", map)
-      SwingUtilities.updateComponentTreeUI(ed)
+      ed.peer.putClientProperty("Nimbus.Overrides", map)
+      SwingUtilities.updateComponentTreeUI(ed.peer)
     }
 
     // this is very stupid: the foreground is not used by the syntax kit,
@@ -118,11 +123,12 @@ object CodePaneImpl {
     // to achieve single color selection, we must ensure that the
     // foreground is _any_ color, as long as it is different from `style.foreground`.
     // fixes #3
-    ed.setForeground(if (style.foreground == Color.white) Color.black else Color.white)
-    ed.setSelectedTextColor(style.foreground)
+    ed.foreground = if (style.foreground == Color.white) Color.black else Color.white
+    val edJ = ed.peer
+    edJ.setSelectedTextColor(style.foreground)
 
-    val iMap = ed.getInputMap(JComponent.WHEN_FOCUSED)
-    val aMap = ed.getActionMap
+    val iMap = edJ.getInputMap(JComponent.WHEN_FOCUSED)
+    val aMap = edJ.getActionMap
 
     config.keyMap.iterator.zipWithIndex.foreach {
       case (spec, idx) =>
@@ -156,15 +162,16 @@ object CodePaneImpl {
     override def toString = s"CodePane.Config@${hashCode().toHexString}"
   }
 
-  private final class Impl(val editor: JEditorPane, config: Config) extends CodePane {
-    val component: JComponent = new JScrollPane(editor,
-      ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS)
+  private final class Impl(val editor: EditorPane, config: Config) extends CodePane {
+    val component: Component = new ScrollPane(editor) {
+      horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
+      verticalScrollBarPolicy   = ScrollPane.BarPolicy.Always
+    }
 
     private val execMarker = new ExecMarker(editor)
 
     def docOption: Option[SyntaxDocument] = {
-      val doc = editor.getDocument
+      val doc = editor.peer.getDocument
       // if (doc == null) return None
       doc match {
         case sd: SyntaxDocument => Some(sd)
@@ -173,10 +180,10 @@ object CodePaneImpl {
     }
 
     def init(): Unit = {
-      editor.setContentType("text/scala")
-      editor.setText(config.text)
-      editor.setFont(Helper.createFont(config.font))
-      val doc = editor.getDocument
+      editor.contentType = "text/scala"
+      editor.text = config.text
+      editor.font = Helper.createFont(config.font)
+      val doc = editor.peer.getDocument
       doc.putProperty(PlainDocument.tabSizeAttribute, 2)
       doc match {
         case synDoc: SyntaxDocument => synDoc.clearUndos()
@@ -185,22 +192,23 @@ object CodePaneImpl {
     }
 
     def selectedText: Option[String] = {
-      val txt = editor.getSelectedText
+      val txt = editor.selected
       if (txt != null) Some(txt) else None
     }
 
-    def currentTextLine: Option[String] = docOption.map(_.getLineAt(editor.getCaretPosition))
+    def currentTextLine: Option[String] = docOption.map(_.getLineAt(editor.caret.position))
 
     def activeText: Option[String] = selectedText orElse currentTextLine
 
     def selectedRange: Option[Range] = {
-      val start = editor.getSelectionStart
-      val end   = editor.getSelectionEnd
+      val edJ   = editor.peer
+      val start = edJ.getSelectionStart
+      val end   = edJ.getSelectionEnd
       if (start < end) Some(Range(start, end, selected = true)) else None
     }
 
     def currentLineRange: Option[Range] = docOption.flatMap { doc =>
-      val pos   = editor.getCaretPosition
+      val pos   = editor.caret.position
       val start = doc.getLineStartOffset(pos)
       val end   = doc.getLineEndOffset  (pos)
       if (start < end) Some(Range(start, end, selected = false)) else None
@@ -213,15 +221,15 @@ object CodePaneImpl {
     def abortFlash(): Unit = execMarker.abort()
 
     def activeToken: Option[Token] = docOption.flatMap { doc =>
-      val pos = editor.getCaretPosition
+      val pos = editor.caret.position
       Option(doc.getTokenAt(pos))
     }
 
-    def getTextSlice(range: Range): String = editor.getDocument.getText(range.start, range.length)
+    def getTextSlice(range: Range): String = editor.peer.getDocument.getText(range.start, range.length)
 
     def installAutoCompletion(interpreter: Interpreter): Unit = {
-      val iMap = editor.getInputMap(JComponent.WHEN_FOCUSED)
-      val aMap = editor.getActionMap
+      val iMap = editor.peer.getInputMap(JComponent.WHEN_FOCUSED)
+      val aMap = editor.peer.getActionMap
       iMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK), "de.sciss.comp")
       aMap.put("de.sciss.comp", new CompletionAction(interpreter.completer))
     }
@@ -237,7 +245,7 @@ object CodePaneImpl {
   private val fullAbortColor  = new Color(0xFF, 0x00, 0x00, 0xFF)
   private val emptyAbortColor = new Color(0xFF, 0x00, 0x00, 0x00)
 
-  private final class ExecMarker(editor: JEditorPane)
+  private final class ExecMarker(editor: EditorPane)
     extends Markers.SimpleMarker(null) with ActionListener {
 
     private var added   = false
@@ -265,7 +273,7 @@ object CodePaneImpl {
 
     private def updateHighlight(): Unit = {
       updateColor()
-      val hil = editor.getHighlighter
+      val hil = editor.peer.getHighlighter
       hil.changeHighlight(tag, _range.start, _range.stop)
     }
 
@@ -288,11 +296,11 @@ object CodePaneImpl {
     def install(range: Range): Unit = {
       remove()
       _range    = range
-      val hil   = editor.getHighlighter
+      val hil   = editor.peer.getHighlighter
       colrIdx   = 9
       startColor  = fullColor
-      stopColor   = if (_range.selected) editor.getSelectionColor else emptyColor // dirty...
-      if (_range.selected) editor.setSelectionColor(emptyColor)
+      stopColor   = if (_range.selected) editor.peer.getSelectionColor else emptyColor // dirty...
+      if (_range.selected) editor.peer.setSelectionColor(emptyColor)
       updateColor()
       tag       = hil.addHighlight(range.start, range.stop, this)
       timer.restart()
@@ -301,8 +309,8 @@ object CodePaneImpl {
 
     def remove(): Unit = if (added) {
       timer.stop()
-      if (_range.selected) editor.setSelectionColor(stopColor) // dirty...
-      val hil = editor.getHighlighter
+      if (_range.selected) editor.peer.setSelectionColor(stopColor) // dirty...
+      val hil = editor.peer.getHighlighter
       hil.removeHighlight(tag)
       added = false
     }

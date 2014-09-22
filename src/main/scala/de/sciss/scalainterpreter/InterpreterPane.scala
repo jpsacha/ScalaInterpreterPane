@@ -12,11 +12,12 @@
 
 package de.sciss.scalainterpreter
 
-import javax.swing.{JComponent, KeyStroke}
+import javax.swing.KeyStroke
 import impl.{InterpreterPaneImpl => Impl}
 
 import language.implicitConversions
 import scala.concurrent.{ExecutionContext, Future}
+import scala.swing.Component
 
 object InterpreterPane {
   object Config {
@@ -66,7 +67,7 @@ object InterpreterPane {
     Impl.bang(codePane, interpreter)
 }
 trait InterpreterPane {
-  def component: JComponent
+  def component: Component
 
   def codePane: CodePane
 

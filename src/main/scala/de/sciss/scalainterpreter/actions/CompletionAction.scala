@@ -14,12 +14,16 @@ package de.sciss.scalainterpreter
 package actions
 
 import javax.swing.text.{BadLocationException, JTextComponent}
+import de.sciss.swingplus.ListView
+
+import scala.swing.event.{Key, MouseClicked, KeyPressed}
+import scala.swing.{ScrollPane, TextField}
 import tools.nsc.interpreter.Completion.ScalaCompleter
 import java.awt.Dialog.ModalityType
 import javax.swing.event.{DocumentListener, DocumentEvent}
 import java.awt.Point
-import javax.swing.{GroupLayout, JList, JScrollPane, JTextField, JDialog, SwingUtilities}
-import java.awt.event.{ActionEvent, MouseEvent, MouseAdapter, KeyEvent, KeyAdapter}
+import javax.swing.{GroupLayout, JDialog, SwingUtilities}
+import java.awt.event.ActionEvent
 import de.sciss.syntaxpane.actions.gui.EscapeListener
 import de.sciss.syntaxpane.util.{StringUtils, SwingUtils}
 import de.sciss.syntaxpane.SyntaxDocument
@@ -29,116 +33,142 @@ object CompletionAction {
   private final val escapeChars = ";(= \t\n\r"
   private final val defPrefix   = "def "
 
-  private class Dialog(target: JTextComponent)
-    extends JDialog(SwingUtilities.getWindowAncestor(target), ModalityType.APPLICATION_MODAL) with EscapeListener {
+  private class Dialog(targetJ: JTextComponent)
+    extends scala.swing.Dialog() {
     dlg =>
+
+    private trait Mix extends EscapeListener with InterfaceMixin {
+      def escapePressed(): Unit = visible = false
+    }
+
+    override lazy val peer: JDialog with EscapeListener with InterfaceMixin = {
+      val owner = SwingUtilities.getWindowAncestor(targetJ)
+      if (owner == null) new JDialog with Mix with SuperMixin
+      else owner match {
+        case f: java.awt.Frame  =>
+          new JDialog(f, ModalityType.APPLICATION_MODAL) with Mix with SuperMixin
+        case d: java.awt.Dialog =>
+          new JDialog(d, ModalityType.APPLICATION_MODAL) with Mix with SuperMixin
+      }
+    }
 
     private var items     = List.empty[String]
     private var succeed   = (_: Option[String]) => ()
 
-    private val ggText    = new JTextField
-    private val ggScroll  = new JScrollPane
-    private val ggList    = new JList[String]
+    private val ggText: TextField = new TextField {
+      border = null
+      listenTo(keys)
+      reactions += {
+        case e: KeyPressed => dlg.keyPressed(e)
+      }
+    }
 
-    setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE)
-    setResizable(false)
-    setUndecorated(true)
+    private val ggList: ListView[String] = new ListView[String] {
+      listenTo(mouse.clicks)
+      reactions += {
+        case e: MouseClicked  => dlg.mouseClicked(e)
+      }
 
-    ggText.setBorder(null)
-    ggText.addKeyListener(new KeyAdapter {
-      override def keyPressed(e: KeyEvent): Unit = dlg.keyPressed(e)
-    })
+      selection.intervalMode = ListView.IntervalMode.Single
+      focusable = false
+    }
 
-    ggList.addMouseListener(new MouseAdapter {
-      override def mouseClicked(e: MouseEvent): Unit = dlg.mouseClicked(e)
-    })
-    ggList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION)
-    ggList.setFocusable(false)
+    private val ggScroll  = new ScrollPane(ggList)
 
-    ggScroll.setViewportView(ggList)
-    private val lay = new GroupLayout(getContentPane)
-    getContentPane.setLayout(lay)
+    peer.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE)
+    resizable = false
+    peer.setUndecorated(true)
+
+    //    contents = new GroupPanel {
+    //      horizontal  = Par(GroupPanel.Alignment.Leading)(ggText, ggScroll)
+    //      vertical    = Par(GroupPanel.Alignment.Leading)(ggText, /* ???, */ ggScroll)
+    //    }
+
+    // XXX TODO - should use GroupPanel, but too lazy to read up on the constraints
+    private val lay = new GroupLayout(peer.getContentPane)
     lay.setHorizontalGroup(lay.createParallelGroup(GroupLayout.Alignment.LEADING)
-      .addComponent(ggText  , javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MaxValue)
-      .addComponent(ggScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MaxValue))
+      .addComponent(ggText  .peer, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MaxValue)
+      .addComponent(ggScroll.peer, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MaxValue))
     lay.setVerticalGroup(lay.createParallelGroup(GroupLayout.Alignment.LEADING)
       .addGroup(lay.createSequentialGroup
-        .addComponent(ggText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        .addComponent(ggText.peer, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
         .addGap(0, 0, 0)
-        .addComponent(ggScroll, GroupLayout.DEFAULT_SIZE, 111, Short.MaxValue)
+        .addComponent(ggScroll.peer, GroupLayout.DEFAULT_SIZE, 111, Short.MaxValue)
       )
     )
     pack()
-    ggText.getDocument.addDocumentListener(new DocumentListener {
-      def insertUpdate (e: DocumentEvent): Unit = refilterList()
-      def removeUpdate (e: DocumentEvent): Unit = refilterList()
-      def changedUpdate(e: DocumentEvent): Unit = refilterList()
+    ggText.peer.getDocument.addDocumentListener(new DocumentListener {
+      def insertUpdate (e: DocumentEvent): Unit = reFilterList()
+      def removeUpdate (e: DocumentEvent): Unit = reFilterList()
+      def changedUpdate(e: DocumentEvent): Unit = reFilterList()
     })
-    ggText.setFocusTraversalKeysEnabled(false)
-    SwingUtils.addEscapeListener(this)
+    ggText.peer.setFocusTraversalKeysEnabled(false)
+    SwingUtils.addEscapeListener(peer)
 
     def show(abbrev: String, items: List[String])(succeed: Option[String] => Unit): Unit = try {
       this.items    = items
       this.succeed  = succeed
 
-      val window    = SwingUtilities.getWindowAncestor(target)
-      val rt        = target.modelToView(target.getSelectionStart)
+      val window    = SwingUtilities.getWindowAncestor(targetJ)
+      val rt        = targetJ.modelToView(targetJ.getSelectionStart)
       val loc       = new Point(rt.x, rt.y)
-      setLocationRelativeTo(window)
-      val loc1      = SwingUtilities.convertPoint(target, loc, window)
+      peer.setLocationRelativeTo(window)
+      val loc1      = SwingUtilities.convertPoint(targetJ, loc, window)
       SwingUtilities.convertPointToScreen(loc1, window)
-      setLocation(loc1)
+      location      = loc1
     } catch {
       case ex: BadLocationException => // ignore for now
     } finally {
-      val font = target.getFont
-      ggText.setFont(font)
-      ggList.setFont(font)
-      doLayout()
-      ggText.setText(abbrev)
-      refilterList()
-      setVisible(true)
+      val font = targetJ.getFont
+      ggText.font = font
+      ggList.font = font
+      peer.doLayout()
+      ggText.text = abbrev
+      reFilterList()
+      visible     = true
     }
 
-    private def refilterList(): Unit = {
-      val prefix    = ggText.getText
-      val selected  = ggList.getSelectedValue
+    private def reFilterList(): Unit = {
+      val prefix    = ggText.text
+      val idx       = selectedIndex
+      val selected  = selectedItem
       val filtered  = items.filter(StringUtils.camelCaseMatch(_, prefix))
-      ggList.setListData(filtered.toArray[String])
-      if (selected != null && filtered.contains(selected)) {
-        ggList.setSelectedValue(selected, true)
+      ggList.items  = filtered
+      if (idx >= 0 && filtered.contains(selected)) {
+        selectedIndex = idx
+        ggList.ensureIndexIsVisible(idx)
       } else {
-        ggList.setSelectedIndex(0)
+        selectedIndex = 0
       }
     }
 
     private def finish(result: Option[String]): Unit = {
       // target.replaceSelection(result)
       succeed(result)
-      setVisible(false)
+      visible = false
     }
 
-    private def keyPressed(e: KeyEvent): Unit = {
-      val i  = ggList.getSelectedIndex
-      val ch = e.getKeyChar
-      e.getKeyCode match {
-        case KeyEvent.VK_ESCAPE => finish(None)
+    private def keyPressed(e: KeyPressed): Unit = {
+      val i  = ggList.selection.indices.head
+      val ch = e.peer.getKeyChar
+      e.key match {
+        case Key.Escape => finish(None)
 
-        case KeyEvent.VK_DOWN if i < ggList.getModel.getSize - 1 =>
+        case Key.Down if i < ggList.model.size - 1 =>
           val i1 = i + 1
-          ggList.setSelectedIndex(i1)
+          selectedIndex = i1
           ggList.ensureIndexIsVisible(i1)
 
-        case KeyEvent.VK_UP if i > 0 =>
+        case Key.Up if i > 0 =>
           val i1 = i - 1
-          ggList.setSelectedIndex(i1)
+          selectedIndex = i1
           ggList.ensureIndexIsVisible(i1)
 
         case _ if escapeChars.indexOf(ch) >= 0 =>
-          val result0 = if (ggList.getSelectedIndex >= 0) {
-            ggList.getSelectedValue.toString
+          val result0 = if (selectedIndex >= 0) {
+            selectedItem
           } else {
-            ggText.getText
+            ggText.text
           }
           val result = if (ch == '\n') result0 else {
             result0 + (if (ch == '\t') ' ' else ch)
@@ -149,15 +179,17 @@ object CompletionAction {
       }
     }
 
-    private def mouseClicked(e: MouseEvent): Unit = {
-      if (e.getClickCount == 2) {
-        val selected: String = ggList.getSelectedValue.toString
-        target.replaceSelection(selected)
-        setVisible(false)
+    private def selectedItem  = ggList.selection.items  .headOption.orNull
+    private def selectedIndex = ggList.selection.indices.headOption.getOrElse(-1)
+    private def selectedIndex_=(i: Int): Unit = ggList.selectIndices(i)
+
+    private def mouseClicked(e: MouseClicked): Unit = {
+      if (e.clicks == 2) {
+        val selected = selectedItem
+        targetJ.replaceSelection(selected)
+        visible = false
       }
     }
-
-    def escapePressed(): Unit = setVisible(false)
   }
 }
 class CompletionAction(completer: ScalaCompleter) extends DefaultSyntaxAction("COMPLETION") {
@@ -165,15 +197,15 @@ class CompletionAction(completer: ScalaCompleter) extends DefaultSyntaxAction("C
 
   private var dlg: CompletionAction.Dialog = null
 
-  override def actionPerformed(target: JTextComponent, sdoc: SyntaxDocument, dot: Int, e: ActionEvent): Unit = {
+  override def actionPerformed(target: JTextComponent, sDoc: SyntaxDocument, dot: Int, e: ActionEvent): Unit = {
     val (cw, start) = {
       val sel = target.getSelectedText
       if (sel != null) {
         (sel, target.getSelectionStart)
       } else {
-        val line  = sdoc.getLineAt(dot)
-        val start = sdoc.getLineStartOffset(dot)
-        // val stop = sdoc.getLineEndOffset( dot )
+        val line  = sDoc.getLineAt(dot)
+        val start = sDoc.getLineStartOffset(dot)
+        // val stop = sDoc.getLineEndOffset( dot )
         (line.substring(0, dot - start), start)
       }
     }

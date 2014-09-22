@@ -13,12 +13,14 @@
 package de.sciss.scalainterpreter
 
 import java.awt.event.KeyEvent
-import javax.swing.{JComponent, JEditorPane, KeyStroke}
+import javax.swing.KeyStroke
 import de.sciss.syntaxpane.Token
 
 import collection.immutable.{Seq => ISeq}
 import language.implicitConversions
 import impl.{CodePaneImpl => Impl}
+
+import scala.swing.{Component, EditorPane}
 
 object CodePane {
   object Config {
@@ -80,9 +82,9 @@ trait CodePane {
   import CodePane.Range
 
   /** The peer swing component which can be added to the parent swing container. */
-  def component: JComponent
+  def component: Component
 
-  def editor: JEditorPane
+  def editor: EditorPane
 
   /** The currently selected text, or `None` if no selection has been made. */
   def selectedText: Option[String]

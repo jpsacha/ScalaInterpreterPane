@@ -15,9 +15,11 @@
 package de.sciss.scalainterpreter
 
 import java.io.{PrintStream, OutputStream, Writer}
-import java.awt.event.{ActionEvent, MouseEvent, MouseAdapter}
-import javax.swing.{JComponent, JPopupMenu, AbstractAction, JScrollPane, JTextArea, ScrollPaneConstants}
+import java.awt.event.ActionEvent
+import javax.swing.{JPopupMenu, AbstractAction, JTextArea}
 import collection.immutable.{Seq => ISeq}
+import scala.swing.event.{MouseButtonEvent, MouseReleased, MousePressed}
+import scala.swing.{ScrollPane, TextArea, Component}
 import scala.util.control.NonFatal
 import language.implicitConversions
 
@@ -28,14 +30,14 @@ object LogPane {
     def apply(): ConfigBuilder = new ConfigBuilderImpl
   }
 
-  sealed trait Config {
+  trait Config {
     def rows    : Int
     def columns : Int
     def style   : Style
     def font    : ISeq[(String, Int)]
   }
 
-  sealed trait ConfigBuilder extends Config {
+  trait ConfigBuilder extends Config {
     var rows    : Int
     var columns : Int
     var style   : Style
@@ -67,38 +69,41 @@ object LogPane {
 
     override def toString = "LogPane@" + hashCode.toHexString
 
-    private val textPane: JTextArea = new JTextArea(config.rows, config.columns) {
-      me =>
+    private val textPane: TextArea = new TextArea(config.rows, config.columns) {
+      override lazy val peer: JTextArea = new JTextArea(config.rows, config.columns) with SuperMixin {
+        override def append(str: String): Unit = {
+          super.append(str)
+          totalLength += str.length
+          updateCaret()
+        }
+
+        override def setText(str: String): Unit = {
+          super.setText(str)
+          totalLength = if (str == null) 0 else str.length
+        }
+      }
 
       private var totalLength = 0
 
-      setFont(Helper.createFont(config.font))
-      setEditable(false)
-      setLineWrap(true)
-      setBackground(config.style.background) // Color.black )
-      setForeground(config.style.foreground) // Color.white )
-      addMouseListener(new MouseAdapter {
-        override def mousePressed (e: MouseEvent): Unit = handleButton(e)
-        override def mouseReleased(e: MouseEvent): Unit = handleButton(e)
+      font      = Helper.createFont(config.font)
+      editable  = false
+      lineWrap  = true
 
-        private def handleButton(e: MouseEvent): Unit =
-          if (e.isPopupTrigger) popup.show(me, e.getX, e.getY)
-      })
+      background = config.style.background
+      foreground = config.style.foreground
 
-      override def append(str: String): Unit = {
-        super.append(str)
-        totalLength += str.length
-        updateCaret()
+      listenTo(mouse.clicks)
+      reactions += {
+        case e: MousePressed  => handleButton(e)
+        case e: MouseReleased => handleButton(e)
       }
 
-      override def setText(str: String): Unit = {
-        super.setText(str)
-        totalLength = if (str == null) 0 else str.length
-      }
+      private def handleButton(e: MouseButtonEvent): Unit =
+        if (e.triggersPopup) popup.show(peer, e.point.x, e.point.y)
 
       private def updateCaret(): Unit =
         try {
-          setCaretPosition(math.max(0, totalLength - 1))
+          caret.position = math.max(0, totalLength - 1)
         }
         catch {
           case NonFatal(_) => /* ignore */
@@ -133,9 +138,11 @@ object LogPane {
 
     private val printStream = new PrintStream(outputStream, true)
 
-    val component = new JScrollPane(textPane,
-      ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
+    val component = new ScrollPane(textPane)
+    component.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
+
+    //      ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+    //      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 
     private val popup = {
       val p = new JPopupMenu()
@@ -145,7 +152,7 @@ object LogPane {
       p
     }
 
-    def clear(): Unit = textPane.setText(null)
+    def clear(): Unit = textPane.text = null
 
     def makeDefault(error: Boolean): this.type = {
       // Console.setOut(outputStream)
@@ -162,7 +169,7 @@ object LogPane {
   */
 trait LogPane {
   /** The Swing component which can be added to a Swing parent container. */
-  def component: JComponent
+  def component: Component
 
   /** A `Writer` which will write to the pane. */
   def writer: Writer

@@ -12,17 +12,19 @@
 
 package de.sciss.scalainterpreter
 
-import java.awt.{EventQueue, GraphicsEnvironment}
-import javax.swing.{JFrame, WindowConstants}
+import java.awt.GraphicsEnvironment
+import javax.swing.UIManager
+import scala.swing.{Swing, MainFrame, Frame, SimpleSwingApplication}
 import scala.util.control.NonFatal
+import Swing._
 
 /** The standalone application object */
-object Main extends App with Runnable {
-  EventQueue.invokeLater(this)
-
-  def run(): Unit = {
-    // javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel")
-    javax.swing.UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel")
+object Main extends SimpleSwingApplication {
+  lazy val top: Frame = {
+    // val lafName = "javax.swing.plaf.metal.MetalLookAndFeel"
+    // val lafName = "javax.swing.plaf.nimbus.NimbusLookAndFeel"
+    val lafName = UIManager.getSystemLookAndFeelClassName
+    UIManager.setLookAndFeel(lafName)
 
     val pCfg  = InterpreterPane.Config()
     val bi    = Class.forName("de.sciss.scalainterpreter.BuildInfo")
@@ -38,14 +40,14 @@ object Main extends App with Runnable {
     val cCfg    = CodePane   .Config()
 
     val split   = SplitPane(paneConfig = pCfg, interpreterConfig = iCfg, codePaneConfig = cCfg)
-    val frame   = new JFrame("Scala Interpreter")
-    val cp      = frame.getContentPane
     val b       = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds
-    cp.add(split.component)
-    frame.setSize(b.width / 2, b.height * 5 / 6)
-    split.component.setDividerLocation(b.height * 2 / 3)
-    frame.setLocationRelativeTo(null)
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
-    frame.setVisible(true)
+    split.component.dividerLocation = b.height * 2 / 3
+    new MainFrame {
+      title = "Scala Interpreter"
+      contents = split.component
+      size = (b.width / 2, b.height * 5 / 6)
+      centerOnScreen()
+      open()
+    }
   }
 }

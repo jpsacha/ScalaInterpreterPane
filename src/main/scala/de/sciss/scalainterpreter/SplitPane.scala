@@ -12,8 +12,6 @@
 
 package de.sciss.scalainterpreter
 
-import javax.swing.{SwingConstants, JSplitPane}
-
 object SplitPane {
   def apply(paneConfig: InterpreterPane.Config = InterpreterPane.Config().build,
             interpreterConfig: Interpreter.Config = Interpreter.Config().build,
@@ -22,13 +20,13 @@ object SplitPane {
     val intCfg  = Interpreter.ConfigBuilder(interpreterConfig)
     intCfg.out  = Some(lp.writer)
     val ip      = InterpreterPane(paneConfig, intCfg.build, codePaneConfig)
-    val sp      = new JSplitPane(SwingConstants.HORIZONTAL)
-    sp.setTopComponent   (ip.component)
-    sp.setBottomComponent(lp.component)
+    val sp      = new scala.swing.SplitPane()
+    sp.topComponent     = ip.component
+    sp.bottomComponent  = lp.component
     new Impl(sp, ip)
   }
 
-  private final class Impl(val component: JSplitPane, val interpreter: InterpreterPane)
+  private final class Impl(val component: scala.swing.SplitPane, val interpreter: InterpreterPane)
     extends SplitPane {
 
     override def toString = s"SplitPane@${hashCode.toHexString}"
@@ -36,7 +34,7 @@ object SplitPane {
 }
 
 trait SplitPane {
-  def component: JSplitPane
+  def component: scala.swing.SplitPane
 
   def interpreter: InterpreterPane
 }
