@@ -12,7 +12,7 @@ To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `"1.6.3"`
+The current version `v` is `"1.7.0"`
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 

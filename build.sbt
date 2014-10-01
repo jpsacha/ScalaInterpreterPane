@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 name                := "ScalaInterpreterPane"
 
-version             := "1.7.0-SNAPSHOT"
+version             := "1.7.0"
 
 organization        := "de.sciss"
 
@@ -16,14 +16,16 @@ homepage            := Some(url("https://github.com/Sciss/" + name.value))
 
 licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-lazy val syntaxPaneVersion  = "1.1.4-SNAPSHOT"
+lazy val syntaxPaneVersion  = "1.1.4"
 
 lazy val swingPlusVersion   = "0.2.0"
+
+lazy val jLineVersion       = "2.12"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
   val jLine = if (sv startsWith "2.11")
-    "jline" % "jline" % "2.11"  // note: jline version is pure coincidence
+    "jline" % "jline" % jLineVersion
   else
     ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!
   //
