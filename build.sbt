@@ -1,14 +1,12 @@
-import AssemblyKeys._
-
 name                := "ScalaInterpreterPane"
 
-version             := "1.7.0"
+version             := "1.7.1"
 
 organization        := "de.sciss"
 
-scalaVersion        := "2.11.2"
+scalaVersion        := "2.11.5"
 
-crossScalaVersions  := Seq("2.11.2", "2.10.4")
+crossScalaVersions  := Seq("2.11.5", "2.10.4")
 
 description         := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -28,20 +26,12 @@ libraryDependencies ++= {
     "jline" % "jline" % jLineVersion
   else
     ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!
-  //
-  //  val swing = if (sv startsWith "2.11")
-  //    "org.scala-lang.modules" %% "scala-swing" % "1.0.1"
-  //  else
-  //    "org.scala-lang" % "scala-swing" % sv
-  //
   jLine :: List(
     "de.sciss"       %  "syntaxpane"     % syntaxPaneVersion,
     "de.sciss"       %% "swingplus"      % swingPlusVersion,
     "org.scala-lang" %  "scala-compiler" % sv
   )
 }
-
-// retrieveManaged := true
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture")
 
@@ -91,11 +81,9 @@ pomExtra := { val n = name.value
 
 // ---- standalone ----
 
-seq(assemblySettings: _*)
+test    in assembly := ()
 
-test in assembly := ()
-
-target in assembly := baseDirectory.value
+target  in assembly := baseDirectory.value
 
 jarName in assembly := s"${name.value}.jar"
 
