@@ -149,36 +149,36 @@ object CompletionAction {
     }
 
     private def keyPressed(e: KeyPressed): Unit = {
-      val i  = ggList.selection.indices.head
-      val ch = e.peer.getKeyChar
-      e.key match {
-        case Key.Escape => finish(None)
+      ggList.selection.indices.headOption.map { i => 
+      	val ch = e.peer.getKeyChar
+      	e.key match {
+      	  case Key.Escape => finish(None)
 
-        case Key.Down if i < ggList.model.size - 1 =>
-          val i1 = i + 1
-          selectedIndex = i1
-          ggList.ensureIndexIsVisible(i1)
+       	  case Key.Down if i < ggList.model.size - 1 =>
+            val i1 = i + 1
+            selectedIndex = i1
+            ggList.ensureIndexIsVisible(i1)
 
-        case Key.Up if i > 0 =>
-          val i1 = i - 1
-          selectedIndex = i1
-          ggList.ensureIndexIsVisible(i1)
+          case Key.Up if i > 0 =>
+            val i1 = i - 1
+            selectedIndex = i1
+            ggList.ensureIndexIsVisible(i1)
 
-        case _ if escapeChars.indexOf(ch) >= 0 =>
-          val result0 = if (selectedIndex >= 0) {
-            selectedItem
-          } else {
-            ggText.text
-          }
-          val result = if (ch == '\n') result0 else {
-            result0 + (if (ch == '\t') ' ' else ch)
-          }
-          finish(Some(result))
+          case _ if escapeChars.indexOf(ch) >= 0 =>
+            val result0 = if (selectedIndex >= 0) {
+              selectedItem
+            } else {
+              ggText.text
+            }
+            val result = if (ch == '\n') result0 else {
+              result0 + (if (ch == '\t') ' ' else ch)
+            }
+            finish(Some(result))
 
-        case _ =>
+          case _ =>
+        }
       }
     }
-
     private def selectedItem  = ggList.selection.items  .headOption.orNull
     private def selectedIndex = ggList.selection.indices.headOption.getOrElse(-1)
     private def selectedIndex_=(i: Int): Unit = ggList.selectIndices(i)
