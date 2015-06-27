@@ -2,7 +2,7 @@
  *  CodePane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -14,12 +14,12 @@ package de.sciss.scalainterpreter
 
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
+
+import de.sciss.scalainterpreter.impl.{CodePaneImpl => Impl}
 import de.sciss.syntaxpane.Token
 
-import collection.immutable.{Seq => ISeq}
-import language.implicitConversions
-import impl.{CodePaneImpl => Impl}
-
+import scala.collection.immutable.{Seq => ISeq}
+import scala.language.implicitConversions
 import scala.swing.{Component, EditorPane}
 
 object CodePane {

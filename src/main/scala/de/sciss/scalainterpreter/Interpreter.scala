@@ -2,7 +2,7 @@
  *  Interpreter.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -13,12 +13,13 @@
 package de.sciss.scalainterpreter
 
 import java.io.Writer
-import scala.collection.immutable.{Seq => ISeq}
-import language.implicitConversions
-import scala.concurrent.{ExecutionContext, Future, blocking}
 import java.util.concurrent.Executors
-import impl.{InterpreterImpl => Impl}
 
+import de.sciss.scalainterpreter.impl.{InterpreterImpl => Impl}
+
+import scala.collection.immutable.{Seq => ISeq}
+import scala.concurrent.{ExecutionContext, Future, blocking}
+import scala.language.implicitConversions
 import scala.tools.nsc.interpreter.Completion
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */

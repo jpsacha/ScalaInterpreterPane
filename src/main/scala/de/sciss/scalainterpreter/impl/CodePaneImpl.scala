@@ -2,7 +2,7 @@
  *  CodePaneImpl.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -193,7 +193,7 @@ object CodePaneImpl {
 
     def selectedText: Option[String] = {
       val txt = editor.selected
-      if (txt != null) Some(txt) else None
+      Option(txt)
     }
 
     def currentTextLine: Option[String] = docOption.map(_.getLineAt(editor.caret.position))

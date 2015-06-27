@@ -2,7 +2,7 @@
  *  InterpreterImpl.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -13,25 +13,16 @@
 package de.sciss.scalainterpreter
 package impl
 
-import java.io.{Writer, File}
+import java.io.{File, Writer}
 
-// this is a trick that makes it work both in Scala 2.10 and 2.11 due to 'jline' sub-package
-import scala.tools._
-
-import scala.tools.nsc.interpreter._
-import Completion.{Candidates, ScalaCompleter}
-import jline.console.completer.{Completer, ArgumentCompleter}
-
-import scala.collection.{JavaConverters, breakOut}
 import scala.collection.immutable.{Seq => ISeq}
-import scala.collection.mutable.ListBuffer
+import scala.tools.nsc.interpreter.Completion.ScalaCompleter
+import scala.tools.nsc.interpreter.{Completion, IMain, Results}
 import scala.tools.nsc.{ConsoleWriter, NewLinePrintWriter, Settings => CompilerSettings}
-import scala.tools.nsc.interpreter.Completion.{Candidates, ScalaCompleter}
-
 import scala.util.control.NonFatal
 
 object InterpreterImpl {
-  import Interpreter.{Config, ConfigBuilder, Result, Success, Error, Incomplete}
+  import Interpreter.{Config, ConfigBuilder, Error, Incomplete, Result, Success}
 
   def apply(config: Config): Interpreter = {
     val in = makeIMain(config)
@@ -87,8 +78,8 @@ object InterpreterImpl {
 
       // private in Scala API
       private def mostRecentlyHandledTree: Option[global.Tree] = {
-        import naming._
         import memberHandlers._
+        import naming._
         prevRequestList.reverse.foreach { req =>
           req.handlers.reverse foreach {
             case x: MemberDefHandler if x.definesValue && !isInternalTermName(x.name) => return Some(x.member)
@@ -119,7 +110,7 @@ object InterpreterImpl {
       }
 
       // work-around for SI-8521 (Scala 2.11.0)
-      override def interpret(line: String, synthetic: Boolean): IR.Result = {
+      override def interpret(line: String, synthetic: Boolean): Results.Result = {
         val th = Thread.currentThread()
         val cl = th.getContextClassLoader
         try {
@@ -139,11 +130,11 @@ object InterpreterImpl {
     }
 
     // this was removed in Scala 2.11
-    def quietImport(ids: Seq[String]): IR.Result = in.beQuietDuring(addImports(ids))
+    def quietImport(ids: Seq[String]): Results.Result = in.beQuietDuring(addImports(ids))
 
     // this was removed in Scala 2.11
-    def addImports(ids: Seq[String]): IR.Result =
-      if (ids.isEmpty) IR.Success
+    def addImports(ids: Seq[String]): Results.Result =
+      if (ids.isEmpty) Results.Success
       else in.interpret(ids.mkString("import ", ", ", ""))
 
     in.setContextClassLoader()
@@ -154,87 +145,7 @@ object InterpreterImpl {
   }
 
   private final class Impl(in: IMain with ResultIntp) extends Interpreter {
-    // private var importMap = Map.empty[in.memberHandlers.ImportHandler, Option[CompletionAware]]
-
-    private var importMap = Map.empty[String, Option[CompletionAware]]  // XXX TODO: should we use weak hash map?
-
-    private lazy val cmp: ScalaCompleter = {
-      val jLineComp = new JLineCompletion(in) {
-
-        override def topLevel: List[CompletionAware] = {
-          // println("--topLevel--")
-          val sup   = super.topLevel
-
-          val ihs = intp.importHandlers
-          val res = new ListBuffer[CompletionAware]
-          res ++= sup
-
-          // try {
-          ihs.foreach { ih =>
-            val key = ih.expr.toString()
-            importMap.get(key) match {
-              case Some(Some(c)) => res += c
-              case None =>
-                val value = if (ih.importsWildcard) {
-                  import global.{rootMirror, NoSymbol}
-                  // rm.findMemberFromRoot()
-                  val sym = rootMirror.getModuleIfDefined(ih.expr.toString()) // (ih.expr.symbol.name)
-                  // val sym = rootMirror.getPackageObjectIfDefined(ih.expr.toString) // (ih.expr.symbol.name)
-                  // val pkg = rm.getPackage(global.newTermNameCached(ih.expr.toString))
-                  if (sym == NoSymbol) None else {
-                    val pc = new PackageCompletion(sym.tpe)
-                    res += pc
-                    Some(pc)
-                  }
-                } else None
-                importMap += key -> value
-
-              case _ =>
-            }
-          }
-          res.toList
-        }
-
-        // the first tier of top level objects (doesn't include file completion)
-        override def topLevelFor(parsed: Parsed): List[String] = {
-          val buf = new ListBuffer[String]
-          val tl  = topLevel
-          tl.foreach { ca =>
-            val cac = ca.completionsFor(parsed)
-            buf ++= cac
-
-            if (buf.size > topLevelThreshold)
-              return buf.toList.sorted
-          }
-          buf.toList
-        }
-      }
-      val tc = jLineComp.completer()
-
-      val comp = new Completer {
-        def complete(buf: String, cursor: Int, candidates: JList[CharSequence]): Int = {
-          val buf1 = if (buf == null) "" else buf
-          val Candidates(newCursor, newCandidates) = tc.complete(buf1, cursor)
-          newCandidates.foreach(candidates.add)
-          newCursor
-        }
-      }
-
-      val argComp = new ArgumentCompleter(new JLineDelimiter, comp)
-      argComp.setStrict(false)
-
-      new ScalaCompleter {
-        def complete(buf: String, cursor: Int): Candidates = {
-          val jList     = new java.util.ArrayList[CharSequence]
-          val newCursor = argComp.complete(buf, cursor, jList)
-          import JavaConverters._
-          val list: List[String] = jList.asScala.collect {
-            case c if c.length > 0 => c.toString
-          } (breakOut)
-          Candidates(newCursor, list)
-        }
-      }
-    }
+    private lazy val cmp: ScalaCompleter = new ScalaCompleterImpl(in)
 
     override def toString = s"Interpreter@${hashCode().toHexString}"
 

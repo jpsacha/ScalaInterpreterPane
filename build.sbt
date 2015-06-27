@@ -1,12 +1,12 @@
 name                := "ScalaInterpreterPane"
 
-version             := "1.7.1"
+version             := "1.7.2"
 
 organization        := "de.sciss"
 
-scalaVersion        := "2.11.5"
+scalaVersion        := "2.11.7"
 
-crossScalaVersions  := Seq("2.11.5", "2.10.4")
+crossScalaVersions  := Seq("2.11.7", "2.10.5")
 
 description         := "A Swing based front-end for the Scala REPL (interpreter)"
 
@@ -18,7 +18,7 @@ lazy val syntaxPaneVersion  = "1.1.4"
 
 lazy val swingPlusVersion   = "0.2.0"
 
-lazy val jLineVersion       = "2.12"
+lazy val jLineVersion       = "2.12.1"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
@@ -39,9 +39,7 @@ fork in run := true
 
 // ---- build info ----
 
-buildInfoSettings
-
-sourceGenerators in Compile <+= buildInfo
+enablePlugins(BuildInfoPlugin)
 
 buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
   BuildInfoKey.map(homepage) { case (k, opt) => k -> opt.get },
@@ -95,11 +93,9 @@ appbundle.target := baseDirectory.value
 
 // ---- ls.implicit.ly ----
 
-seq(lsSettings :_*)
-
-(LsKeys.tags   in LsKeys.lsync) := Seq("repl", "interpreter")
-
-(LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
-
-(LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
+// seq(lsSettings :_*)
+// 
+// (LsKeys.tags   in LsKeys.lsync) := Seq("repl", "interpreter")
+// (LsKeys.ghUser in LsKeys.lsync) := Some("Sciss")
+// (LsKeys.ghRepo in LsKeys.lsync) := Some(name.value)
 

@@ -2,7 +2,7 @@
  *  CompletionAction.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -13,21 +13,22 @@
 package de.sciss.scalainterpreter
 package actions
 
-import javax.swing.text.{BadLocationException, JTextComponent}
-import de.sciss.swingplus.ListView
-
-import scala.swing.event.{Key, MouseClicked, KeyPressed}
-import scala.swing.{ScrollPane, TextField}
-import tools.nsc.interpreter.Completion.ScalaCompleter
 import java.awt.Dialog.ModalityType
-import javax.swing.event.{DocumentListener, DocumentEvent}
 import java.awt.Point
-import javax.swing.{GroupLayout, JDialog, SwingUtilities}
 import java.awt.event.ActionEvent
-import de.sciss.syntaxpane.actions.gui.EscapeListener
-import de.sciss.syntaxpane.util.{StringUtils, SwingUtils}
+import javax.swing.event.{DocumentEvent, DocumentListener}
+import javax.swing.text.{BadLocationException, JTextComponent}
+import javax.swing.{GroupLayout, JDialog, SwingUtilities}
+
+import de.sciss.swingplus.ListView
 import de.sciss.syntaxpane.SyntaxDocument
 import de.sciss.syntaxpane.actions.DefaultSyntaxAction
+import de.sciss.syntaxpane.actions.gui.EscapeListener
+import de.sciss.syntaxpane.util.{StringUtils, SwingUtils}
+
+import scala.swing.event.{Key, KeyPressed, MouseClicked}
+import scala.swing.{ScrollPane, TextField}
+import scala.tools.nsc.interpreter.Completion.ScalaCompleter
 
 object CompletionAction {
   private final val escapeChars = ";(= \t\n\r"
@@ -148,8 +149,8 @@ object CompletionAction {
       visible = false
     }
 
-    private def keyPressed(e: KeyPressed): Unit = {
-      ggList.selection.indices.headOption.map { i => 
+    private def keyPressed(e: KeyPressed): Unit =
+      ggList.selection.indices.headOption.foreach { i =>
       	val ch = e.peer.getKeyChar
       	e.key match {
       	  case Key.Escape => finish(None)
@@ -178,7 +179,7 @@ object CompletionAction {
           case _ =>
         }
       }
-    }
+
     private def selectedItem  = ggList.selection.items  .headOption.orNull
     private def selectedIndex = ggList.selection.indices.headOption.getOrElse(-1)
     private def selectedIndex_=(i: Int): Unit = ggList.selectIndices(i)

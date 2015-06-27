@@ -2,7 +2,7 @@
  *  LogPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -14,14 +14,15 @@
 
 package de.sciss.scalainterpreter
 
-import java.io.{PrintStream, OutputStream, Writer}
 import java.awt.event.ActionEvent
-import javax.swing.{JPopupMenu, AbstractAction, JTextArea}
-import collection.immutable.{Seq => ISeq}
-import scala.swing.event.{MouseButtonEvent, MouseReleased, MousePressed}
-import scala.swing.{ScrollPane, TextArea, Component}
+import java.io.{OutputStream, PrintStream, Writer}
+import javax.swing.{AbstractAction, JPopupMenu, JTextArea}
+
+import scala.collection.immutable.{Seq => ISeq}
+import scala.language.implicitConversions
+import scala.swing.event.{MouseButtonEvent, MousePressed, MouseReleased}
+import scala.swing.{Component, ScrollPane, TextArea}
 import scala.util.control.NonFatal
-import language.implicitConversions
 
 object LogPane {
   object Config {
