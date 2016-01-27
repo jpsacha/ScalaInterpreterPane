@@ -20,6 +20,10 @@ The current version `v` is `"1.7.2"`
 
 There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
 
+## contributing
+
+Please see the file [CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## overview
 
 There are two independent components, `CodePane` and `Interpreter`. The former encapsulates the Swing widget for editing source code with syntax highlighting. The latter encapsulates the Scala REPL.
