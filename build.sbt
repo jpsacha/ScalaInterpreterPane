@@ -1,23 +1,14 @@
 name                := "ScalaInterpreterPane"
-
-version             := "1.7.2"
-
+version             := "1.7.3-SNAPSHOT"
 organization        := "de.sciss"
-
-scalaVersion        := "2.11.7"
-
-crossScalaVersions  := Seq("2.11.7", "2.10.5")
-
+scalaVersion        := "2.11.8"
+crossScalaVersions  := Seq("2.11.8", "2.10.6")
 description         := "A Swing based front-end for the Scala REPL (interpreter)"
-
 homepage            := Some(url("https://github.com/Sciss/" + name.value))
-
 licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
 lazy val syntaxPaneVersion  = "1.1.4"
-
-lazy val swingPlusVersion   = "0.2.0"
-
+lazy val swingPlusVersion   = "0.2.1"
 lazy val jLineVersion       = "2.12.1"
 
 libraryDependencies ++= {
@@ -80,16 +71,8 @@ pomExtra := { val n = name.value
 // ---- standalone ----
 
 test    in assembly := ()
-
 target  in assembly := baseDirectory.value
-
 jarName in assembly := s"${name.value}.jar"
-
-seq(appbundle.settings: _*)
-
-appbundle.icon   := Some(file("icons") / "application.icns")
-
-appbundle.target := baseDirectory.value
 
 // ---- ls.implicit.ly ----
 
