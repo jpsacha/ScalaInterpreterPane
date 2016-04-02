@@ -2,7 +2,7 @@
  *  Style.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2016 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -71,7 +71,7 @@ object Style {
     val background      = c(0x141f2e)
     val foreground      = c(0xf5f5f5)
     val lineBackground  = c(0x1b2b40)
-    val lineForeground  = c(0x808080)
+    val lineForeground  = c(0xA0A0A0)
     val selection       = c(0x375780)
     val caret           = c(0xffffff)
     val pair            = c(0x3c5f8c)

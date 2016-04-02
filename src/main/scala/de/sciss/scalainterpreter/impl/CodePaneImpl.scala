@@ -2,7 +2,7 @@
  *  CodePaneImpl.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2016 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -14,18 +14,18 @@ package de.sciss.scalainterpreter
 package impl
 
 import java.awt.Color
-import java.awt.event.{ActionListener, InputEvent, ActionEvent, KeyEvent}
+import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
 import javax.swing.text.PlainDocument
-import javax.swing.{AbstractAction, KeyStroke, JComponent, SwingUtilities, UIManager, UIDefaults, JEditorPane}
+import javax.swing.{AbstractAction, JComponent, JEditorPane, KeyStroke, SwingUtilities, UIDefaults, UIManager}
 
 import de.sciss.scalainterpreter.actions.CompletionAction
-import de.sciss.syntaxpane.components.Markers
+import de.sciss.syntaxpane.components.{LineNumbersRuler, Markers}
 import de.sciss.syntaxpane.syntaxkits.ScalaSyntaxKit
 import de.sciss.syntaxpane.util.Configuration
-import de.sciss.syntaxpane.{Token, SyntaxStyle, TokenType, SyntaxStyles, SyntaxView, DefaultSyntaxKit, SyntaxDocument}
+import de.sciss.syntaxpane.{DefaultSyntaxKit, SyntaxDocument, SyntaxStyle, SyntaxStyles, SyntaxView, Token, TokenType}
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.swing.{Swing, EditorPane, Component, ScrollPane}
+import scala.swing.{Component, EditorPane, ScrollPane, Swing}
 import Swing._
 
 object CodePaneImpl {
@@ -68,24 +68,27 @@ object CodePaneImpl {
     //      val synDef = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
     val syn = DefaultSyntaxKit.getConfig(classOf[ScalaSyntaxKit])
     val style = config.style
-    put(syn, "Style.DEFAULT",           style.default)
-    put(syn, "Style.KEYWORD",           style.keyword)
-    put(syn, "Style.OPERATOR",          style.operator)
-    put(syn, "Style.COMMENT",           style.comment)
-    put(syn, "Style.NUMBER",            style.number)
-    put(syn, "Style.STRING",            style.string)
-    put(syn, "Style.STRING2",           style.string)
-    put(syn, "Style.IDENTIFIER",        style.identifier)
-    put(syn, "Style.DELIMITER",         style.delimiter)
-    put(syn, "Style.TYPE",              style.tpe)
+    put(syn, "Style.DEFAULT",     style.default)
+    put(syn, "Style.KEYWORD",     style.keyword)
+    put(syn, "Style.OPERATOR",    style.operator)
+    put(syn, "Style.COMMENT",     style.comment)
+    put(syn, "Style.NUMBER",      style.number)
+    put(syn, "Style.STRING",      style.string)
+    put(syn, "Style.STRING2",     style.string)
+    put(syn, "Style.IDENTIFIER",  style.identifier)
+    put(syn, "Style.DELIMITER",   style.delimiter)
+    put(syn, "Style.TYPE",        style.tpe)
 
-    put(syn, "LineNumbers.CurrentBack", style.lineBackground)
-    put(syn, "LineNumbers.Foreground",  style.lineForeground)
+    put(syn, LineNumbersRuler.PROPERTY_CURRENT_BACK, style.lineBackground)
+    put(syn, LineNumbersRuler.PROPERTY_FOREGROUND  , style.lineForeground)
     syn.put(SyntaxView.PROPERTY_SINGLE_COLOR_SELECT, style.singleColorSelect.toString) // XXX TODO currently broken - has no effect
     //      synDef.put( "SingleColorSelect", style.singleColorSelect.toString )
     put(syn, "SelectionColor",          style.selection)
     put(syn, "CaretColor",              style.caret)
     put(syn, "PairMarker.Color",        style.pair)
+
+    val isDark = UIManager.getBoolean("dark-skin")
+    if (isDark) put(syn, LineNumbersRuler.PROPERTY_BACKGROUND, UIManager.getColor("Panel.background"))
 
     // too bad - we need to override the default which is black here
     SyntaxStyles.getInstance().put(TokenType.DEFAULT, new SyntaxStyle(style.default._1, style.default._2.code))
@@ -164,9 +167,10 @@ object CodePaneImpl {
 
   private final class Impl(val editor: EditorPane, config: Config) extends CodePane {
     val component: Component = new ScrollPane(editor) {
-      horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
+      horizontalScrollBarPolicy = ScrollPane.BarPolicy.AsNeeded
       verticalScrollBarPolicy   = ScrollPane.BarPolicy.Always
     }
+    component.peer.putClientProperty("styleId", "undecorated")
 
     private val execMarker = new ExecMarker(editor)
 

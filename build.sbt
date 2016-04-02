@@ -1,5 +1,5 @@
 name                := "ScalaInterpreterPane"
-version             := "1.7.3-SNAPSHOT"
+version             := "1.7.3"
 organization        := "de.sciss"
 scalaVersion        := "2.11.8"
 crossScalaVersions  := Seq("2.11.8", "2.10.6")
@@ -10,6 +10,7 @@ licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgp
 lazy val syntaxPaneVersion  = "1.1.4"
 lazy val swingPlusVersion   = "0.2.1"
 lazy val jLineVersion       = "2.12.1"
+lazy val subminVersion      = "0.2.0"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
@@ -20,7 +21,8 @@ libraryDependencies ++= {
   jLine :: List(
     "de.sciss"       %  "syntaxpane"     % syntaxPaneVersion,
     "de.sciss"       %% "swingplus"      % swingPlusVersion,
-    "org.scala-lang" %  "scala-compiler" % sv
+    "org.scala-lang" %  "scala-compiler" % sv,
+    "de.sciss"       %  "submin"         % subminVersion % "test"
   )
 }
 

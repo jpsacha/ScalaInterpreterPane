@@ -2,7 +2,7 @@
  *  Main.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2016 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -24,8 +24,10 @@ object Main extends SimpleSwingApplication {
   lazy val top: Frame = {
     // val lafName = "javax.swing.plaf.metal.MetalLookAndFeel"
     // val lafName = "javax.swing.plaf.nimbus.NimbusLookAndFeel"
-    val lafName = UIManager.getSystemLookAndFeelClassName
-    UIManager.setLookAndFeel(lafName)
+    if (UIManager.getLookAndFeel.getID != "submin") {
+      val lafName = UIManager.getSystemLookAndFeelClassName
+      UIManager.setLookAndFeel(lafName)
+    }
 
     val pCfg  = InterpreterPane.Config()
     val bi    = Class.forName("de.sciss.scalainterpreter.BuildInfo")

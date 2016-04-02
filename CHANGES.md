@@ -8,3 +8,4 @@
 
 - API cleaned up, support for text ranges and "flashing"
 - implementations in separate package
+- 1.7.3: support for dark-themed look-and-feel

@@ -2,7 +2,7 @@
  *  LogPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2016 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -140,6 +140,7 @@ object LogPane {
     private val printStream = new PrintStream(outputStream, true)
 
     val component = new ScrollPane(textPane)
+    component.peer.putClientProperty("styleId", "undecorated")
     component.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
     //      ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,

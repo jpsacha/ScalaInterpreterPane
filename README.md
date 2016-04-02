@@ -6,7 +6,7 @@
 
 ## statement
 
-ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010-2014 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) v2.1+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010-2016 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) v2.1+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ## requirements
 
@@ -16,9 +16,9 @@ To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `"1.7.2"`
+The current version `v` is `"1.7.3"`
 
-There is also an `appbundle` target for sbt which creates a standalone OS X application, and the `assembly` target which creates a standalone jar in `targets`.
+There is also the `assembly` target which creates a standalone jar in `targets`.
 
 ## contributing
 
@@ -93,6 +93,10 @@ If you use scala-swing, the components can be wrapped using `swing.Component.wra
 
 ## related
 
+For a standalone desktop application, [ScalaCollider-Swing](https://github.com/Sciss/ScalaColliderSwing) is very 
+useful. It has a multi-document-adapter and  window docking and comes with cross-platform and Debian-based binary 
+installers.
+
 There are various projects which provide similar functionality or part of the functionality:
 
 - https://github.com/Bridgewater/scala-notebook - console in a browser interface
@@ -101,4 +105,4 @@ There are various projects which provide similar functionality or part of the fu
 - https://github.com/bobbylight/RSyntaxTextArea - an alternative to JSyntaxPane
 - http://code.google.com/p/scalide/ - Swing based REPL, stopped in 2009
 - https://github.com/kjellwinblad/ScalaEdit - Swing based editor based on RSyntaxTextArea, stopped in 2011
-- https://bitbucket.org/centaur/scalaconsole/wiki/Home - Swing based console, stopped in 2011
+- https://github.com/Centaur/scalaconsole - Swing based console, stopped in 2011

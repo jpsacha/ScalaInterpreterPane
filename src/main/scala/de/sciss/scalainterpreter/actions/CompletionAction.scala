@@ -2,7 +2,7 @@
  *  CompletionAction.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2016 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -75,6 +75,7 @@ object CompletionAction {
     }
 
     private val ggScroll  = new ScrollPane(ggList)
+    ggScroll.peer.putClientProperty("styleId", "undecorated")
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE)
     resizable = false
