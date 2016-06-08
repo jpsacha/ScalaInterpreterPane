@@ -101,7 +101,7 @@ There are various projects which provide similar functionality or part of the fu
 
 - https://github.com/Bridgewater/scala-notebook - console in a browser interface
 - https://github.com/jedesah/scala-codesheet-api - code sheet is a slightly different concept with respect to execution
-- https://github.com/MasseGuillaume/ScalaKata - console in a browser interface
+- https://github.com/MasseGuillaume/ScalaKata2 - console in a browser interface
 - https://github.com/bobbylight/RSyntaxTextArea - an alternative to JSyntaxPane
 - http://code.google.com/p/scalide/ - Swing based REPL, stopped in 2009
 - https://github.com/kjellwinblad/ScalaEdit - Swing based editor based on RSyntaxTextArea, stopped in 2011
