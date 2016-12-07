@@ -41,6 +41,7 @@ object Main extends SimpleSwingApplication {
 
     val iCfg    = Interpreter.Config()
     val cCfg    = CodePane   .Config()
+    // cCfg.style = Style.Light
 
     val split   = SplitPane(paneConfig = pCfg, interpreterConfig = iCfg, codePaneConfig = cCfg)
     val b       = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds

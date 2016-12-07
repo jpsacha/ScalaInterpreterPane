@@ -25,7 +25,7 @@ object Style {
     val default         = c(0x000000) -> Plain
     val keyword         = c(0x3333ee) -> Plain
     val operator        = c(0x000000) -> Plain
-    val comment         = c(0x339933) -> Italic
+    val comment         = c(0x338855) -> Italic // c(0x339933) -> Italic
     val number          = c(0x999933) -> Bold
     val string          = c(0xcc6600) -> Plain
     val identifier      = c(0x000000) -> Plain
@@ -34,11 +34,11 @@ object Style {
 
     val background      = c(0xffffff)
     val foreground      = c(0x000000)
-    val lineBackground  = c(0x1b2b40)
-    val lineForeground  = c(0x808080)
-    val selection       = c(0x375780)
+    val lineBackground  = c(0xb0b0d0) // c(0x1b2b40)
+    val lineForeground  = c(0x606060) // c(0x808080)
+    val selection       = c(0xc0c0d0) // c(0x375780)
     val caret           = c(0x000000)
-    val pair            = c(0x3c5f8c)
+    val pair            = c(0xa0a0a0) // c(0x3c5f8c)
 
     val singleColorSelect = false
   }
