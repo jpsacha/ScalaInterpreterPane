@@ -1,4 +1,4 @@
-lazy val projectVersion = "1.7.4"
+lazy val projectVersion = "1.7.5"
 lazy val mimaVersion    = "1.7.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase
@@ -6,23 +6,27 @@ lazy val baseNameL      = baseName.toLowerCase
 name                := baseName
 version             := projectVersion
 organization        := "de.sciss"
-scalaVersion        := "2.11.8"
-crossScalaVersions  := Seq("2.11.8", "2.10.6")
+scalaVersion        := "2.12.1"
+crossScalaVersions  := Seq("2.12.1", "2.11.8", "2.10.6")
 description         := "A Swing based front-end for the Scala REPL (interpreter)"
 homepage            := Some(url("https://github.com/Sciss/" + name.value))
 licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
 lazy val syntaxPaneVersion  = "1.1.5"
-lazy val swingPlusVersion   = "0.2.1"
-lazy val jLineVersion       = "2.12.1"
+lazy val swingPlusVersion   = "0.2.2"
+lazy val jLineVersionOLD    = "2.12.1"
+lazy val jLineVersion       = "2.14.1"
 lazy val subminVersion      = "0.2.1"
 
 libraryDependencies ++= {
   val sv    = scalaVersion.value
-  val jLine = if (sv startsWith "2.11")
-    "jline" % "jline" % jLineVersion
-  else
+  val jLine = if (sv.startsWith("2.10")) {
     ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!
+  } else if (sv.startsWith("2.11")) {
+    "jline" % "jline" % jLineVersionOLD
+  } else {
+    "jline" % "jline" % jLineVersion
+  }
   jLine :: List(
     "de.sciss"       %  "syntaxpane"     % syntaxPaneVersion,
     "de.sciss"       %% "swingplus"      % swingPlusVersion,

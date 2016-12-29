@@ -10,7 +10,8 @@
  *  contact@sciss.de
  */
 
-package de.sciss.scalainterpreter.impl
+package de.sciss.scalainterpreter
+package impl
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.{JavaConverters, breakOut}
@@ -21,7 +22,7 @@ import scala.tools.nsc.interpreter.{IMain, Parsed, CompletionAware, JLineComplet
   * JLine is differently accessed in Scala 2.10 and 2.11. There are
   * version specific final classes for these two Scala versions.
   */
-abstract class AbstractScalaCompleter(intp: IMain) extends ScalaCompleter {
+abstract class AbstractScalaCompleter(intp: IMain) extends Completer {
   protected def perform(buf: String, cursor: Int, jList: java.util.List[CharSequence]): Int
 
   private[this] final val jLineCompletion = new JLineCompletion(intp) {

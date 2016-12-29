@@ -10,7 +10,8 @@
  *  contact@sciss.de
  */
 
-package de.sciss.scalainterpreter.impl
+package de.sciss.scalainterpreter
+package impl
 
 import _root_.jline.console.completer.{ArgumentCompleter, Completer}
 

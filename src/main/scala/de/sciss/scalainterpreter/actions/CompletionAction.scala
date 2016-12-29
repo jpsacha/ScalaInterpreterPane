@@ -28,7 +28,6 @@ import de.sciss.syntaxpane.util.{StringUtils, SwingUtils}
 
 import scala.swing.event.{Key, KeyPressed, MouseClicked}
 import scala.swing.{ScrollPane, TextField}
-import scala.tools.nsc.interpreter.Completion.ScalaCompleter
 
 object CompletionAction {
   private final val escapeChars = ";(= \t\n\r"
@@ -119,7 +118,7 @@ object CompletionAction {
       SwingUtilities.convertPointToScreen(loc1, window)
       location      = loc1
     } catch {
-      case ex: BadLocationException => // ignore for now
+      case _: BadLocationException => // ignore for now
     } finally {
       val font = targetJ.getFont
       ggText.font = font
@@ -158,12 +157,12 @@ object CompletionAction {
 
        	  case Key.Down if i < ggList.model.size - 1 =>
             val i1 = i + 1
-            selectedIndex = i1
+            selectedIndex_=(i1)
             ggList.ensureIndexIsVisible(i1)
 
           case Key.Up if i > 0 =>
             val i1 = i - 1
-            selectedIndex = i1
+            selectedIndex_=(i1)
             ggList.ensureIndexIsVisible(i1)
 
           case _ if escapeChars.indexOf(ch) >= 0 =>
@@ -194,10 +193,10 @@ object CompletionAction {
     }
   }
 }
-class CompletionAction(completer: ScalaCompleter) extends DefaultSyntaxAction("COMPLETION") {
+class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLETION") {
   import CompletionAction.defPrefix
 
-  private var dlg: CompletionAction.Dialog = null
+  private var dlg: CompletionAction.Dialog = _
 
   override def actionPerformed(target: JTextComponent, sDoc: SyntaxDocument, dot: Int, e: ActionEvent): Unit = {
     val (cw, start) = {
@@ -262,7 +261,7 @@ class CompletionAction(completer: ScalaCompleter) extends DefaultSyntaxAction("C
     more1 match {
       case one :: Nil => perform(one)
 
-      case more =>
+      case _ /* more */ =>
         if (dlg == null) dlg = new CompletionAction.Dialog(target)
 
         dlg.show(cw.substring(m.cursor), more1) {

@@ -16,8 +16,7 @@ package impl
 import java.io.{File, Writer}
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.tools.nsc.interpreter.Completion.ScalaCompleter
-import scala.tools.nsc.interpreter.{Completion, IMain, Results}
+import scala.tools.nsc.interpreter.{IMain, Results}
 import scala.tools.nsc.{ConsoleWriter, NewLinePrintWriter, Settings => CompilerSettings}
 import scala.util.control.NonFatal
 
@@ -43,13 +42,13 @@ object InterpreterImpl {
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
-    var imports       = ISeq.empty[String]
-    var bindings      = ISeq.empty[NamedParam]
+    var imports     : ISeq[String]      = Nil
+    var bindings    : ISeq[NamedParam]  = Nil
     var executor      = ""
     var out           = Option.empty[Writer]
     var quietImports  = true
 
-    def build: Config = new ConfigImpl(
+    def build: Config = ConfigImpl(
       imports = imports, bindings = bindings, executor = executor, out = out, quietImports = quietImports)
 
     override def toString = s"Interpreter.ConfigBuilder@${hashCode().toHexString}"
@@ -71,7 +70,7 @@ object InterpreterImpl {
     val cSet = new CompilerSettings()
     cSet.classpath.value += File.pathSeparator + sys.props("java.class.path")
     val in = new IMain(cSet, new NewLinePrintWriter(config.out getOrElse new ConsoleWriter, true)) with ResultIntp {
-      override protected def parentClassLoader = Interpreter.getClass.getClassLoader
+      override protected def parentClassLoader: ClassLoader = Interpreter.getClass.getClassLoader
 
       // note `lastRequest` was added in 2.10
       private def _lastRequest = prevRequestList.last
@@ -95,7 +94,7 @@ object InterpreterImpl {
           case Success(name, _) => try {
             import global._
             val shouldEval = mostRecentlyHandledTree.exists {
-              case x: ValDef            => true
+              case _: ValDef            => true
               case Assign(Ident(_), _)  => true
               case ModuleDef(_, _, _)   => true
               case _                    => false
@@ -145,11 +144,11 @@ object InterpreterImpl {
   }
 
   private final class Impl(in: IMain with ResultIntp) extends Interpreter {
-    private lazy val cmp: ScalaCompleter = new ScalaCompleterImpl(in)
+    private lazy val cmp: Completer = new ScalaCompleterImpl(in)
 
     override def toString = s"Interpreter@${hashCode().toHexString}"
 
-    def completer: Completion.ScalaCompleter = cmp
+    def completer: Completer = cmp
 
     def interpretWithResult(code: String, quiet: Boolean): Interpreter.Result =
       if (quiet) {

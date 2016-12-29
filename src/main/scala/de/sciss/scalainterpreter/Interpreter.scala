@@ -20,7 +20,6 @@ import de.sciss.scalainterpreter.impl.{InterpreterImpl => Impl}
 import scala.collection.immutable.{Seq => ISeq}
 import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.language.implicitConversions
-import scala.tools.nsc.interpreter.Completion
 
 /** The `Interpreter` wraps the underlying Scala interpreter functionality. */
 object Interpreter {
@@ -142,5 +141,5 @@ trait Interpreter {
   def interpret(code: String, quiet: Boolean = false): Interpreter.Result
 
   /** A code completion component which may be attached to an editor. */
-  def completer: Completion.ScalaCompleter
+  def completer: Completer
 }

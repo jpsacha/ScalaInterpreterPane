@@ -65,7 +65,7 @@ object InterpreterPaneImpl {
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
-    var executeKey            = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)
+    var executeKey: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)
     var code                  = ""
     var prependExecutionInfo  = true
 
