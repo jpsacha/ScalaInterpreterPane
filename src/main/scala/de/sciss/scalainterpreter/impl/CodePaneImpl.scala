@@ -50,7 +50,6 @@ object CodePaneImpl {
     initScalaKit(config)
     val res = createPlain(config)
     res.init()
-    res
   }
 
   private def put(cfg: Configuration, key: String, pair: (Color, Style.Face)): Unit = {
@@ -63,10 +62,12 @@ object CodePaneImpl {
     cfg.put(key, value)
   }
 
-  def initKit[A <: DefaultSyntaxKit](config: Config)(implicit ct: ClassTag[A]): Unit = {
+  private def isDark: Boolean = UIManager.getBoolean("dark-skin")
+
+  def initKit[A <: DefaultSyntaxKit](style: Style = if (isDark) Style.BlueForest else Style.Light)
+                                    (implicit ct: ClassTag[A]): Unit = {
     //    DefaultSyntaxKit.initKit()
     val syn   = DefaultSyntaxKit.getConfig(ct.runtimeClass.asInstanceOf[Class[A]])
-    val style = config.style
     put(syn, "Style.DEFAULT",     style.default)
     put(syn, "Style.KEYWORD",     style.keyword)
     put(syn, "Style.OPERATOR",    style.operator)
@@ -86,7 +87,6 @@ object CodePaneImpl {
     put(syn, "CaretColor",        style.caret)
     put(syn, "PairMarker.Color",  style.pair)
 
-    val isDark = UIManager.getBoolean("dark-skin")
     if (isDark) put(syn, LineNumbersRuler.PROPERTY_BACKGROUND, UIManager.getColor("Panel.background"))
 
     // too bad - we need to override the default which is black here
@@ -96,10 +96,11 @@ object CodePaneImpl {
   private def initScalaKit(config: Config): Unit = {
     // DefaultSyntaxKit.registerContentType("text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit")
     //      val synDef = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
-    initKit[ScalaSyntaxKit](config)
+    initKit[ScalaSyntaxKit](config.style)
   }
 
-  def createEditorPane(style: Style, preferredSize: (Int, Int),
+  def createEditorPane(style: Style = if (isDark) Style.BlueForest else Style.Light,
+                       preferredSize: (Int, Int) = (500, 500),
                        keyProcessor: KeyEvent => KeyEvent = identity,
                        keyMap: Map[KeyStroke, () => Unit] = Map.empty): EditorPane = {
     val _preferredSize = preferredSize
@@ -161,7 +162,7 @@ object CodePaneImpl {
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
     var text          : String                      = ""
-    var style         : Style                       = Style.BlueForest
+    var style         : Style                       = if (isDark) Style.BlueForest else Style.Light
     var keyMap        : Map[KeyStroke, () => Unit]  = Map.empty
     var keyProcessor  : KeyEvent => KeyEvent        = identity
     var font          : ISeq[(String, Int)]         = Fonts.defaultFonts
@@ -190,7 +191,7 @@ object CodePaneImpl {
 
     // ---- impl ----
 
-    protected final val scroll: ScrollPane = {
+    private[this] final lazy val _scroll: ScrollPane = {
       val res = new ScrollPane(editor)
       res.horizontalScrollBarPolicy = ScrollPane.BarPolicy.AsNeeded
       res.verticalScrollBarPolicy   = ScrollPane.BarPolicy.Always
@@ -198,9 +199,11 @@ object CodePaneImpl {
       res
     }
 
-    val component: Component = scroll
+    protected def scroll: ScrollPane = _scroll
 
-    private val execMarker = new ExecMarker(editor)
+    def component: Component = scroll
+
+    private[this] val execMarker = new ExecMarker(editor)
 
     final def docOption: Option[SyntaxDocument] = {
       val doc = editor.peer.getDocument
