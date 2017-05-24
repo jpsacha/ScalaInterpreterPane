@@ -1,4 +1,4 @@
-lazy val projectVersion = "1.7.5"
+lazy val projectVersion = "1.7.6-SNAPSHOT"
 lazy val mimaVersion    = "1.7.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase
@@ -6,16 +6,16 @@ lazy val baseNameL      = baseName.toLowerCase
 name                := baseName
 version             := projectVersion
 organization        := "de.sciss"
-scalaVersion        := "2.12.1"
-crossScalaVersions  := Seq("2.12.1", "2.11.8", "2.10.6")
+scalaVersion        := "2.12.2"
+crossScalaVersions  := Seq("2.12.2", "2.11.11", "2.10.6")
 description         := "A Swing based front-end for the Scala REPL (interpreter)"
-homepage            := Some(url("https://github.com/Sciss/" + name.value))
+homepage            := Some(url(s"https://github.com/Sciss/$baseName"))
 licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
-lazy val syntaxPaneVersion  = "1.1.5"
+lazy val syntaxPaneVersion  = "1.1.6"
 lazy val swingPlusVersion   = "0.2.2"
 lazy val jLineVersionOLD    = "2.12.1"
-lazy val jLineVersion       = "2.14.1"
+lazy val jLineVersion       = "2.14.3"
 lazy val subminVersion      = "0.2.1"
 
 libraryDependencies ++= {
