@@ -10,11 +10,11 @@ scalaVersion        := "2.12.2"
 crossScalaVersions  := Seq("2.12.2", "2.11.11", "2.10.6")
 description         := "A Swing based front-end for the Scala REPL (interpreter)"
 homepage            := Some(url(s"https://github.com/Sciss/$baseName"))
-licenses            := Seq("LGPL v2.1+" -> url( "http://www.gnu.org/licenses/lgpl-2.1.txt"))
+licenses            := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt"))
 
 lazy val syntaxPaneVersion  = "1.1.7-SNAPSHOT"
 lazy val swingPlusVersion   = "0.2.2"
-lazy val jLineVersionOLD    = "2.12.1"
+// lazy val jLineVersionOLD    = "2.12.1"
 lazy val jLineVersion       = "2.14.3"
 lazy val subminVersion      = "0.2.1"
 
@@ -22,8 +22,8 @@ libraryDependencies ++= {
   val sv    = scalaVersion.value
   val jLine = if (sv.startsWith("2.10")) {
     ("org.scala-lang" % "jline" % sv).exclude("org.fusesource.jansi", "jansi") // duplicate stuff in jansi!
-  } else if (sv.startsWith("2.11")) {
-    "jline" % "jline" % jLineVersionOLD
+  // } else if (sv.startsWith("2.11")) {
+  //  "jline" % "jline" % jLineVersion
   } else {
     "jline" % "jline" % jLineVersion
   }
