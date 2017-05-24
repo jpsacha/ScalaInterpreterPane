@@ -1,4 +1,4 @@
-lazy val projectVersion = "1.8.0"
+lazy val projectVersion = "1.8.1"
 lazy val mimaVersion    = "1.8.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase

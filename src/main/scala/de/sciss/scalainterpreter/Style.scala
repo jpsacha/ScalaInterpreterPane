@@ -29,7 +29,8 @@ object Style {
     val comment       : Pair  = c(0x338855) -> Italic // c(0x339933) -> Italic
     val number        : Pair  = c(0x999933) -> Bold
     val string        : Pair  = c(0x674d00 /* 0xcc6600 */) -> Plain
-    val identifier    : Pair  = c(0xe60035 /* 0xff003b */) -> Plain
+//    val identifier    : Pair  = c(0xe60035) -> Plain
+    val identifier    : Pair  = c(0x000000) -> Plain
     val tpe           : Pair  = c(0x000000) -> Italic
     val tpeStd        : Pair  = c(0x000000) -> Bold
     val tpeUser       : Pair  = c(0x000000) -> Italic
@@ -70,7 +71,8 @@ object Style {
     val comment       : Pair  = c(0x50f050) -> Italic
     val number        : Pair  = c(0xff8080) -> Plain
     val string        : Pair  = c(0xa0ffa0) -> Plain
-    val identifier    : Pair  = c(0xff194f /* 0xff003b */) -> Plain
+//    val identifier    : Pair  = c(0xff194f) -> Plain
+    val identifier    : Pair  = c(0xf5f5f5) -> Plain
     val tpe           : Pair  = c(0x91ccff) -> Plain
     val tpeStd        : Pair  = c(0xf5f5f5) -> Bold
     val tpeUser       : Pair  = c(0xf5f5f5) -> Italic
