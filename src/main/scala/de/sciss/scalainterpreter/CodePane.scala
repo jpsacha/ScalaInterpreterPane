@@ -20,7 +20,7 @@ import de.sciss.syntaxpane.Token
 
 import scala.collection.immutable.{Seq => ISeq}
 import scala.language.implicitConversions
-import scala.swing.{Component, EditorPane}
+import scala.swing.{Action, Component, EditorPane}
 
 object CodePane {
   object Config {
@@ -110,4 +110,9 @@ trait CodePane {
   def activeToken: Option[Token]
 
   def installAutoCompletion(interpreter: Interpreter): Unit
+
+  def undoAction: Action
+  def redoAction: Action
+
+  def clearUndoHistory(): Unit
 }

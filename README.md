@@ -16,7 +16,7 @@ To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `"1.7.6"`
+The current version `v` is `"1.8.0"`
 
 There is also the `assembly` target which creates a standalone jar in `targets`.
 

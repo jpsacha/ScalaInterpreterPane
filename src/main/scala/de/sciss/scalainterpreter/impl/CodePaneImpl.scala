@@ -27,7 +27,7 @@ import de.sciss.syntaxpane.{DefaultSyntaxKit, SyntaxDocument, SyntaxStyle, Synta
 import scala.collection.immutable.{Seq => ISeq}
 import scala.reflect.ClassTag
 import scala.swing.Swing._
-import scala.swing.{Component, EditorPane, ScrollPane}
+import scala.swing.{Action, Component, EditorPane, ScrollPane}
 
 object CodePaneImpl {
   import CodePane.{Config, ConfigBuilder, Range}
@@ -70,6 +70,7 @@ object CodePaneImpl {
     val syn   = DefaultSyntaxKit.getConfig(ct.runtimeClass.asInstanceOf[Class[A]])
     put(syn, "Style.DEFAULT",     style.default)
     put(syn, "Style.KEYWORD",     style.keyword)
+    put(syn, "Style.KEYWORD2",    style.keyword2)
     put(syn, "Style.OPERATOR",    style.operator)
     put(syn, "Style.COMMENT",     style.comment)
     put(syn, "Style.NUMBER",      style.number)
@@ -78,6 +79,8 @@ object CodePaneImpl {
     put(syn, "Style.IDENTIFIER",  style.identifier)
     put(syn, "Style.DELIMITER",   style.delimiter)
     put(syn, "Style.TYPE",        style.tpe)
+    put(syn, "Style.TYPE2",       style.tpeStd)
+    put(syn, "Style.TYPE3",       style.tpeUser)
 
     put(syn, LineNumbersRuler.PROPERTY_CURRENT_BACK, style.lineBackground)
     put(syn, LineNumbersRuler.PROPERTY_FOREGROUND  , style.lineForeground)
@@ -190,6 +193,17 @@ object CodePaneImpl {
     protected def tabSize     : Int
 
     // ---- impl ----
+
+    import de.sciss.swingplus.Implicits._
+
+    final def undoAction: Action = Action.wrap(editor.peer.getActionMap.get("undo"))
+    final def redoAction: Action = Action.wrap(editor.peer.getActionMap.get("redo"))
+
+    final def clearUndoHistory(): Unit =
+      editor.peer.getDocument match {
+        case sd: SyntaxDocument => sd.clearUndos()
+        case _ =>
+      }
 
     private[this] final lazy val _scroll: ScrollPane = {
       val res = new ScrollPane(editor)

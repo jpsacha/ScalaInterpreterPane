@@ -24,13 +24,16 @@ object Style {
 
     val default       : Pair  = c(0x000000) -> Plain
     val keyword       : Pair  = c(0x3333ee) -> Plain
+    val keyword2      : Pair  = c(0x9133ee) -> BoldItalic
     val operator      : Pair  = c(0x000000) -> Plain
     val comment       : Pair  = c(0x338855) -> Italic // c(0x339933) -> Italic
     val number        : Pair  = c(0x999933) -> Bold
-    val string        : Pair  = c(0xcc6600) -> Plain
-    val identifier    : Pair  = c(0x000000) -> Plain
+    val string        : Pair  = c(0x674d00 /* 0xcc6600 */) -> Plain
+    val identifier    : Pair  = c(0xe60035 /* 0xff003b */) -> Plain
     val tpe           : Pair  = c(0x000000) -> Italic
-    val delimiter     : Pair  = c(0x000000) -> Bold
+    val tpeStd        : Pair  = c(0x000000) -> Bold
+    val tpeUser       : Pair  = c(0x000000) -> Italic
+    val delimiter     : Pair  = c(0xe60035 /* 0xff003b */) -> Plain
 
     val background    : Color = c(0xffffff)
     val foreground    : Color = c(0x000000)
@@ -44,9 +47,10 @@ object Style {
   }
 
   object Face {
-    case object Plain  extends Face { val code = 0 }
-    case object Bold   extends Face { val code = 1 }
-    case object Italic extends Face { val code = 2 }
+    case object Plain       extends Face { val code = 0 }
+    case object Bold        extends Face { val code = 1 }
+    case object Italic      extends Face { val code = 2 }
+    case object BoldItalic  extends Face { val code = 3 }
   }
   sealed trait Face { def code: Int }
 
@@ -59,24 +63,26 @@ object Style {
 
     import Face._
 
-    val default       : Pair    = c(0xf5f5f5) -> Plain
-    val keyword       : Pair    = c(0x0099ff) -> Bold
-    val operator      : Pair    = c(0xf5f5f5) -> Plain
-    val comment       : Pair    = c(0x50f050) -> Italic
-    val number        : Pair    = c(0xff8080) -> Plain
-    val string        : Pair    = c(0xa0ffa0) -> Plain
-    val identifier    : Pair    = c(0xf5f5f5) -> Plain
-    val tpe           : Pair    = c(0x91ccff) -> Plain
+    val default       : Pair  = c(0xf5f5f5) -> Plain
+    val keyword       : Pair  = c(0x0099ff) -> Bold
+    val keyword2      : Pair  = c(0x90ff90) -> BoldItalic
+    val operator      : Pair  = c(0xf5f5f5) -> Plain
+    val comment       : Pair  = c(0x50f050) -> Italic
+    val number        : Pair  = c(0xff8080) -> Plain
+    val string        : Pair  = c(0xa0ffa0) -> Plain
+    val identifier    : Pair  = c(0xff194f /* 0xff003b */) -> Plain
+    val tpe           : Pair  = c(0x91ccff) -> Plain
+    val tpeStd        : Pair  = c(0xf5f5f5) -> Bold
+    val tpeUser       : Pair  = c(0xf5f5f5) -> Italic
+    val delimiter     : Pair  = c(0xff194f /* 0xff003b */) -> Plain
 
-    val background    : Color   = c(0x141f2e)
-    val foreground    : Color   = c(0xf5f5f5)
-    val lineBackground: Color   = c(0x1b2b40)
-    val lineForeground: Color   = c(0xA0A0A0)
-    val selection     : Color   = c(0x375780)
-    val caret         : Color   = c(0xffffff)
-    val pair          : Color   = c(0x3c5f8c)
-
-    val delimiter     : Pair    = c(0xFF0000) -> Italic // XXX TEST
+    val background    : Color = c(0x141f2e)
+    val foreground    : Color = c(0xf5f5f5)
+    val lineBackground: Color = c(0x1b2b40)
+    val lineForeground: Color = c(0xA0A0A0)
+    val selection     : Color = c(0x375780)
+    val caret         : Color = c(0xffffff)
+    val pair          : Color = c(0x3c5f8c)
 
     val singleColorSelect = true
   }
@@ -87,12 +93,15 @@ trait Style {
 
   def default           : Pair
   def keyword           : Pair
+  def keyword2          : Pair
   def operator          : Pair
   def comment           : Pair
   def number            : Pair
   def string            : Pair
   def identifier        : Pair
   def tpe               : Pair
+  def tpeStd            : Pair
+  def tpeUser           : Pair
   def delimiter         : Pair
   def background        : Color
   def foreground        : Color
