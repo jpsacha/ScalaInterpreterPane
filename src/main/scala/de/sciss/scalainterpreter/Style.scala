@@ -22,23 +22,23 @@ object Style {
 
     import Face._
 
-    val default         = c(0x000000) -> Plain
-    val keyword         = c(0x3333ee) -> Plain
-    val operator        = c(0x000000) -> Plain
-    val comment         = c(0x338855) -> Italic // c(0x339933) -> Italic
-    val number          = c(0x999933) -> Bold
-    val string          = c(0xcc6600) -> Plain
-    val identifier      = c(0x000000) -> Plain
-    val tpe             = c(0x000000) -> Italic
-    val delimiter       = c(0x000000) -> Bold
+    val default       : Pair  = c(0x000000) -> Plain
+    val keyword       : Pair  = c(0x3333ee) -> Plain
+    val operator      : Pair  = c(0x000000) -> Plain
+    val comment       : Pair  = c(0x338855) -> Italic // c(0x339933) -> Italic
+    val number        : Pair  = c(0x999933) -> Bold
+    val string        : Pair  = c(0xcc6600) -> Plain
+    val identifier    : Pair  = c(0x000000) -> Plain
+    val tpe           : Pair  = c(0x000000) -> Italic
+    val delimiter     : Pair  = c(0x000000) -> Bold
 
-    val background      = c(0xffffff)
-    val foreground      = c(0x000000)
-    val lineBackground  = c(0xb0b0d0) // c(0x1b2b40)
-    val lineForeground  = c(0x606060) // c(0x808080)
-    val selection       = c(0xc0c0d0) // c(0x375780)
-    val caret           = c(0x000000)
-    val pair            = c(0xa0a0a0) // c(0x3c5f8c)
+    val background    : Color = c(0xffffff)
+    val foreground    : Color = c(0x000000)
+    val lineBackground: Color = c(0xb0b0d0) // c(0x1b2b40)
+    val lineForeground: Color = c(0x606060) // c(0x808080)
+    val selection     : Color = c(0xc0c0d0) // c(0x375780)
+    val caret         : Color = c(0x000000)
+    val pair          : Color = c(0xa0a0a0) // c(0x3c5f8c)
 
     val singleColorSelect = false
   }
@@ -59,24 +59,24 @@ object Style {
 
     import Face._
 
-    val default         = c(0xf5f5f5) -> Plain
-    val keyword         = c(0x0099ff) -> Bold
-    val operator        = c(0xf5f5f5) -> Plain
-    val comment         = c(0x50f050) -> Italic
-    val number          = c(0xff8080) -> Plain
-    val string          = c(0xa0ffa0) -> Plain
-    val identifier      = c(0xf5f5f5) -> Plain
-    val tpe             = c(0x91ccff) -> Plain
+    val default       : Pair    = c(0xf5f5f5) -> Plain
+    val keyword       : Pair    = c(0x0099ff) -> Bold
+    val operator      : Pair    = c(0xf5f5f5) -> Plain
+    val comment       : Pair    = c(0x50f050) -> Italic
+    val number        : Pair    = c(0xff8080) -> Plain
+    val string        : Pair    = c(0xa0ffa0) -> Plain
+    val identifier    : Pair    = c(0xf5f5f5) -> Plain
+    val tpe           : Pair    = c(0x91ccff) -> Plain
 
-    val background      = c(0x141f2e)
-    val foreground      = c(0xf5f5f5)
-    val lineBackground  = c(0x1b2b40)
-    val lineForeground  = c(0xA0A0A0)
-    val selection       = c(0x375780)
-    val caret           = c(0xffffff)
-    val pair            = c(0x3c5f8c)
+    val background    : Color   = c(0x141f2e)
+    val foreground    : Color   = c(0xf5f5f5)
+    val lineBackground: Color   = c(0x1b2b40)
+    val lineForeground: Color   = c(0xA0A0A0)
+    val selection     : Color   = c(0x375780)
+    val caret         : Color   = c(0xffffff)
+    val pair          : Color   = c(0x3c5f8c)
 
-    val delimiter       = c(0xFF0000) -> Italic // XXX TEST
+    val delimiter     : Pair    = c(0xFF0000) -> Italic // XXX TEST
 
     val singleColorSelect = true
   }

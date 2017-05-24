@@ -35,32 +35,32 @@ object LogPane {
     def rows    : Int
     def columns : Int
     def style   : Style
-    def font    : ISeq[(String, Int)]
+    def font    : Helper.Fonts
   }
 
   trait ConfigBuilder extends Config {
     var rows    : Int
     var columns : Int
     var style   : Style
-    var font    : ISeq[(String, Int)]
+    var font    : Helper.Fonts
     def build   : Config
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
-    var rows    = 10
-    var columns = 60
-    var style   = Style.BlueForest: Style
-    var font    = Helper.defaultFonts
+    var rows   : Int          = 10
+    var columns: Int          = 60
+    var style  : Style        = Style.BlueForest
+    var font   : Helper.Fonts = Helper.defaultFonts
 
     def build: Config = ConfigImpl(rows, columns, style, font)
 
-    override def toString = "LogPane.ConfigBuilder@" + hashCode.toHexString
+    override def toString = s"LogPane.ConfigBuilder@${hashCode.toHexString}"
   }
 
   private final case class ConfigImpl(rows: Int, columns: Int, style: Style, font: ISeq[(String, Int)])
     extends Config {
 
-    override def toString = "LogPane.Config@" + hashCode.toHexString
+    override def toString = s"LogPane.Config@${hashCode.toHexString}"
   }
 
   def apply(config: Config = Config().build): LogPane = new Impl(config)
@@ -68,7 +68,7 @@ object LogPane {
   private final class Impl(config: Config) extends LogPane {
     pane =>
 
-    override def toString = "LogPane@" + hashCode.toHexString
+    override def toString = s"LogPane@${hashCode.toHexString}"
 
     private val textPane: TextArea = new TextArea(config.rows, config.columns) {
       override lazy val peer: JTextArea = new JTextArea(config.rows, config.columns) with SuperMixin {
@@ -113,11 +113,11 @@ object LogPane {
 
     // ---- Writer ----
     val writer: Writer = new Writer {
-      override def toString = pane.toString + ".writer"
+      override def toString = s"$pane.writer"
 
-      def close() = ()
+      def close(): Unit = ()
 
-      def flush() = ()
+      def flush(): Unit = ()
 
       def write(ch: Array[Char], off: Int, len: Int): Unit = {
         val str = new String(ch, off, len)
@@ -127,7 +127,7 @@ object LogPane {
 
     // ---- OutputStream ----
     val outputStream: OutputStream = new OutputStream {
-      override def toString = pane.toString + ".outputStream"
+      override def toString = s"$pane.outputStream"
 
       override def write(b: Array[Byte], off: Int, len: Int): Unit = {
         val str = new String(b, off, len)
@@ -142,9 +142,6 @@ object LogPane {
     val component = new ScrollPane(textPane)
     component.peer.putClientProperty("styleId", "undecorated")
     component.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
-
-    //      ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-    //      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 
     private val popup = {
       val p = new JPopupMenu()

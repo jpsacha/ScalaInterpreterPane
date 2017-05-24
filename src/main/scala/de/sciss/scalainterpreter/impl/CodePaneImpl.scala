@@ -146,12 +146,12 @@ object CodePaneImpl {
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
-    var text          = ""
-    var style: Style  = Style.BlueForest
-    var keyMap        = Map.empty[KeyStroke, () => Unit]
-    var keyProcessor  = identity: KeyEvent => KeyEvent
-    var font          = Helper.defaultFonts
-    var preferredSize = (500, 500)
+    var text          : String                      = ""
+    var style         : Style                       = Style.BlueForest
+    var keyMap        : Map[KeyStroke, () => Unit]  = Map.empty
+    var keyProcessor  : KeyEvent => KeyEvent        = identity
+    var font          : ISeq[(String, Int)]         = Helper.defaultFonts
+    var preferredSize : (Int, Int)                  = (500, 500)
 
     def build: Config = ConfigImpl(text, keyMap, keyProcessor, font, style, preferredSize)
 

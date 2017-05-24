@@ -74,7 +74,7 @@ object CodePane {
   def apply(config: Config = Config().build): CodePane = Impl(config)
 
   final case class Range(start: Int, stop: Int, selected: Boolean) {
-    def length = stop - start
+    def length: Int = stop - start
   }
 }
 

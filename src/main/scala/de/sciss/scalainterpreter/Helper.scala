@@ -16,8 +16,11 @@ import java.awt.{Font, GraphicsEnvironment}
 
 import scala.collection.immutable.{Seq => ISeq}
 
-private[scalainterpreter] object Helper {
-  val defaultFonts = ISeq[(String, Int)](
+object Helper {
+  type FontSpec = (String, Int)
+  type Fonts    = ISeq[FontSpec]
+
+  val defaultFonts: Fonts = ISeq(
     "Menlo"                     -> 12,
     "DejaVu Sans Mono"          -> 12,
     "Bitstream Vera Sans Mono"  -> 12,
@@ -25,7 +28,7 @@ private[scalainterpreter] object Helper {
     "Anonymous Pro"             -> 12
   )
 
-  def createFont(list: ISeq[(String, Int)]): Font = {
+  def createFont(list: Fonts): Font = {
     val allFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
     val (fontName, fontSize) = list.find(spec => allFontNames.contains(spec._1))
       .getOrElse("Monospaced" -> 12)
