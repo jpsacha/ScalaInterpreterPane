@@ -25,8 +25,9 @@ import de.sciss.syntaxpane.util.Configuration
 import de.sciss.syntaxpane.{DefaultSyntaxKit, SyntaxDocument, SyntaxStyle, SyntaxStyles, SyntaxView, Token, TokenType}
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.swing.{Component, EditorPane, ScrollPane, Swing}
-import Swing._
+import scala.reflect.ClassTag
+import scala.swing.Swing._
+import scala.swing.{Component, EditorPane, ScrollPane}
 
 object CodePaneImpl {
   import CodePane.{Config, ConfigBuilder, Range}
@@ -46,7 +47,7 @@ object CodePaneImpl {
   }
 
   def apply(config: Config): CodePane = {
-    initKit(config)
+    initScalaKit(config)
     val res = createPlain(config)
     res.init()
     res
@@ -62,11 +63,9 @@ object CodePaneImpl {
     cfg.put(key, value)
   }
 
-  private def initKit(config: Config): Unit = {
-    DefaultSyntaxKit.initKit()
-    // DefaultSyntaxKit.registerContentType("text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit")
-    //      val synDef = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
-    val syn = DefaultSyntaxKit.getConfig(classOf[ScalaSyntaxKit])
+  def initKit[A <: DefaultSyntaxKit](config: Config)(implicit ct: ClassTag[A]): Unit = {
+    //    DefaultSyntaxKit.initKit()
+    val syn   = DefaultSyntaxKit.getConfig(ct.runtimeClass.asInstanceOf[Class[A]])
     val style = config.style
     put(syn, "Style.DEFAULT",     style.default)
     put(syn, "Style.KEYWORD",     style.keyword)
@@ -83,9 +82,9 @@ object CodePaneImpl {
     put(syn, LineNumbersRuler.PROPERTY_FOREGROUND  , style.lineForeground)
     syn.put(SyntaxView.PROPERTY_SINGLE_COLOR_SELECT, style.singleColorSelect.toString) // XXX TODO currently broken - has no effect
     //      synDef.put( "SingleColorSelect", style.singleColorSelect.toString )
-    put(syn, "SelectionColor",          style.selection)
-    put(syn, "CaretColor",              style.caret)
-    put(syn, "PairMarker.Color",        style.pair)
+    put(syn, "SelectionColor",    style.selection)
+    put(syn, "CaretColor",        style.caret)
+    put(syn, "PairMarker.Color",  style.pair)
 
     val isDark = UIManager.getBoolean("dark-skin")
     if (isDark) put(syn, LineNumbersRuler.PROPERTY_BACKGROUND, UIManager.getColor("Panel.background"))
@@ -94,14 +93,22 @@ object CodePaneImpl {
     SyntaxStyles.getInstance().put(TokenType.DEFAULT, new SyntaxStyle(style.default._1, style.default._2.code))
   }
 
-  private def createPlain(config: Config): Impl = {
-    val style = config.style
+  private def initScalaKit(config: Config): Unit = {
+    // DefaultSyntaxKit.registerContentType("text/scala", "de.sciss.scalainterpreter.ScalaSyntaxKit")
+    //      val synDef = DefaultSyntaxKit.getConfig( classOf[ DefaultSyntaxKit ])
+    initKit[ScalaSyntaxKit](config)
+  }
+
+  def createEditorPane(style: Style, preferredSize: (Int, Int),
+                       keyProcessor: KeyEvent => KeyEvent = identity,
+                       keyMap: Map[KeyStroke, () => Unit] = Map.empty): EditorPane = {
+    val _preferredSize = preferredSize
     val ed: EditorPane = new EditorPane("text/plain", "") {
       override lazy val peer: JEditorPane = new JEditorPane("text/plain", "") with SuperMixin {
-        override protected def processKeyEvent(e: KeyEvent): Unit = super.processKeyEvent(config.keyProcessor(e))
+        override protected def processKeyEvent(e: KeyEvent): Unit = super.processKeyEvent(keyProcessor(e))
       }
 
-      preferredSize = (config.preferredSize._1, config.preferredSize._2)
+      preferredSize = _preferredSize
       background    = style.background   // stupid... this cannot be set in the kit config
     }
 
@@ -133,7 +140,7 @@ object CodePaneImpl {
     val iMap = edJ.getInputMap(JComponent.WHEN_FOCUSED)
     val aMap = edJ.getActionMap
 
-    config.keyMap.iterator.zipWithIndex.foreach {
+    if (keyMap.nonEmpty) keyMap.iterator.zipWithIndex.foreach {
       case (spec, idx) =>
         val name = s"de.sciss.user$idx"
         iMap.put(spec._1, name)
@@ -141,6 +148,13 @@ object CodePaneImpl {
           def actionPerformed(e: ActionEvent): Unit = spec._2.apply()
         })
     }
+
+    ed
+  }
+
+  private def createPlain(config: Config): Impl = {
+    val ed = createEditorPane(style = config.style, preferredSize = config.preferredSize,
+      keyProcessor = config.keyProcessor, keyMap = config.keyMap)
 
     new Impl(ed, config)
   }
@@ -150,7 +164,7 @@ object CodePaneImpl {
     var style         : Style                       = Style.BlueForest
     var keyMap        : Map[KeyStroke, () => Unit]  = Map.empty
     var keyProcessor  : KeyEvent => KeyEvent        = identity
-    var font          : ISeq[(String, Int)]         = Helper.defaultFonts
+    var font          : ISeq[(String, Int)]         = Fonts.defaultFonts
     var preferredSize : (Int, Int)                  = (500, 500)
 
     def build: Config = ConfigImpl(text, keyMap, keyProcessor, font, style, preferredSize)
@@ -165,16 +179,30 @@ object CodePaneImpl {
     override def toString = s"CodePane.Config@${hashCode().toHexString}"
   }
 
-  private final class Impl(val editor: EditorPane, config: Config) extends CodePane {
-    val component: Component = new ScrollPane(editor) {
-      horizontalScrollBarPolicy = ScrollPane.BarPolicy.AsNeeded
-      verticalScrollBarPolicy   = ScrollPane.BarPolicy.Always
+  trait Basic {
+    // ---- abstract ----
+
+    protected def editor      : EditorPane
+    protected def mimeType    : String
+    protected def initialText : String
+    protected def fonts       : Fonts.List
+    protected def tabSize     : Int
+
+    // ---- impl ----
+
+    protected final val scroll: ScrollPane = {
+      val res = new ScrollPane(editor)
+      res.horizontalScrollBarPolicy = ScrollPane.BarPolicy.AsNeeded
+      res.verticalScrollBarPolicy   = ScrollPane.BarPolicy.Always
+      res.peer.putClientProperty("styleId", "undecorated")
+      res
     }
-    component.peer.putClientProperty("styleId", "undecorated")
+
+    val component: Component = scroll
 
     private val execMarker = new ExecMarker(editor)
 
-    def docOption: Option[SyntaxDocument] = {
+    final def docOption: Option[SyntaxDocument] = {
       val doc = editor.peer.getDocument
       // if (doc == null) return None
       doc match {
@@ -183,60 +211,69 @@ object CodePaneImpl {
       }
     }
 
-    def init(): Unit = {
-      editor.contentType = "text/scala"
-      editor.text = config.text
-      editor.font = Helper.createFont(config.font)
+    final def init(): this.type = {
+      editor.contentType  = mimeType
+      editor.text         = initialText
+      editor.font         = Fonts.create(fonts)
       val doc = editor.peer.getDocument
-      doc.putProperty(PlainDocument.tabSizeAttribute, 2)
+      doc.putProperty(PlainDocument.tabSizeAttribute, tabSize)
       doc match {
         case synDoc: SyntaxDocument => synDoc.clearUndos()
         case _ =>
       }
+      this
     }
 
-    def selectedText: Option[String] = {
+    final def selectedText: Option[String] = {
       val txt = editor.selected
       Option(txt)
     }
 
-    def currentTextLine: Option[String] = docOption.map(_.getLineAt(editor.caret.position))
+    final def currentTextLine: Option[String] = docOption.map(_.getLineAt(editor.caret.position))
 
-    def activeText: Option[String] = selectedText orElse currentTextLine
+    final def activeText: Option[String] = selectedText orElse currentTextLine
 
-    def selectedRange: Option[Range] = {
+    final def selectedRange: Option[Range] = {
       val edJ   = editor.peer
       val start = edJ.getSelectionStart
       val end   = edJ.getSelectionEnd
       if (start < end) Some(Range(start, end, selected = true)) else None
     }
 
-    def currentLineRange: Option[Range] = docOption.flatMap { doc =>
+    final def currentLineRange: Option[Range] = docOption.flatMap { doc =>
       val pos   = editor.caret.position
       val start = doc.getLineStartOffset(pos)
       val end   = doc.getLineEndOffset  (pos)
       if (start < end) Some(Range(start, end, selected = false)) else None
     }
 
-    def activeRange: Option[Range] = selectedRange orElse currentLineRange
+    final def activeRange: Option[Range] = selectedRange orElse currentLineRange
 
-    def flash(range: Range): Unit = execMarker.install(range)
+    final def flash(range: Range): Unit = execMarker.install(range)
 
-    def abortFlash(): Unit = execMarker.abort()
+    final def abortFlash(): Unit = execMarker.abort()
 
-    def activeToken: Option[Token] = docOption.flatMap { doc =>
+    final def activeToken: Option[Token] = docOption.flatMap { doc =>
       val pos = editor.caret.position
       Option(doc.getTokenAt(pos))
     }
 
-    def getTextSlice(range: Range): String = editor.peer.getDocument.getText(range.start, range.length)
+    final def getTextSlice(range: Range): String = editor.peer.getDocument.getText(range.start, range.length)
 
-    def installAutoCompletion(interpreter: Interpreter): Unit = {
+    final def installAutoCompletion(interpreter: Interpreter): Unit = {
       val iMap = editor.peer.getInputMap(JComponent.WHEN_FOCUSED)
       val aMap = editor.peer.getActionMap
       iMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK), "de.sciss.comp")
       aMap.put("de.sciss.comp", new CompletionAction(interpreter.completer))
     }
+  }
+
+  private final class Impl(val editor: EditorPane, config: Config) extends Basic with CodePane {
+
+    protected def mimeType    : String      = "text/scala"
+    protected def initialText : String      = config.text
+    protected def fonts       : Fonts.List  = config.font
+    protected def tabSize     : Int         = 2
 
     override def toString = s"CodePane@${hashCode().toHexString}"
   }
@@ -252,16 +289,16 @@ object CodePaneImpl {
   private final class ExecMarker(editor: EditorPane)
     extends Markers.SimpleMarker(null) with ActionListener {
 
-    private var added   = false
-    private val timer   = new javax.swing.Timer(50, this)
-    private var colrIdx = 0
+    private[this] var added   = false
+    private[this] val timer   = new javax.swing.Timer(50, this)
+    private[this] var colrIdx = 0
 
-    private var _range : Range  = _
-    private var tag    : AnyRef = _
-    private var stopColor: Color  = _
-    private var startColor: Color = _
+    private[this] var _range    : Range   = _
+    private[this] var tag       : AnyRef  = _
+    private[this] var stopColor : Color   = _
+    private[this] var startColor: Color   = _
 
-    private var currentColor  = fullColor
+    private[this] var currentColor  = fullColor
 
     override def getColor: Color = currentColor
 

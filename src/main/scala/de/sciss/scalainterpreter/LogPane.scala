@@ -35,14 +35,14 @@ object LogPane {
     def rows    : Int
     def columns : Int
     def style   : Style
-    def font    : Helper.Fonts
+    def font    : Fonts.List
   }
 
   trait ConfigBuilder extends Config {
     var rows    : Int
     var columns : Int
     var style   : Style
-    var font    : Helper.Fonts
+    var font    : Fonts.List
     def build   : Config
   }
 
@@ -50,7 +50,7 @@ object LogPane {
     var rows   : Int          = 10
     var columns: Int          = 60
     var style  : Style        = Style.BlueForest
-    var font   : Helper.Fonts = Helper.defaultFonts
+    var font   : Fonts.List = Fonts.defaultFonts
 
     def build: Config = ConfigImpl(rows, columns, style, font)
 
@@ -86,7 +86,7 @@ object LogPane {
 
       private var totalLength = 0
 
-      font      = Helper.createFont(config.font)
+      font      = Fonts.create(config.font)
       editable  = false
       lineWrap  = true
 

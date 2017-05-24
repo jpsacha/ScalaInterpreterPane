@@ -1,5 +1,5 @@
 /*
- *  Helper.scala
+ *  Fonts.scala
  *  (ScalaInterpreterPane)
  *
  *  Copyright (c) 2010-2017 Hanns Holger Rutz. All rights reserved.
@@ -16,11 +16,11 @@ import java.awt.{Font, GraphicsEnvironment}
 
 import scala.collection.immutable.{Seq => ISeq}
 
-object Helper {
-  type FontSpec = (String, Int)
-  type Fonts    = ISeq[FontSpec]
+object Fonts {
+  type Spec   = (String, Int)
+  type List   = ISeq[Spec]
 
-  val defaultFonts: Fonts = ISeq(
+  val defaultFonts: List = ISeq(
     "Menlo"                     -> 12,
     "DejaVu Sans Mono"          -> 12,
     "Bitstream Vera Sans Mono"  -> 12,
@@ -28,7 +28,7 @@ object Helper {
     "Anonymous Pro"             -> 12
   )
 
-  def createFont(list: Fonts): Font = {
+  def create(list: List): Font = {
     val allFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment.getAvailableFontFamilyNames
     val (fontName, fontSize) = list.find(spec => allFontNames.contains(spec._1))
       .getOrElse("Monospaced" -> 12)
