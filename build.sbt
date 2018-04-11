@@ -1,10 +1,10 @@
-lazy val projectVersion = "1.9.0-SNAPSHOT"
+lazy val projectVersion = "1.9.0"
 lazy val mimaVersion    = "1.9.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase
 
 lazy val syntaxPaneVersion  = "1.1.9"
-lazy val swingPlusVersion   = "0.3.0-SNAPSHOT"
+lazy val swingPlusVersion   = "0.3.0"
 lazy val jLineVersion       = "2.14.6"
 lazy val subminVersion      = "0.2.2"
 
