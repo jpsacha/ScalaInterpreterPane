@@ -133,7 +133,7 @@ object CompletionAction {
       val prefix    = ggText.text
       val idx       = selectedIndex
       val selected  = selectedItem
-      val filtered  = items.filter(StringUtils.camelCaseMatch(_, prefix))
+      val filtered  = items.filter(x => x.nonEmpty && StringUtils.camelCaseMatch(x, prefix))
       ggList.items  = filtered
       if (idx >= 0 && filtered.contains(selected)) {
         selectedIndex = idx
@@ -213,7 +213,8 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
 
     val cwLen       = cw.length()
     val m           = completer.complete(cw, cwLen)
-    val candidates  = m.candidates
+    val FOO = m.candidates
+    val candidates = FOO.map(_.stringRep)
     if (candidates.isEmpty) return
 
 //    println(s"---- ${cand.size} completion candidates ----")

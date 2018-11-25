@@ -22,5 +22,5 @@ package object scalainterpreter {
   type NamedParam = interpreter.NamedParam
 
   // Scala version specific
-  type Completer = tools.nsc.interpreter.Completion
+//  type Completer = tools.nsc.interpreter.Completion
 }

@@ -21,7 +21,7 @@ import scala.tools.nsc.interpreter.{IMain, PresentationCompilerCompleter}
   * JLine is differently accessed in Scala 2.10 and 2.11. There are
   * version specific final classes for these two Scala versions.
   */
-abstract class AbstractScalaCompleter(intp: IMain) extends Completer {
+abstract class AbstractScalaCompleter(intp: IMain) extends scala.tools.nsc.interpreter.Completion /* Completer */ {
   protected def perform(buf: String, cursor: Int, jList: java.util.List[CharSequence]): Int
 
   private[this] final val tabCompletion = new PresentationCompilerCompleter(intp)

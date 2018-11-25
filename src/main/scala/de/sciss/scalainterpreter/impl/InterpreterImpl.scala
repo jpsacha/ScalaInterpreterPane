@@ -145,7 +145,7 @@ object InterpreterImpl {
   }
 
   private final class Impl(in: IMain with ResultIntp) extends Interpreter {
-    private lazy val cmp: Completer = new ScalaCompleterImpl(in)
+    private lazy val cmp: Completer = new NewCompleterImpl(in) // new ScalaCompleterImpl(in)
 
     override def toString = s"Interpreter@${hashCode().toHexString}"
 
