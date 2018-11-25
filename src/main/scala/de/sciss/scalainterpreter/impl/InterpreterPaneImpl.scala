@@ -2,7 +2,7 @@
  *  InterpreterPaneImpl.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2017 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -83,7 +83,7 @@ object InterpreterPaneImpl {
   private def create(config: Config, fut: Future[Interpreter], codePane: CodePane)
                     (implicit exec: ExecutionContext): InterpreterPane = {
     val impl = new Impl(config, fut, codePane)
-    fut.onSuccess { case in =>
+    fut.foreach { in =>
       EventQueue.invokeLater(new Runnable {
         def run(): Unit = impl.setInterpreter(in)
       })

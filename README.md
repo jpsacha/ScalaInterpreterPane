@@ -5,7 +5,11 @@
 
 ## statement
 
-ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an interpreter. The editor component is based on [JSyntaxPane](https://github.com/Sciss/JSyntaxPane). ScalaInterpreterPane is (C)opyright 2010&ndash;2018 by Hanns Holger Rutz. All rights reserved. It is released under the [GNU Lesser General Public License](http://github.com/Sciss/ScalaInterpreterPane/blob/master/licenses/ScalaInterpreterPane-License.txt) v2.1+ and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an
+interpreter. The editor component is based on [SyntaxPane](https://git.iem.at/sciss/SyntaxPane).
+ScalaInterpreterPane is (C)opyright 2010&ndash;2018 by Hanns Holger Rutz. All rights reserved. It is released under
+the [GNU Lesser General Public License](https://git.iem.at/sciss/ScalaInterpreterPane/blob/master/LICENSE) v2.1+ 
+and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ## requirements
 
@@ -15,7 +19,7 @@ To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `"1.9.0"`
+The current version `v` is `"1.9.1"`
 
 There is also the `assembly` target which creates a standalone jar in `targets`.
 
@@ -25,9 +29,11 @@ Please see the file [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## overview
 
-There are two independent components, `CodePane` and `Interpreter`. The former encapsulates the Swing widget for editing source code with syntax highlighting. The latter encapsulates the Scala REPL.
+There are two independent components, `CodePane` and `Interpreter`. The former encapsulates the Swing widget 
+for editing source code with syntax highlighting. The latter encapsulates the Scala REPL.
 
-All have their dedicated configurations, based on a division between (mutable) `ConfigBuilder` and (immutable) `Config`. A builder is implicitly converted to a `Config` when necessary.
+All have their dedicated configurations, based on a division between (mutable) `ConfigBuilder` and
+(immutable) `Config`. A builder is implicitly converted to a `Config` when necessary.
 
 For example, to create a plain code view:
 
@@ -38,7 +44,7 @@ For example, to create a plain code view:
     val codeCfg     = CodePane.Config()         // creates a new configuration _builder_
     codeCfg.style   = Style.Light               // use a light color scheme
     codeCfg.text    = """List(1, 2, 3)"""       // initial text to show in the widget
-    codeCfg.font    = Seq("Helvetica" -> 16)    // list of preferred fonts
+    codeCfg.font    = List("Helvetica" -> 16)    // list of preferred fonts
     // add a custom key action
     codeCfg.keyMap += javax.swing.KeyStroke.getKeyStroke("control U") -> { () =>
       println("Action!")
@@ -90,7 +96,7 @@ If you use scala-swing, the components can be wrapped using `swing.Component.wra
 
 ## related
 
-For a standalone desktop application, [ScalaCollider-Swing](https://github.com/Sciss/ScalaColliderSwing) is very 
+For a standalone desktop application, [ScalaCollider-Swing](https://git.iem.at/sciss/ScalaColliderSwing) is very 
 useful. It has a multi-document-adapter and  window docking and comes with cross-platform and Debian-based binary 
 installers.
 

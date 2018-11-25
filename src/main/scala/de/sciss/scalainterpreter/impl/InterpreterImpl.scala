@@ -2,7 +2,7 @@
  *  InterpreterImpl.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2017 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -69,64 +69,65 @@ object InterpreterImpl {
   private def makeIMain(config: Config): IMain with ResultIntp = {
     val cSet = new CompilerSettings()
     cSet.classpath.value += File.pathSeparator + sys.props("java.class.path")
-    val in = new IMain(cSet, new NewLinePrintWriter(config.out getOrElse new ConsoleWriter, true)) with ResultIntp {
-      override protected def parentClassLoader: ClassLoader = Interpreter.getClass.getClassLoader
+    val in: IMain with ResultIntp =
+      new IMain(cSet, new NewLinePrintWriter(config.out getOrElse new ConsoleWriter, true)) with ResultIntp {
+        override protected def parentClassLoader: ClassLoader = Interpreter.getClass.getClassLoader
 
-      // note `lastRequest` was added in 2.10
-      private def _lastRequest = prevRequestList.last
+        // note `lastRequest` was added in 2.10
+        private def _lastRequest = prevRequestList.last
 
-      // private in Scala API
-      private def mostRecentlyHandledTree: Option[global.Tree] = {
-        import memberHandlers._
-        import naming._
-        prevRequestList.reverse.foreach { req =>
-          req.handlers.reverse foreach {
-            case x: MemberDefHandler if x.definesValue && !isInternalTermName(x.name) => return Some(x.member)
-            case _ => ()
-          }
-        }
-        None
-      }
-
-      def interpretWithResult(line: String, synthetic: Boolean): Result = {
-        val res0 = interpretWithoutResult(line, synthetic)
-        res0 match {
-          case Success(name, _) => try {
-            import global._
-            val shouldEval = mostRecentlyHandledTree.exists {
-              case _: ValDef            => true
-              case Assign(Ident(_), _)  => true
-              case ModuleDef(_, _, _)   => true
-              case _                    => false
+        // private in Scala API
+        private def mostRecentlyHandledTree: Option[global.Tree] = {
+          import memberHandlers._
+          import naming._
+          prevRequestList.reverse.foreach { req =>
+            req.handlers.reverse foreach {
+              case x: MemberDefHandler if x.definesValue && !isInternalTermName(x.name) => return Some(x.member)
+              case _ => ()
             }
-            // println(s"shouldEval = $shouldEval")
-            Success(name, if (shouldEval) _lastRequest.lineRep.call("$result") else ())
-          } catch {
-            case NonFatal(_) => res0
           }
-          case _ => res0
+          None
         }
-      }
 
-      // work-around for SI-8521 (Scala 2.11.0)
-      override def interpret(line: String, synthetic: Boolean): Results.Result = {
-        val th = Thread.currentThread()
-        val cl = th.getContextClassLoader
-        try {
-          super.interpret(line, synthetic)
-        } finally {
-          th.setContextClassLoader(cl)
+        def interpretWithResult(line: String, synthetic: Boolean): Result = {
+          val res0 = interpretWithoutResult(line, synthetic)
+          res0 match {
+            case Success(name, _) => try {
+              import global._
+              val shouldEval = mostRecentlyHandledTree.exists {
+                case _: ValDef            => true
+                case Assign(Ident(_), _)  => true
+                case ModuleDef(_, _, _)   => true
+                case _                    => false
+              }
+              // println(s"shouldEval = $shouldEval")
+              Success(name, if (shouldEval) _lastRequest.lineRep.call("$result") else ())
+            } catch {
+              case NonFatal(_) => res0
+            }
+            case _ => res0
+          }
         }
-      }
 
-      def interpretWithoutResult(line: String, synthetic: Boolean): Result = {
-        interpret(line, synthetic) match {
-          case Results.Success    => Success(mostRecentVar, ())
-          case Results.Error      => Error("Error") // doesn't work anymore with 2.10.0-M7: _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
-          case Results.Incomplete => Incomplete
+        // work-around for SI-8521 (Scala 2.11.0)
+        override def interpret(line: String, synthetic: Boolean): Results.Result = {
+          val th = Thread.currentThread()
+          val cl = th.getContextClassLoader
+          try {
+            super.interpret(line, synthetic)
+          } finally {
+            th.setContextClassLoader(cl)
+          }
+        }
+
+        def interpretWithoutResult(line: String, synthetic: Boolean): Result = {
+          interpret(line, synthetic) match {
+            case Results.Success    => Success(mostRecentVar, ())
+            case Results.Error      => Error("Error") // doesn't work anymore with 2.10.0-M7: _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
+            case Results.Incomplete => Incomplete
+          }
         }
       }
-    }
 
     // this was removed in Scala 2.11
     def quietImport(ids: Seq[String]): Results.Result = in.beQuietDuring(addImports(ids))
@@ -136,7 +137,7 @@ object InterpreterImpl {
       if (ids.isEmpty) Results.Success
       else in.interpret(ids.mkString("import ", ", ", ""))
 
-    in.setContextClassLoader()
+    in.setContextClassLoader()    // needed in Scala 2.11.
     config.bindings.foreach(in.bind)
     if (config.quietImports) quietImport(config.imports) else addImports(config.imports)
     in.setExecutionWrapper(config.executor)

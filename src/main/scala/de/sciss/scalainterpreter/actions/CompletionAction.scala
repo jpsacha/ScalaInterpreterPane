@@ -2,7 +2,7 @@
  *  CompletionAction.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2017 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -215,6 +215,9 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
     val m     = completer.complete(cw, cwlen)
     val cand  = m.candidates
     if (cand.isEmpty) return
+
+//    println(s"---- ${cand.size} completion candidates ----")
+//    cand.foreach(println)
 
     val off = start + m.cursor
 
