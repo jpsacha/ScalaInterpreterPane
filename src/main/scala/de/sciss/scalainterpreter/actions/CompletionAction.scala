@@ -52,10 +52,10 @@ object CompletionAction {
       }
     }
 
-    private var items     = List.empty[String]
-    private var succeed   = (_: Option[String]) => ()
+    private[this] var items     = List.empty[String]
+    private[this] var succeed   = (_: Option[String]) => ()
 
-    private val ggText: TextField = new TextField {
+    private[this] val ggText: TextField = new TextField {
       border = null
       listenTo(keys)
       reactions += {
@@ -63,7 +63,7 @@ object CompletionAction {
       }
     }
 
-    private val ggList: ListView[String] = new ListView[String] {
+    private[this] val ggList: ListView[String] = new ListView[String] {
       listenTo(mouse.clicks)
       reactions += {
         case e: MouseClicked  => dlg.mouseClicked(e)
@@ -73,7 +73,7 @@ object CompletionAction {
       focusable = false
     }
 
-    private val ggScroll  = new ScrollPane(ggList)
+    private[this] val ggScroll  = new ScrollPane(ggList)
     ggScroll.peer.putClientProperty("styleId", "undecorated")
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE)
@@ -86,7 +86,7 @@ object CompletionAction {
     //    }
 
     // XXX TODO - should use GroupPanel, but too lazy to read up on the constraints
-    private val lay = new GroupLayout(peer.getContentPane)
+    private[this] val lay = new GroupLayout(peer.getContentPane)
     lay.setHorizontalGroup(lay.createParallelGroup(GroupLayout.Alignment.LEADING)
       .addComponent(ggText  .peer, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MaxValue)
       .addComponent(ggScroll.peer, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MaxValue))
@@ -196,7 +196,7 @@ object CompletionAction {
 class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLETION") {
   import CompletionAction.defPrefix
 
-  private var dlg: CompletionAction.Dialog = _
+  private[this] var dlg: CompletionAction.Dialog = _
 
   override def actionPerformed(target: JTextComponent, sDoc: SyntaxDocument, dot: Int, e: ActionEvent): Unit = {
     val (cw, start) = {
@@ -211,32 +211,32 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
       }
     }
 
-    val cwlen = cw.length()
-    val m     = completer.complete(cw, cwlen)
-    val cand  = m.candidates
-    if (cand.isEmpty) return
+    val cwLen       = cw.length()
+    val m           = completer.complete(cw, cwLen)
+    val candidates  = m.candidates
+    if (candidates.isEmpty) return
 
 //    println(s"---- ${cand.size} completion candidates ----")
 //    cand.foreach(println)
 
     val off = start + m.cursor
 
-    val hasDef = cand.exists(_.startsWith(defPrefix))
+    val hasDef = candidates.exists(_.contains(defPrefix))
 
-    val more1 @ (head :: tail) = if (!hasDef) cand else cand.map {
-      case x if x.startsWith(defPrefix) => x.substring(4)  // cheesy way of handling the 'def'
+    val more1 @ (head :: tail) = if (!hasDef) candidates else candidates.map {
+      case x if x.contains(defPrefix) => x.substring(x.indexOf(defPrefix) + 4)  // cheesy way of handling the 'def'
       case x => x
     }
 
     val common  = if (!hasDef) 0 else {
-      val comh0   = head.indexOf('[')
-      val comh1   = if (comh0 >= 0) comh0 else head.length
-      val comh2   = head.indexOf('(')
-      val comh3   = if (comh2 >= 0) math.min(comh1, comh2) else comh1
-      val comh4   = head.indexOf(':')
-      val comh    = if (comh4 >= 0) math.min(comh4, comh3) else comh3
+      val comH0   = head.indexOf('[')
+      val comH1   = if (comH0 >= 0) comH0 else head.length
+      val comH2   = head.indexOf('(')
+      val comH3   = if (comH2 >= 0) math.min(comH1, comH2) else comH1
+      val comH4   = head.indexOf(':')
+      val comH    = if (comH4 >= 0) math.min(comH4, comH3) else comH3
       // println(s"Head '$head' comh0 $comh0 comh1 $comh1 comh $comh")
-      (comh /: tail) { (len, s1) =>
+      (comH /: tail) { (len, s1) =>
         val m1 = math.min(len, s1.length)
         var m2 = 0
         while (m2 < m1 && s1.charAt(m2) == head.charAt(m2)) m2 += 1
@@ -244,16 +244,16 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
       }
     }
 
-    target.select(off - common, start + cwlen)
+    target.select(off - common, start + cwLen)
 
-    def perform(replc: String): Unit = {
-      val replc1 = removeTypes(replc, 0)
+    def perform(replace: String): Unit = {
+      val replace1 = removeTypes(replace, 0)
       val p0 = target.getSelectionStart
-      target.replaceSelection(replc1)
-      val i = replc1.indexOf('(') + 1
+      target.replaceSelection(replace1)
+      val i = replace1.indexOf('(') + 1
       if (i > 0) {
-        val j = replc1.indexOf(',', i)
-        val k = replc1.indexOf(')', i)
+        val j = replace1.indexOf(',', i)
+        val k = replace1.indexOf(')', i)
         val m = math.min(j, k)
         target.select(p0 + i, p0 + m)
       }
