@@ -143,7 +143,7 @@ class NewCompleterImpl(intp: IMain) extends Completer {
 
           } else if (matching.nonEmpty && matching.forall(_.symNameDropLocal == r.name)) {
             Completion.NoResult // don't offer completion if the only option has been fully typed already
-            
+
           } else {
             // regular completion
             val memberCompletions: List[String] = matching.map(_.symNameDropLocal.decoded).distinct.sorted
