@@ -1,8 +1,19 @@
+/*
+ * Scala (https://www.scala-lang.org)
+ *
+ * Copyright EPFL and Lightbend, Inc.
+ *
+ * Licensed under Apache License 2.0
+ * (http://www.apache.org/licenses/LICENSE-2.0).
+ *
+ * See the NOTICE file distributed with this work for
+ * additional information regarding copyright ownership.
+ */
+
 package de.sciss.scalainterpreter.impl
 
 import de.sciss.scalainterpreter.{Completer, Completion}
 
-import scala.reflect.internal.util.StringOps
 import scala.tools.nsc.interpreter.{IMain, isReplDebug}
 import scala.util.control.NonFatal
 
@@ -13,13 +24,27 @@ object NewCompleterImpl {
 }
 class NewCompleterImpl(intp: IMain) extends Completer {
   import NewCompleterImpl._
-  import intp.{PresentationCompileResult => Result}
+  import intp.{PresentationCompileResult => PCResult}
 
 //  private type Handler = Result => Completion.Result // Candidates
 
-  private var lastRequest = NoRequest
-  private var tabCount = 0
-  private var lastCommonPrefixCompletion: Option[String] = None
+  private[this] var lastRequest = NoRequest
+  private[this] var tabCount    = 0
+  private[this] var lastCommonPrefixCompletion = Option.empty[String]
+
+  private def longestCommonPrefix(xs: List[String]): String = xs match {
+    case Nil      => ""
+    case w :: Nil => w
+    case _        =>
+      // XXX TODO --- that does not look very efficient
+      def lcp(ss: List[String]): String = {
+        val w :: ws = ss
+        if (w == "") ""
+        else if (ws exists (s => s == "" || (s charAt 0) != (w charAt 0))) ""
+        else w.substring(0, 1) + lcp(ss map (_ substring 1))
+      }
+      lcp(xs)
+  }
 
   override def complete(buf: String, cursor: Int): Completion.Result = {
     val request = Request(buf, cursor)
@@ -54,7 +79,7 @@ class NewCompleterImpl(intp: IMain) extends Completer {
 //      Candidates(cursor, "" :: tpString :: Nil)
 //    }
 
-    def candidates(result: Result): Completion.Result /* Candidates */ = {
+    def candidates(result: PCResult): Completion.Result /* Candidates */ = {
       import result.compiler._
       import CompletionResult._
 
@@ -65,11 +90,19 @@ class NewCompleterImpl(intp: IMain) extends Completer {
           sym <- member.sym.alternatives
           sugared = sym.sugaredSymbolOrSelf
         } yield {
-          val tp = member.prefix memberType sym
-          val s = sugared.defStringSeenAs(tp)
-          new Completion.Candidate {
-            def stringRep: String = s
-          } // sugared.defStringSeenAs(tp)
+          val tp = member.prefix.memberType(sym)
+          val info =
+            if (sugared.isType) typeParamsString(tp)
+            else if (sugared.isModule) ""
+            else tp match {
+              case PolyType(_, _)         => typeParamsString(tp)
+              case MethodType(params, _)  => params.map(_.defString).mkString("(", ",", ")")
+              case _                      => ""
+            }
+
+          val n = sugared.nameString
+          // val s = sugared.defStringSeenAs(tp)
+          Completion.Def(n, info)
         }
         // XXX TODO : why is this used in the original code, but does not appear in the results?
 //        val empty: Completion.Candidate = new Completion.Candidate {
@@ -81,12 +114,13 @@ class NewCompleterImpl(intp: IMain) extends Completer {
         Completion.Result(cursor, /* empty :: */ dist)
       }
 
-      val found = result.completionsAt(cursor) match {
+      val pcResult = result.completionsAt(cursor)
+      val found = pcResult match {
         case NoResults => Completion.NoResult // NoCandidates
         case r =>
           def shouldHide(m: Member): Boolean = {
             val isUniversal = definitions.isUniversalMember(m.sym)
-            def viaUniversalExtensionMethod = m match {
+            def viaUniversalExtensionMethod: Boolean = m match {
               case t: TypeMember if t.implicitlyAdded && t.viaView.info.params.head.info.bounds.isEmptyBounds => true
               case _ => false
             }
@@ -108,18 +142,18 @@ class NewCompleterImpl(intp: IMain) extends Completer {
 
           def tryCamelStuff: Completion.Result = {
             // Lenient matching based on camel case and on eliding JavaBean "get" / "is" boilerplate
-            val camelMatches: List[Member] = r.matchingResults(CompletionResult.camelMatch(_)).filterNot(shouldHide)
-            val memberCompletions: List[String] = camelMatches.map(_.symNameDropLocal.decoded).distinct.sorted
-            def allowCompletion = (
-              (memberCompletions.size == 1)
-                || CompletionResult.camelMatch(r.name)(r.name.newName(StringOps.longestCommonPrefix(memberCompletions)))
-              )
+            val camelMatches      : List[Member ] = r.matchingResults(CompletionResult.camelMatch(_)).filterNot(shouldHide)
+            val memberCompletions : List[String ] = camelMatches.map(_.symNameDropLocal.decoded).distinct.sorted
 
-            val memberCompletionsF: List[Completion.Candidate] = memberCompletions.map { s =>
-              new Completion.Candidate {
-                def stringRep: String = s
-              }
-            }
+            def allowCompletion: Boolean =
+              (memberCompletions.size == 1) ||
+                CompletionResult.camelMatch(r.name).apply {
+                  val pre = longestCommonPrefix(memberCompletions)
+                  r.name.newName(pre)
+                }
+
+            val memberCompletionsF: List[Completion.Candidate] =
+              memberCompletions.map(Completion.Simple)
 
             if (memberCompletions.isEmpty) {
               Completion.NoResult
@@ -146,25 +180,32 @@ class NewCompleterImpl(intp: IMain) extends Completer {
 
           } else {
             // regular completion
-            val memberCompletions: List[String] = matching.map(_.symNameDropLocal.decoded).distinct.sorted
-            val memberCompletionsF: List[Completion.Candidate] = memberCompletions.map { s =>
-              new Completion.Candidate {
-                def stringRep: String = s
-              }
-            }
+            val memberCompletions: List[String] = matching.map { member =>
+              val raw: Name = member.symNameDropLocal
+              raw.decoded
+            } .distinct.sorted
+            val memberCompletionsF: List[Completion.Candidate] = memberCompletions.map(Completion.Simple)
             Completion.Result(cursor - r.positionDelta, memberCompletionsF)
           }
       }
       lastCommonPrefixCompletion =
-        if (found != Completion.NoResult && buf.length >= found.cursor)
-          Some(buf.substring(0, found.cursor) + StringOps.longestCommonPrefix(found.candidates.map(_.stringRep)))
-        else
+        if (found != Completion.NoResult && buf.length >= found.cursor) {
+          val pre = buf.substring(0, found.cursor)
+          val cs  = found.candidates.collect {
+            case Completion.Simple(s) => s
+          }
+          val suf = longestCommonPrefix(cs)
+          Some(pre + suf)
+        } else {
           None
+        }
       found
     }
-    val buf1 = buf.patch(cursor, Cursor, 0)
+
+    val bufMarked = buf.patch(cursor, Cursor, 0)
     try {
-      PeekNSC.presentationCompile(intp)(buf1) match {
+      val either = PeekNSC.presentationCompile(intp)(bufMarked)
+      either match {
         case Left(_) => Completion.NoResult // NoCandidates
         case Right(result) => try {
 //          buf match {
@@ -174,7 +215,7 @@ class NewCompleterImpl(intp: IMain) extends Completer {
 //            case slashPrintRaw() if cursor == buf.length => print(result)
 //            case slashTypeAt(start, end) if cursor == buf.length => typeAt(result, start.toInt, end.toInt)
 //            case _ =>
-              candidates(result)
+              candidates(result)  // IntelliJ highlight error
 //          }
         } finally result.cleanup()
       }

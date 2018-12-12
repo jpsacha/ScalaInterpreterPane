@@ -5,12 +5,22 @@ object Completion {
 
   val NoResult = Result(-1, Nil)
 
-  trait Candidate extends Proxy {
-    def stringRep: String
+  sealed trait Candidate /* extends Proxy */ {
+    def name: String
 
-    def self: Any = stringRep
+    def fullString: String
+
+//    override def toString: String = fullString
+
+    // def self: Any = stringRep
+  }
+
+  final case class Simple(name: String) extends Candidate {
+    def fullString: String = name
+  }
+
+  final case class Def(name: String, info: String) extends Candidate {
+    def fullString: String = s"$name$info"
   }
 }
-trait Completion {
-
-}
+// trait Completion

@@ -16,22 +16,27 @@ package actions
 import java.awt.Dialog.ModalityType
 import java.awt.Point
 import java.awt.event.ActionEvent
-import javax.swing.event.{DocumentEvent, DocumentListener}
-import javax.swing.text.{BadLocationException, JTextComponent}
-import javax.swing.{GroupLayout, JDialog, SwingUtilities}
 
+import de.sciss.scalainterpreter.Completion.Candidate
+import de.sciss.scalainterpreter.actions.CompletionAction.Replace
 import de.sciss.swingplus.ListView
 import de.sciss.syntaxpane.SyntaxDocument
 import de.sciss.syntaxpane.actions.DefaultSyntaxAction
 import de.sciss.syntaxpane.actions.gui.EscapeListener
 import de.sciss.syntaxpane.util.{StringUtils, SwingUtils}
+import javax.swing.event.{DocumentEvent, DocumentListener}
+import javax.swing.text.{BadLocationException, JTextComponent}
+import javax.swing.{DefaultListCellRenderer, GroupLayout, JDialog, SwingUtilities}
 
 import scala.swing.event.{Key, KeyPressed, MouseClicked}
-import scala.swing.{ScrollPane, TextField}
+import scala.swing.{Component, ScrollPane, TextField}
 
 object CompletionAction {
   private final val escapeChars = ";(= \t\n\r"
-  private final val defPrefix   = "def "
+
+  private final case class Replace(candidate: Candidate, append: String = "") {
+    def fullString: String = s"${candidate.fullString}$append"
+  }
 
   private class Dialog(targetJ: JTextComponent)
     extends scala.swing.Dialog() {
@@ -52,8 +57,8 @@ object CompletionAction {
       }
     }
 
-    private[this] var items     = List.empty[String]
-    private[this] var succeed   = (_: Option[String]) => ()
+    private[this] var items     = List.empty[Candidate]
+    private[this] var succeed   = (_: Option[Replace]) => ()
 
     private[this] val ggText: TextField = new TextField {
       border = null
@@ -63,10 +68,20 @@ object CompletionAction {
       }
     }
 
-    private[this] val ggList: ListView[String] = new ListView[String] {
+    private[this] val ggList: ListView[Candidate] = new ListView[Candidate] {
       listenTo(mouse.clicks)
       reactions += {
         case e: MouseClicked  => dlg.mouseClicked(e)
+      }
+      renderer = new ListView.Renderer[Candidate] {
+        private[this] val peer = new DefaultListCellRenderer
+        def componentFor(list: ListView[_], isSelected: Boolean, focused: Boolean, a: Candidate,
+                         index: Int): Component = {
+          // XXX TODO -- not nice
+          val j = peer.getListCellRendererComponent(list.peer.asInstanceOf[javax.swing.JList[_]],
+            a.fullString, index, isSelected, focused).asInstanceOf[javax.swing.JComponent]
+          Component.wrap(j)
+        }
       }
 
       selection.intervalMode = ListView.IntervalMode.Single
@@ -106,7 +121,8 @@ object CompletionAction {
     ggText.peer.setFocusTraversalKeysEnabled(false)
     SwingUtils.addEscapeListener(peer)
 
-    def show(abbrev: String, items: List[String])(succeed: Option[String] => Unit): Unit = try {
+    def show(abbrev: String, items: List[Candidate])
+            (succeed: Option[Replace] => Unit): Unit = try {
       this.items    = items
       this.succeed  = succeed
 
@@ -133,7 +149,7 @@ object CompletionAction {
       val prefix    = ggText.text
       val idx       = selectedIndex
       val selected  = selectedItem
-      val filtered  = items.filter(x => x.nonEmpty && StringUtils.camelCaseMatch(x, prefix))
+      val filtered  = items.filter(x => /* x.nonEmpty && */ StringUtils.camelCaseMatch(x.name, prefix))
       ggList.items  = filtered
       if (idx >= 0 && filtered.contains(selected)) {
         selectedIndex = idx
@@ -143,7 +159,7 @@ object CompletionAction {
       }
     }
 
-    private def finish(result: Option[String]): Unit = {
+    private def finish(result: Option[Replace]): Unit = {
       // target.replaceSelection(result)
       succeed(result)
       visible = false
@@ -169,33 +185,31 @@ object CompletionAction {
             val result0 = if (selectedIndex >= 0) {
               selectedItem
             } else {
-              ggText.text
+              Completion.Simple(ggText.text)
             }
-            val result = if (ch == '\n') result0 else {
-              result0 + (if (ch == '\t') ' ' else ch)
+            val append = if (ch == '\n') "" else {
+              if (ch == '\t') " " else ch.toString
             }
-            finish(Some(result))
+            finish(Some(Replace(result0, append)))
 
           case _ =>
         }
       }
 
-    private def selectedItem  = ggList.selection.items  .headOption.orNull
-    private def selectedIndex = ggList.selection.indices.headOption.getOrElse(-1)
+    private def selectedItem     : Candidate= ggList.selection.items  .headOption.orNull
+    private def selectedIndex    : Int        = ggList.selection.indices.headOption.getOrElse(-1)
     private def selectedIndex_=(i: Int): Unit = ggList.selectIndices(i)
 
     private def mouseClicked(e: MouseClicked): Unit = {
       if (e.clicks == 2) {
         val selected = selectedItem
-        targetJ.replaceSelection(selected)
+        targetJ.replaceSelection(selected.fullString)
         visible = false
       }
     }
   }
 }
 class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLETION") {
-  import CompletionAction.defPrefix
-
   private[this] var dlg: CompletionAction.Dialog = _
 
   override def actionPerformed(target: JTextComponent, sDoc: SyntaxDocument, dot: Int, e: ActionEvent): Unit = {
@@ -213,42 +227,38 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
 
     val cwLen       = cw.length()
     val m           = completer.complete(cw, cwLen)
-    val FOO = m.candidates
-    val candidates = FOO.map(_.stringRep)
+    val candidates = m.candidates
     if (candidates.isEmpty) return
 
-//    println(s"---- ${cand.size} completion candidates ----")
-//    cand.foreach(println)
+    println(s"candidates.size = ${candidates.size}")
+    candidates.foreach(println)
 
     val off = start + m.cursor
 
-    val hasDef = candidates.exists(_.contains(defPrefix))
+    val head :: tail = candidates
 
-    val more1 @ (head :: tail) = if (!hasDef) candidates else candidates.map {
-      case x if x.contains(defPrefix) => x.substring(x.indexOf(defPrefix) + 4)  // cheesy way of handling the 'def'
-      case x => x
-    }
-
-    val common  = if (!hasDef) 0 else {
-      val comH0   = head.indexOf('[')
-      val comH1   = if (comH0 >= 0) comH0 else head.length
-      val comH2   = head.indexOf('(')
-      val comH3   = if (comH2 >= 0) math.min(comH1, comH2) else comH1
-      val comH4   = head.indexOf(':')
-      val comH    = if (comH4 >= 0) math.min(comH4, comH3) else comH3
-      // println(s"Head '$head' comh0 $comh0 comh1 $comh1 comh $comh")
-      (comH /: tail) { (len, s1) =>
-        val m1 = math.min(len, s1.length)
-        var m2 = 0
-        while (m2 < m1 && s1.charAt(m2) == head.charAt(m2)) m2 += 1
-        m2
-      }
+    val common = head match {
+      case Completion.Simple(_) => 0
+      case _ =>
+        val headF = head.fullString
+        val comH0 = headF.indexOf('[')
+        val comH1 = if (comH0 >= 0) comH0 else headF.length
+        val comH2 = headF.indexOf('(')
+        val comH  = if (comH2 >= 0) math.min(comH1, comH2) else comH1
+        (comH /: tail) { (len, s1) =>
+          val s1F = s1.fullString
+          val m1  = math.min(len, s1F.length)
+          var m2  = 0
+          while (m2 < m1 && s1F.charAt(m2) == headF.charAt(m2)) m2 += 1
+          m2
+        }
     }
 
     target.select(off - common, start + cwLen)
 
-    def perform(replace: String): Unit = {
-      val replace1 = removeTypes(replace, 0)
+    def perform(replace: Replace): Unit = {
+      val replace0 = replace.fullString
+      val replace1 = removeTypes(replace0, 0)
       val p0 = target.getSelectionStart
       target.replaceSelection(replace1)
       val i = replace1.indexOf('(') + 1
@@ -262,13 +272,13 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
 
     // println(s"off = $off, start = $start, cwlen = $cwlen, common $common")
 
-    more1 match {
-      case one :: Nil => perform(one)
+    candidates match {
+      case one :: Nil => perform(Replace(one))
 
       case _ /* more */ =>
         if (dlg == null) dlg = new CompletionAction.Dialog(target)
 
-        dlg.show(cw.substring(m.cursor), more1) {
+        dlg.show(cw.substring(m.cursor), candidates) {
           case Some(result) =>
             // println(s"Result: '$result'")
             perform(result)
