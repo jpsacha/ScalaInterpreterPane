@@ -13,7 +13,7 @@
 package de.sciss.scalainterpreter
 package impl
 
-import scala.collection.{JavaConverters, breakOut}
+import scala.collection.JavaConverters
 import scala.tools.nsc.interpreter.Completion.Candidates
 import scala.tools.nsc.interpreter.{IMain, PresentationCompilerCompleter}
 
@@ -39,9 +39,9 @@ abstract class AbstractScalaCompleter(intp: IMain) extends scala.tools.nsc.inter
     val jList     = new java.util.ArrayList[CharSequence]
     val newCursor = perform(buf, cursor, jList) // argComp.complete(buf, cursor, jList)
     import JavaConverters._
-    val list: List[String] = jList.asScala.collect {
+    val list: List[String] = jList.iterator.asScala.collect {
       case c if c.length > 0 => c.toString
-    } (breakOut)
+    } .toList
     Candidates(newCursor, list)
   }
 }

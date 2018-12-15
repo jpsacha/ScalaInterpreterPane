@@ -12,7 +12,7 @@
 
 package de.sciss
 
-import tools.nsc.interpreter
+import scala.tools.nsc.interpreter
 
 package object scalainterpreter {
   object NamedParam {

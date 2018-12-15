@@ -70,7 +70,7 @@ object InterpreterImpl {
     val cSet = new CompilerSettings()
     cSet.classpath.value += File.pathSeparator + sys.props("java.class.path")
     val in: IMain with ResultIntp =
-      new IMain(cSet, new NewLinePrintWriter(config.out getOrElse new ConsoleWriter, true)) with ResultIntp {
+      new IMain(cSet, new NewLinePrintWriter(config.out.getOrElse(new ConsoleWriter), true)) with ResultIntp {
         override protected def parentClassLoader: ClassLoader = Interpreter.getClass.getClassLoader
 
         // note `lastRequest` was added in 2.10

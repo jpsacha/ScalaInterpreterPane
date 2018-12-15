@@ -14,7 +14,7 @@ package de.sciss.scalainterpreter.impl
 
 import de.sciss.scalainterpreter.{Completer, Completion}
 
-import scala.tools.nsc.interpreter.{IMain, isReplDebug}
+import scala.tools.nsc.interpreter.IMain
 import scala.util.control.NonFatal
 
 // cf. PresentationCompilerCompleter
@@ -221,7 +221,7 @@ class NewCompleterImpl(intp: IMain) extends Completer {
       }
     } catch {
       case NonFatal(e) =>
-        if (isReplDebug) e.printStackTrace()
+        // if (isReplDebug) e.printStackTrace()
         Completion.NoResult // NoCandidates
     }
   }
