@@ -23,4 +23,3 @@ object Completion {
     def fullString: String = s"$name$info"
   }
 }
-// trait Completion

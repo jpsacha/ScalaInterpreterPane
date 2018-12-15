@@ -18,12 +18,12 @@ import scala.tools.nsc.interpreter.IMain
 import scala.util.control.NonFatal
 
 // cf. PresentationCompilerCompleter
-object NewCompleterImpl {
+object ScalaCompleterImpl {
   private final case class Request(line: String, cursor: Int)
   private val NoRequest = Request("", -1)
 }
-class NewCompleterImpl(intp: IMain) extends Completer {
-  import NewCompleterImpl._
+class ScalaCompleterImpl(intp: IMain) extends Completer {
+  import ScalaCompleterImpl._
   import intp.{PresentationCompileResult => PCResult}
 
 //  private type Handler = Result => Completion.Result // Candidates
@@ -60,7 +60,7 @@ class NewCompleterImpl(intp: IMain) extends Completer {
 //    val slashPrintRaw   = """.*// *printRaw *""".r
 //    val slashTypeAt     = """.*// *typeAt *(\d+) *(\d+) *""".r
 
-    val Cursor = IMain.DummyCursorFragment + " "
+//    val Cursor = IMain.DummyCursorFragment + " "
 
 //    def print(result: Result) = {
 //      val offset  = result.preambleLength
@@ -202,9 +202,11 @@ class NewCompleterImpl(intp: IMain) extends Completer {
       found
     }
 
-    val bufMarked = buf.patch(cursor, Cursor, 0)
+    // Note: in Scala 2.13, `presentationCompile` takes
+    // care of inserting the `Cursor` cookie into the buffer!
+    // val bufMarked = buf.patch(cursor, Cursor, 0)
     try {
-      val either = PeekNSC.presentationCompile(intp)(bufMarked)
+      val either = intp.presentationCompile(cursor, buf)
       either match {
         case Left(_) => Completion.NoResult // NoCandidates
         case Right(result) => try {

@@ -13,15 +13,13 @@
 package de.sciss.scalainterpreter
 package impl
 
-import java.io.{File, Writer}
+import java.io.Writer
 
 import scala.collection.immutable.{Seq => ISeq}
 import scala.tools.nsc.interpreter.{IMain, Results}
-import scala.tools.nsc.{ConsoleWriter, NewLinePrintWriter, Settings => CompilerSettings}
-import scala.util.control.NonFatal
 
 object InterpreterImpl {
-  import Interpreter.{Config, ConfigBuilder, Error, Incomplete, Result, Success}
+  import Interpreter.{Config, ConfigBuilder, Result}
 
   def apply(config: Config): Interpreter = {
     val in = makeIMain(config)
@@ -61,76 +59,23 @@ object InterpreterImpl {
     override def toString = s"Interpreter.Config@${hashCode().toHexString}"
   }
 
-  private trait ResultIntp {
+  trait ResultIntp {
     def interpretWithResult(   line: String, synthetic: Boolean = false): Result
     def interpretWithoutResult(line: String, synthetic: Boolean = false): Result
   }
 
   private def makeIMain(config: Config): IMain with ResultIntp = {
-    val cSet = new CompilerSettings()
-    cSet.classpath.value += File.pathSeparator + sys.props("java.class.path")
-    val in: IMain with ResultIntp =
-      new IMain(cSet, new NewLinePrintWriter(config.out.getOrElse(new ConsoleWriter), true)) with ResultIntp {
-        override protected def parentClassLoader: ClassLoader = Interpreter.getClass.getClassLoader
-
-        // note `lastRequest` was added in 2.10
-        private def _lastRequest = prevRequestList.last
-
-        // private in Scala API
-        private def mostRecentlyHandledTree: Option[global.Tree] = {
-          import memberHandlers._
-          import naming._
-          prevRequestList.reverse.foreach { req =>
-            req.handlers.reverse foreach {
-              case x: MemberDefHandler if x.definesValue && !isInternalTermName(x.name) => return Some(x.member)
-              case _ => ()
-            }
-          }
-          None
-        }
-
-        def interpretWithResult(line: String, synthetic: Boolean): Result = {
-          val res0 = interpretWithoutResult(line, synthetic)
-          res0 match {
-            case Success(name, _) => try {
-              import global._
-              val shouldEval = mostRecentlyHandledTree.exists {
-                case _: ValDef            => true
-                case Assign(Ident(_), _)  => true
-                case ModuleDef(_, _, _)   => true
-                case _                    => false
-              }
-              // println(s"shouldEval = $shouldEval")
-              Success(name, if (shouldEval) _lastRequest.lineRep.call("$result") else ())
-            } catch {
-              case NonFatal(_) => res0
-            }
-            case _ => res0
-          }
-        }
-
-        // work-around for SI-8521 (Scala 2.11.0)
-        override def interpret(line: String, synthetic: Boolean): Results.Result = {
-          val th = Thread.currentThread()
-          val cl = th.getContextClassLoader
-          try {
-            super.interpret(line, synthetic)
-          } finally {
-            th.setContextClassLoader(cl)
-          }
-        }
-
-        def interpretWithoutResult(line: String, synthetic: Boolean): Result = {
-          interpret(line, synthetic) match {
-            case Results.Success    => Success(mostRecentVar, ())
-            case Results.Error      => Error("Error") // doesn't work anymore with 2.10.0-M7: _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
-            case Results.Incomplete => Incomplete
-          }
-        }
-      }
+    val in: IMain with ResultIntp = MakeIMain(config)
 
     // this was removed in Scala 2.11
-    def quietImport(ids: Seq[String]): Results.Result = in.beQuietDuring(addImports(ids))
+    def quietImport(ids: Seq[String]): Results.Result = {
+      // bloody Scala 2.13 removes return type
+      var res: Results.Result = null
+      in.beQuietDuring {
+        res = addImports(ids)
+      }
+      res
+    }
 
     // this was removed in Scala 2.11
     def addImports(ids: Seq[String]): Results.Result =
@@ -145,7 +90,7 @@ object InterpreterImpl {
   }
 
   private final class Impl(in: IMain with ResultIntp) extends Interpreter {
-    private lazy val cmp: Completer = new NewCompleterImpl(in) // new ScalaCompleterImpl(in)
+    private lazy val cmp: Completer = new ScalaCompleterImpl(in)
 
     override def toString = s"Interpreter@${hashCode().toHexString}"
 
@@ -153,14 +98,24 @@ object InterpreterImpl {
 
     def interpretWithResult(code: String, quiet: Boolean): Interpreter.Result =
       if (quiet) {
-        in.beQuietDuring(in.interpretWithResult(code))
+        // bloody Scala 2.13 removes return type
+        var res: Result = null
+        in.beQuietDuring {
+          res = in.interpretWithResult(code)
+        }
+        res
       } else {
         in.interpretWithResult(code)
       }
 
     def interpret(code: String, quiet: Boolean): Interpreter.Result =
       if (quiet) {
-        in.beQuietDuring(in.interpretWithoutResult(code))
+        // bloody Scala 2.13 removes return type
+        var res: Result = null
+        in.beQuietDuring {
+          res = in.interpretWithoutResult(code)
+        }
+        res
       } else {
         in.interpretWithoutResult(code)
       }

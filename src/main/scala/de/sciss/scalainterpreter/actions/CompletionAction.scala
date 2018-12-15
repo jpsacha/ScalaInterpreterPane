@@ -227,11 +227,11 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
 
     val cwLen       = cw.length()
     val m           = completer.complete(cw, cwLen)
-    val candidates = m.candidates
+    val candidates  = m.candidates
     if (candidates.isEmpty) return
 
-    println(s"candidates.size = ${candidates.size}")
-    candidates.foreach(println)
+//    println(s"candidates.size = ${candidates.size}")
+//    candidates.foreach(println)
 
     val off = start + m.cursor
 
@@ -245,7 +245,7 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
         val comH1 = if (comH0 >= 0) comH0 else headF.length
         val comH2 = headF.indexOf('(')
         val comH  = if (comH2 >= 0) math.min(comH1, comH2) else comH1
-        (comH /: tail) { (len, s1) =>
+        tail.foldLeft(comH) { (len, s1) =>
           val s1F = s1.fullString
           val m1  = math.min(len, s1F.length)
           var m2  = 0

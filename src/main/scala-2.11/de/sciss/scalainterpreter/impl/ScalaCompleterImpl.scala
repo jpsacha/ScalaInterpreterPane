@@ -18,7 +18,9 @@ import _root_.jline.console.completer.{ArgumentCompleter, Completer}
 import scala.tools.nsc.interpreter.IMain
 import scala.tools.nsc.interpreter.jline.JLineDelimiter
 
-/** Completer implementation for Scala 2.11. */
+/** Completer implementation for Scala 2.11.
+  * TODO: see if we can use the newer implementation of 2.12 and 2.13 as well.
+  */
 final class ScalaCompleterImpl(intp: IMain) extends AbstractScalaCompleter(intp) {
   self =>
 
