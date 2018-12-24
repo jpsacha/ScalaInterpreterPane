@@ -34,6 +34,8 @@ import scala.swing.{Component, ScrollPane, TextField}
 object CompletionAction {
   private final val escapeChars = ";(= \t\n\r"
 
+  private final val DEBUG = false
+
   private final case class Replace(candidate: Candidate, append: String = "") {
     def fullString: String = s"${candidate.fullString}$append"
   }
@@ -210,6 +212,8 @@ object CompletionAction {
   }
 }
 class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLETION") {
+  import CompletionAction.DEBUG
+
   private[this] var dlg: CompletionAction.Dialog = _
 
   override def actionPerformed(target: JTextComponent, sDoc: SyntaxDocument, dot: Int, e: ActionEvent): Unit = {
@@ -224,20 +228,27 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
         (line.substring(0, dot - start), start)
       }
     }
+    complete(target, sDoc, cw = cw, start = start)
+  }
 
-    val cwLen       = cw.length()
-    val m           = completer.complete(cw, cwLen)
+  // returns `true` if a completion was found, `false` if none found
+  private def complete(target: JTextComponent, sDoc: SyntaxDocument, cw: String, start: Int,
+                      tabCount: Int = -1, swallowApply: Boolean = false): Boolean = {
+    val cwLen       = cw.length
+    val m           = completer.complete(cw, cwLen, tabCount = tabCount)
     val candidates  = m.candidates
-    if (candidates.isEmpty) return
 
-//    println(s"candidates.size = ${candidates.size}")
-//    candidates.foreach(println)
+    if (DEBUG) {
+      println(s"candidates.size = ${candidates.size}")
+      candidates.foreach(println)
+    }
+    if (candidates.isEmpty) return false
 
     val off = start + m.cursor
 
     val head :: tail = candidates
 
-    val common = head match {
+    val common: Int = head match {
       case Completion.Simple(_) => 0
       case _ =>
         val headF = head.fullString
@@ -257,23 +268,44 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
     target.select(off - common, start + cwLen)
 
     def perform(replace: Replace): Unit = {
-      val replace0 = replace.fullString
-      val replace1 = removeTypes(replace0, 0)
-      val p0 = target.getSelectionStart
-      target.replaceSelection(replace1)
-      val i = replace1.indexOf('(') + 1
+      val replace0  = replace.fullString
+      val replace1  = removeTypes(replace0, 0)
+      val p0        = target.getSelectionStart
+      val i0        = {
+        val tmp = replace1.indexOf('(')
+        if (tmp < 0) replace1.length else tmp
+      }
+      val replace2  = if (swallowApply && replace1.substring(0, i0) == "apply") replace1.substring(i0) else replace1
+      target.replaceSelection(replace2)
+      val i = replace2.indexOf('(') + 1
       if (i > 0) {
-        val j = replace1.indexOf(',', i)
-        val k = replace1.indexOf(')', i)
+        val j = replace2.indexOf(',', i)
+        val k = replace2.indexOf(')', i)
         val m = math.min(j, k)
         target.select(p0 + i, p0 + m)
       }
     }
 
-    // println(s"off = $off, start = $start, cwlen = $cwlen, common $common")
+    if (DEBUG) {
+      println(s"off = $off, start = $start, cwlen = $cwLen, common $common")
+    }
 
     candidates match {
-      case one :: Nil => perform(Replace(one))
+      case one :: Nil =>
+        one match {
+          case df: Completion.Def if df.isModule && common == df.name.length =>
+            val cwApp     = s"$cw.apply"
+            val startApp  = start // + 6
+            val applyOk = complete(target, sDoc, cw = cwApp, start = startApp, tabCount = 1, swallowApply = true)
+            if (DEBUG) println(s"attempted 'apply' resolution: $applyOk")
+            applyOk || {
+              perform(Replace(one))
+              true
+            }
+          case _ =>
+            perform(Replace(one))
+            true
+        }
 
       case _ /* more */ =>
         if (dlg == null) dlg = new CompletionAction.Dialog(target)
@@ -285,6 +317,8 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
           case _ => // aborted
             target.setSelectionStart(target.getSelectionEnd)
         }
+
+        true
     }
   }
 

@@ -19,7 +19,13 @@ object Completion {
     def fullString: String = name
   }
 
-  final case class Def(name: String, info: String) extends Candidate {
+  final case class Def(name: String, info: String = "", isModule: Boolean = false) extends Candidate {
     def fullString: String = s"$name$info"
+
+    override def toString: String = {
+      val sInfo   = if (info.nonEmpty) s""", info = "$info"""" else ""
+      val sIsMod  = if (isModule) ", isModule = true" else ""
+      s"""Completion.$productPrefix("$name"$sInfo$sIsMod)"""
+    }
   }
 }

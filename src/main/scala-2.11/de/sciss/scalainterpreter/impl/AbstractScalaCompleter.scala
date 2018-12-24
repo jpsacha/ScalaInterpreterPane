@@ -86,7 +86,7 @@ abstract class AbstractScalaCompleter(intp: IMain) extends Completer {
     newCursor
   }
 
-  final def complete(buf: String, cursor: Int): Completion.Result = {
+  final def complete(buf: String, cursor: Int, _tabCount: Int): Completion.Result = {
     val jList     = new java.util.ArrayList[CharSequence]
     val newCursor = perform(buf, cursor, jList) // argComp.complete(buf, cursor, jList)
     import JavaConverters._

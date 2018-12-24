@@ -1,5 +1,5 @@
 package de.sciss.scalainterpreter
 
 trait Completer {
-  def complete(buffer: String, cursor: Int): Completion.Result
+  def complete(buffer: String, cursor: Int, tabCount: Int = -1): Completion.Result
 }
