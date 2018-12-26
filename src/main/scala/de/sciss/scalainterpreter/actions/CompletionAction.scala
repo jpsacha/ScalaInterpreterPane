@@ -272,8 +272,11 @@ class CompletionAction(completer: Completer) extends DefaultSyntaxAction("COMPLE
       val replace1  = removeTypes(replace0, 0)
       val p0        = target.getSelectionStart
       val i0        = {
-        val tmp = replace1.indexOf('(')
-        if (tmp < 0) replace1.length else tmp
+        val tmpV = replace1.indexOf('(')
+        if (tmpV < 0) {
+          val tmpT = replace1.indexOf('[')
+          if (tmpT < 0) replace1.length else tmpT
+        } else tmpV
       }
       val replace2  = if (swallowApply && replace1.substring(0, i0) == "apply") replace1.substring(i0) else replace1
       target.replaceSelection(replace2)

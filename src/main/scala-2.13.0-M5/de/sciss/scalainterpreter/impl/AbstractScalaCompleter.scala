@@ -110,7 +110,7 @@ abstract class AbstractScalaCompleter(protected final val intp: IMain) extends C
           //            s"isVariable ${sugared.isVariable}"
           //          )
 
-          val info =
+          val info: String =
             if (sugared.isType) {
               typeParamsString(tp)
             }
@@ -118,7 +118,15 @@ abstract class AbstractScalaCompleter(protected final val intp: IMain) extends C
               // val modSym = sugared.asModule
               ""
             } else tp match {
-              case PolyType(_, _)         => typeParamsString(tp)
+              case PolyType(_, ret)       =>
+                val info0 = typeParamsString(tp)
+                // XXX TODO -- a bit of DRY
+                val info1 = ret match {
+                  case MethodType(params, _)  => params.map(_.defString).mkString("(", ",", ")")
+                  case _                      => ""
+                }
+                info0 + info1
+
               case MethodType(params, _)  => params.map(_.defString).mkString("(", ",", ")")
               case _                      => ""
             }
@@ -240,7 +248,7 @@ abstract class AbstractScalaCompleter(protected final val intp: IMain) extends C
           //            case slashPrintRaw() if cursor == buf.length => print(result)
           //            case slashTypeAt(start, end) if cursor == buf.length => typeAt(result, start.toInt, end.toInt)
           //            case _ =>
-          candidates(result)  // IntelliJ highlight error
+          candidates(result)
           //          }
         } finally result.cleanup()
       }

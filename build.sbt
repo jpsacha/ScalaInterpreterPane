@@ -10,7 +10,7 @@ lazy val deps = new {
     val jLine       = "2.14.6"
   }
   val test = new {
-    val submin      = "0.2.3"
+    val submin      = "0.2.4"
   }
 }
 
@@ -26,7 +26,7 @@ lazy val root = project.withId(baseNameL).in(file("."))
     homepage            := Some(url(s"https://git.iem.at/sciss/$baseName")),
     licenses            := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
     libraryDependencies ++= Seq(
-      "jline"          % "jline"           % deps.main.jLine,
+      "jline"          %  "jline"          % deps.main.jLine,
       "de.sciss"       %  "syntaxpane"     % deps.main.syntaxPane,
       "de.sciss"       %% "swingplus"      % deps.main.swingPlus,
       "org.scala-lang" %  "scala-compiler" % scalaVersion.value,
