@@ -1,4 +1,4 @@
-lazy val projectVersion = "1.10.0-SNAPSHOT"
+lazy val projectVersion = "1.10.0"
 lazy val mimaVersion    = "1.10.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase
@@ -6,7 +6,7 @@ lazy val baseNameL      = baseName.toLowerCase
 lazy val deps = new {
   val main = new {
     val syntaxPane  = "1.2.0"
-    val swingPlus   = "0.4.0-SNAPSHOT"
+    val swingPlus   = "0.4.0"
     val jLine       = "2.14.6"
   }
   val test = new {
