@@ -1,4 +1,4 @@
-lazy val projectVersion = "1.10.0"
+lazy val projectVersion = "1.10.1"
 lazy val mimaVersion    = "1.10.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase
@@ -6,11 +6,11 @@ lazy val baseNameL      = baseName.toLowerCase
 lazy val deps = new {
   val main = new {
     val syntaxPane  = "1.2.0"
-    val swingPlus   = "0.4.0"
+    val swingPlus   = "0.4.2"
     val jLine       = "2.14.6"
   }
   val test = new {
-    val submin      = "0.2.4"
+    val submin      = "0.2.5"
   }
 }
 
@@ -20,8 +20,8 @@ lazy val root = project.withId(baseNameL).in(file("."))
     name                := baseName,
     version             := projectVersion,
     organization        := "de.sciss",
-    scalaVersion        := "2.13.0-M5",
-    crossScalaVersions  := Seq("2.12.8", "2.11.12", "2.13.0-M5"),
+    scalaVersion        := "2.12.8",
+    crossScalaVersions  := Seq("2.12.8", "2.11.12", "2.13.0-RC1"),
     description         := "A Swing based front-end for the Scala REPL (interpreter)",
     homepage            := Some(url(s"https://git.iem.at/sciss/$baseName")),
     licenses            := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
@@ -32,7 +32,7 @@ lazy val root = project.withId(baseNameL).in(file("."))
       "org.scala-lang" %  "scala-compiler" % scalaVersion.value,
       "de.sciss"       %  "submin"         % deps.test.submin % Test
     ),
-    scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint", "-Xsource:2.13"),
+    scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint", "-Xsource:2.13"),
     mimaPreviousArtifacts := Set("de.sciss" %% baseNameL % mimaVersion),
     fork in run := true,
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
