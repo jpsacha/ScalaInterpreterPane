@@ -1,1 +1,1 @@
-../../../../../scala-2.13.0-RC1/de/sciss/scalainterpreter/impl/AbstractScalaCompleter.scala
+../../../../../scala-2.13.0-RC2/de/sciss/scalainterpreter/impl/AbstractScalaCompleter.scala
