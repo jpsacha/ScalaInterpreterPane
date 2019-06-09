@@ -1,7 +1,7 @@
 # ScalaInterpreterPane
 
 [![Build Status](https://travis-ci.org/Sciss/ScalaInterpreterPane.svg?branch=master)](https://travis-ci.org/Sciss/ScalaInterpreterPane)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.11)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.12)
 
 ## statement
 
@@ -13,7 +13,7 @@ and comes with absolutely no warranties. To contact the author, send an email to
 
 ## requirements
 
-ScalaInterpreterPane currently compiles against Scala 2.12, 2.11, and is build with [sbt](https://www.scala-sbt.org/).
+ScalaInterpreterPane currently compiles against Scala 2.13, 2.12, 2.11, and is build with [sbt](https://www.scala-sbt.org/).
 
 To use it in your own project, add the following to `build.sbt`:
 
