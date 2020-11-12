@@ -2,7 +2,7 @@
  *  CompletionAction.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2020 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -44,11 +44,11 @@ object CompletionAction {
     extends scala.swing.Dialog() {
     dlg =>
 
-    private trait Mix extends EscapeListener with InterfaceMixin {
+    private trait Mix extends EscapeListener with InterfaceMixin2 {
       def escapePressed(): Unit = visible = false
     }
 
-    override lazy val peer: JDialog with EscapeListener with InterfaceMixin = {
+    override lazy val peer: JDialog with EscapeListener with InterfaceMixin2 = {
       val owner = SwingUtilities.getWindowAncestor(targetJ)
       if (owner == null) new JDialog with Mix with SuperMixin
       else owner match {

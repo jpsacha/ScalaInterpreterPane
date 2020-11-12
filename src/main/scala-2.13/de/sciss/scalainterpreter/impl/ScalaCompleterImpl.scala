@@ -12,9 +12,9 @@
 
 package de.sciss.scalainterpreter.impl
 
-import scala.tools.nsc.interpreter.IMain
+import scala.tools.nsc.interpreter.{IMain, PresentationCompilationResult}
 
 class ScalaCompleterImpl(_intp: IMain) extends AbstractScalaCompleter(_intp) {
-  protected def presentationCompile(cursor: Int, buf: String): Option[intp.PresentationCompileResult] =
+  protected def presentationCompile(cursor: Int, buf: String): Option[PresentationCompilationResult] =
     intp.presentationCompile(cursor, buf).toOption
 }

@@ -1,25 +1,25 @@
 # ScalaInterpreterPane
 
-[![Build Status](https://travis-ci.org/Sciss/ScalaInterpreterPane.svg?branch=master)](https://travis-ci.org/Sciss/ScalaInterpreterPane)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.12)
+[![Build Status](https://travis-ci.org/Sciss/ScalaInterpreterPane.svg?branch=main)](https://travis-ci.org/Sciss/ScalaInterpreterPane)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.13)
 
 ## statement
 
 ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an
 interpreter. The editor component is based on [SyntaxPane](https://git.iem.at/sciss/SyntaxPane).
-ScalaInterpreterPane is (C)opyright 2010&ndash;2019 by Hanns Holger Rutz. All rights reserved. It is released under
-the [GNU Lesser General Public License](https://git.iem.at/sciss/ScalaInterpreterPane/blob/master/LICENSE) v2.1+ 
+ScalaInterpreterPane is (C)opyright 2010&ndash;2020 by Hanns Holger Rutz. All rights reserved. It is released under
+the [GNU Lesser General Public License](https://git.iem.at/sciss/ScalaInterpreterPane/blob/main/LICENSE) v2.1+ 
 and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ## requirements
 
-ScalaInterpreterPane currently compiles against Scala 2.13, 2.12, 2.11, and is build with [sbt](https://www.scala-sbt.org/).
+This project builds with sbt against Scala 2.13, 2.12, Dotty. The last version to support Scala 2.11 was 1.10.1.
 
 To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `"1.10.1"`
+The current version `v` is `"1.11.0"`
 
 There is also the `assembly` target which creates a standalone jar in `targets`.
 

@@ -1,5 +1,5 @@
 /*
- *  Completer.scala
+ *  package.scala
  *  (ScalaInterpreterPane)
  *
  *  Copyright (c) 2010-2020 Hanns Holger Rutz. All rights reserved.
@@ -10,8 +10,14 @@
  *  contact@sciss.de
  */
 
-package de.sciss.scalainterpreter
+package de.sciss
 
-trait Completer {
-  def complete(buffer: String, cursor: Int, tabCount: Int = -1): Completion.Result
+import scala.tools.nsc.interpreter
+
+package object scalainterpreter {
+  object NamedParam {
+    def apply[A: Manifest](name: String, value: A): NamedParam = interpreter.NamedParam(name, value)
+  }
+
+  type NamedParam = interpreter.NamedParam
 }

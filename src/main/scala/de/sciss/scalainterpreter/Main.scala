@@ -2,7 +2,7 @@
  *  Main.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2020 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -39,9 +39,10 @@ object Main extends SimpleSwingApplication {
       case NonFatal(_) =>
     }
 
+    val isDark  = UIManager.getBoolean("dark-skin")
     val iCfg    = Interpreter.Config()
     val cCfg    = CodePane   .Config()
-    // cCfg.style = Style.Light
+    if (!isDark) cCfg.style = Style.Light
 
     val split   = SplitPane(paneConfig = pCfg, interpreterConfig = iCfg, codePaneConfig = cCfg)
     val b       = GraphicsEnvironment.getLocalGraphicsEnvironment.getMaximumWindowBounds

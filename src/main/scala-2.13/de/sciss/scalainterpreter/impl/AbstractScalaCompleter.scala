@@ -14,7 +14,7 @@ package de.sciss.scalainterpreter.impl
 
 import de.sciss.scalainterpreter.{Completer, Completion}
 
-import scala.tools.nsc.interpreter.IMain
+import scala.tools.nsc.interpreter.{IMain, PresentationCompilationResult}
 import scala.util.control.NonFatal
 
 // cf. PresentationCompilerCompleter
@@ -48,7 +48,7 @@ abstract class AbstractScalaCompleter(protected final val intp: IMain) extends C
       lcp(xs)
   }
 
-  protected def presentationCompile(cursor: Int, buf: String): Option[PCResult]
+  protected def presentationCompile(cursor: Int, buf: String): Option[PresentationCompilationResult]
 
   override def complete(buf: String, cursor: Int, _tabCount: Int): Completion.Result = {
     val request = Request(buf, cursor)
@@ -240,17 +240,18 @@ abstract class AbstractScalaCompleter(protected final val intp: IMain) extends C
       val either = presentationCompile(cursor, buf)
       either match {
         case None => Completion.NoResult // NoCandidates
-        case Some(result) => try {
-          //          buf match {
-          //            case slashPrint() if cursor == buf.length =>
-          //              val c = print(result)
-          //              c.copy(candidates = c.candidates.map(intp.naming.unmangle))
-          //            case slashPrintRaw() if cursor == buf.length => print(result)
-          //            case slashTypeAt(start, end) if cursor == buf.length => typeAt(result, start.toInt, end.toInt)
-          //            case _ =>
-          candidates(result)
-          //          }
-        } finally result.cleanup()
+        case Some(result: PCResult) => try {    // urg. let's hope we get this specific one
+            //          buf match {
+            //            case slashPrint() if cursor == buf.length =>
+            //              val c = print(result)
+            //              c.copy(candidates = c.candidates.map(intp.naming.unmangle))
+            //            case slashPrintRaw() if cursor == buf.length => print(result)
+            //            case slashTypeAt(start, end) if cursor == buf.length => typeAt(result, start.toInt, end.toInt)
+            //            case _ =>
+            candidates(result)
+            //          }
+          } finally result.cleanup()
+        case Some(_) => Completion.NoResult
       }
     } catch {
       case NonFatal(_) =>

@@ -2,7 +2,7 @@
  *  SplitPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2020 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -13,10 +13,14 @@
 package de.sciss.scalainterpreter
 
 object SplitPane {
-  def apply(paneConfig: InterpreterPane.Config = InterpreterPane.Config().build,
-            interpreterConfig: Interpreter.Config = Interpreter.Config().build,
-            codePaneConfig: CodePane.Config = CodePane.Config().build): SplitPane = {
-    val lp      = LogPane().makeDefault()
+  def apply(
+             paneConfig       : InterpreterPane .Config = InterpreterPane .Config().build,
+             interpreterConfig: Interpreter     .Config = Interpreter     .Config().build,
+             codePaneConfig   : CodePane        .Config = CodePane        .Config().build,
+           ): SplitPane = {
+    val lpc     = LogPane.Config()
+    lpc.style   = codePaneConfig.style
+    val lp      = LogPane(lpc).makeDefault()
     val intCfg  = Interpreter.ConfigBuilder(interpreterConfig)
     intCfg.out  = Some(lp.writer)
     val ip      = InterpreterPane(paneConfig, intCfg.build, codePaneConfig)

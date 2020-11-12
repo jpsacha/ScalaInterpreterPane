@@ -2,7 +2,7 @@
  *  LogPane.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2020 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -16,6 +16,7 @@ package de.sciss.scalainterpreter
 
 import java.awt.event.ActionEvent
 import java.io.{OutputStream, PrintStream, Writer}
+
 import javax.swing.{AbstractAction, JPopupMenu, JTextArea}
 
 import scala.collection.immutable.{Seq => ISeq}
@@ -50,7 +51,7 @@ object LogPane {
     var rows   : Int          = 10
     var columns: Int          = 60
     var style  : Style        = Style.BlueForest
-    var font   : Fonts.List = Fonts.defaultFonts
+    var font   : Fonts.List   = Fonts.defaultFonts
 
     def build: Config = ConfigImpl(rows, columns, style, font)
 
@@ -163,7 +164,7 @@ object LogPane {
   }
 }
 
-/** A pane widget which can be used to log text output, and which can be hooked up to capture the
+/** A pane widget which can be used to log text output, and which can be hooked up to capture the
   * default console output.
   */
 trait LogPane {
@@ -176,7 +177,7 @@ trait LogPane {
   /** An `OutputStream` which will write to the pane. */
   def outputStream: OutputStream
 
-  /**  Clears the contents of the pane. */
+  /**  Clears the contents of the pane. */
   def clear(): Unit
 
   /** Makes this log pane the default text output for

@@ -2,7 +2,7 @@
  *  InterpreterImpl.scala
  *  (ScalaInterpreterPane)
  *
- *  Copyright (c) 2010-2018 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2020 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -82,7 +82,7 @@ object InterpreterImpl {
       if (ids.isEmpty) Results.Success
       else in.interpret(ids.mkString("import ", ", ", ""))
 
-    in.setContextClassLoader()    // needed in Scala 2.11.
+    // in.setContextClassLoader()    // needed in Scala 2.11.
     config.bindings.foreach(in.bind)
     if (config.quietImports) quietImport(config.imports) else addImports(config.imports)
     in.setExecutionWrapper(config.executor)

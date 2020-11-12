@@ -1,3 +1,15 @@
+/*
+ *  IMainMixIn.scala
+ *  (ScalaInterpreterPane)
+ *
+ *  Copyright (c) 2010-2020 Hanns Holger Rutz. All rights reserved.
+ *
+ *  This software is published under the GNU Lesser General Public License v2.1+
+ *
+ *  For further information, please contact Hanns Holger Rutz at
+ *  contact@sciss.de
+ */
+
 package de.sciss.scalainterpreter.impl
 
 import de.sciss.scalainterpreter.Interpreter
@@ -7,7 +19,7 @@ import scala.tools.nsc.interpreter.{IMain, Results}
 import scala.util.control.NonFatal
 
 trait IMainMixIn extends ResultIntp {
-  _: IMain =>
+  self: IMain =>
 
   override protected def parentClassLoader: ClassLoader = Interpreter.getClass.getClassLoader
 
