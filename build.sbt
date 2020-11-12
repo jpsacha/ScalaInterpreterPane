@@ -20,7 +20,7 @@ lazy val root = project.withId(baseNameL).in(file("."))
     name                := baseName,
     version             := projectVersion,
     organization        := "de.sciss",
-    scalaVersion        := "2.13.3",
+    scalaVersion        := "2.12.12", // "2.13.3", // "3.0.0-M1", // 
     crossScalaVersions  := Seq(/* "3.0.0-M1", */ "2.13.3", "2.12.12"),
     description         := "A Swing based front-end for the Scala REPL (interpreter)",
     homepage            := Some(url(s"https://git.iem.at/sciss/$baseName")),
@@ -38,6 +38,15 @@ lazy val root = project.withId(baseNameL).in(file("."))
         "org.scala-lang" %  "scala-compiler"  % scalaVersion.value
     },
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint", "-Xsource:2.13"),
+    unmanagedSourceDirectories in Compile += {
+      val sourceDir = (sourceDirectory in Compile).value
+      val sv  = CrossVersion.partialVersion(scalaVersion.value)
+      val sub = sv match {
+        case Some((3, _)) => "scala-2.14+"
+        case _            => "scala-2.14-"
+      }
+      sourceDir / sub
+    },
     mimaPreviousArtifacts := Set("de.sciss" %% baseNameL % mimaVersion),
     fork in run := true,
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,

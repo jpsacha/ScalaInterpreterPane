@@ -43,7 +43,7 @@ object Interpreter {
     /** A list of bindings which make objects in the hosting environment available to the interpreter under a
       * given name.
       */
-    def bindings: ISeq[NamedParam]
+    def bindings: ISeq[(String, Any)]
 
     /** An injected code fragment which precedes the evaluation of the each interpreted line's wrapping object.
       *
@@ -88,7 +88,7 @@ object Interpreter {
 
   trait ConfigBuilder extends ConfigLike {
     var imports     : ISeq[String]
-    var bindings    : ISeq[NamedParam]
+    var bindings    : ISeq[(String, Any)]
     var executor    : String
     var out         : Option[Writer]
     var quietImports: Boolean

@@ -10,18 +10,21 @@
  *  contact@sciss.de
  */
 
-package de.sciss.scalainterpreter.impl
+package de.sciss.scalainterpreter
+package impl
 
-import de.sciss.scalainterpreter.Interpreter
-import de.sciss.scalainterpreter.impl.InterpreterImpl.ResultIntp
-
-import scala.tools.nsc.interpreter.{IMain, Results}
+import scala.tools.nsc.interpreter.{IMain, Results, NamedParam}
 import scala.util.control.NonFatal
 
-trait IMainMixIn extends ResultIntp {
+trait IMainMixIn extends IntpInterface {
   self: IMain =>
 
   override protected def parentClassLoader: ClassLoader = Interpreter.getClass.getClassLoader
+
+  def bind(tup: (String, Any)): Unit =
+    bind(NamedParam(tup._1, tup._2))
+
+  def mkCompleter(): Completer = new ScalaCompleterImpl(self)
 
   // private in Scala API
   private def mostRecentlyHandledTree: Option[global.Tree] = {

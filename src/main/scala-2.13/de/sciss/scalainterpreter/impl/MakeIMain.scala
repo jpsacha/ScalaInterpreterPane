@@ -15,14 +15,14 @@ package impl
 
 import java.io.File
 
-import de.sciss.scalainterpreter.impl.InterpreterImpl.ResultIntp
+import de.sciss.scalainterpreter.impl.IntpInterface
 
 import scala.tools.nsc.interpreter.IMain
 import scala.tools.nsc.interpreter.shell.ReplReporterImpl
 import scala.tools.nsc.{ConsoleWriter, NewLinePrintWriter, Settings}
 
 object MakeIMain {
-  def apply(config: Interpreter.Config): IMain with ResultIntp = {
+  def apply(config: Interpreter.Config): IntpInterface = {
     // otherwise Scala 2.12 REPL results will print strange control chars
     System.setProperty("scala.color", "false")
     val cSet = new Settings()

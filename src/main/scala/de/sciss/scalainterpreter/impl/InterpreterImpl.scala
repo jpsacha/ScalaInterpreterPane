@@ -16,10 +16,9 @@ package impl
 import java.io.Writer
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.tools.nsc.interpreter.IMain
 
 object InterpreterImpl {
-  import Interpreter.{Config, ConfigBuilder, Result}
+  import Interpreter.{Config, ConfigBuilder}
 
   def apply(config: Config): Interpreter = {
     val in = makeIMain(config)
@@ -40,8 +39,8 @@ object InterpreterImpl {
   }
 
   private final class ConfigBuilderImpl extends ConfigBuilder {
-    var imports     : ISeq[String]      = Nil
-    var bindings    : ISeq[NamedParam]  = Nil
+    var imports     : ISeq[String]         = Nil
+    var bindings    : ISeq[(String, Any)]  = Nil
     var executor      = ""
     var out           = Option.empty[Writer]
     var quietImports  = true
@@ -52,20 +51,16 @@ object InterpreterImpl {
     override def toString = s"Interpreter.ConfigBuilder@${hashCode().toHexString}"
   }
 
-  private final case class ConfigImpl(imports: ISeq[String], bindings: ISeq[NamedParam],
+  private final case class ConfigImpl(imports: ISeq[String], bindings: ISeq[(String, Any)],
                                       executor: String, out: Option[Writer], quietImports: Boolean)
     extends Config {
 
     override def toString = s"Interpreter.Config@${hashCode().toHexString}"
   }
 
-  trait ResultIntp {
-    def interpretWithResult(   line: String, synthetic: Boolean = false, quiet: Boolean = false): Result
-    def interpretWithoutResult(line: String, synthetic: Boolean = false, quiet: Boolean = false): Result
-  }
 
-  private def makeIMain(config: Config): IMain with ResultIntp = {
-    val in: IMain with ResultIntp = MakeIMain(config)
+  private def makeIMain(config: Config): IntpInterface = {
+    val in: IntpInterface = MakeIMain(config)
 
     config.bindings.foreach(in.bind)
     if (config.imports.nonEmpty) {
@@ -75,8 +70,8 @@ object InterpreterImpl {
     in
   }
 
-  private final class Impl(in: IMain with ResultIntp) extends Interpreter {
-    private lazy val cmp: Completer = new ScalaCompleterImpl(in)
+  private final class Impl(in: IntpInterface) extends Interpreter {
+    private lazy val cmp: Completer = in.mkCompleter() // new ScalaCompleterImpl(in)
 
     override def toString = s"Interpreter@${hashCode().toHexString}"
 

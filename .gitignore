@@ -2,8 +2,13 @@ target/
 lib_managed/
 src_managed/
 project/boot/
+project/project/
+project/metals.sbt
 .idea/
 .idea_modules/
 *.app
 ScalaInterpreterPane.jar
 /.bsp/
+.bloop/
+/.metals/
+/.vscode/
