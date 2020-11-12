@@ -24,8 +24,8 @@ import dotty.tools.dotc.{interactive => dotci}
 
 // rather quickly hacked wrapper around Dotty's ReplDriver
 final class IMainImpl(out: PrintStream, loader: ClassLoader) extends IntpInterface with Completer {
-  private object driver extends ReplDriver(Array("-usejavacp", "-color:never", "-Xrepl-disable-display"), out, Some(loader)) {
-    def complete(buffer: String, cursor: Int): Completion.Result = {
+  private val driver = new MyReplDriver(Array("-usejavacp", "-color:never", "-Xrepl-disable-display"), out, Some(loader)) 
+    // def complete(buffer: String, cursor: Int): Completion.Result = {
       // val jlineCand = completions(cursor, buffer, state)
       // val ourCand = jlineCand.map { jl =>
       //   println(s"value = '${jl.value}', label = '${jl.label}', descr = '${jl.descr}', displ = '${jl.displ}', suffix = '${jl.suffix}', key = '${jl.key}', complete = '${jl.complete}'")
@@ -44,10 +44,9 @@ final class IMainImpl(out: PrintStream, loader: ClassLoader) extends IntpInterfa
       //     given Context = state.context.fresh.setCompilationUnit(unit)
       //     val srcPos = SourcePosition(file, Span(cursor))
       //     val (_, completions) = Completion.completions(srcPos)
-      val ourCand = Nil
-      Completion.Result(cursor, ourCand)
-    }
-  }
+      // val ourCand = Nil
+      // Completion.Result(cursor, ourCand)
+    // }
 
   private var state     = driver.initialState
   private val rendering = new Rendering(Some(getClass.getClassLoader))
@@ -92,5 +91,5 @@ final class IMainImpl(out: PrintStream, loader: ClassLoader) extends IntpInterfa
   // ---- Completer ----
 
   def complete(buffer: String, cursor: Int, tabCount: Int): Completion.Result =
-    driver.complete(buffer, cursor)
+    driver.intpCompletions(buffer, cursor, state)
 }
