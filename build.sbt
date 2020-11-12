@@ -20,8 +20,8 @@ lazy val root = project.withId(baseNameL).in(file("."))
     name                := baseName,
     version             := projectVersion,
     organization        := "de.sciss",
-    scalaVersion        := "2.12.12", // "2.13.3",
-    crossScalaVersions  := Seq(/*"3.0.0-M1",*/ "2.13.3", "2.12.12"),
+    scalaVersion        := "2.13.3",
+    crossScalaVersions  := Seq(/* "3.0.0-M1", */ "2.13.3", "2.12.12"),
     description         := "A Swing based front-end for the Scala REPL (interpreter)",
     homepage            := Some(url(s"https://git.iem.at/sciss/$baseName")),
     licenses            := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
@@ -29,9 +29,14 @@ lazy val root = project.withId(baseNameL).in(file("."))
       "jline"          %  "jline"          % deps.main.jLine,
       "de.sciss"       %  "syntaxpane"     % deps.main.syntaxPane,
       "de.sciss"       %% "swingplus"      % deps.main.swingPlus,
-      "org.scala-lang" %  "scala-compiler" % scalaVersion.value,
       "de.sciss"       %  "submin"         % deps.test.submin % Test
     ),
+    libraryDependencies += {
+      if (isDotty.value) 
+        "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
+      else 
+        "org.scala-lang" %  "scala-compiler"  % scalaVersion.value
+    },
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint", "-Xsource:2.13"),
     mimaPreviousArtifacts := Set("de.sciss" %% baseNameL % mimaVersion),
     fork in run := true,

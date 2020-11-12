@@ -16,7 +16,7 @@ package impl
 import java.io.Writer
 
 import scala.collection.immutable.{Seq => ISeq}
-import scala.tools.nsc.interpreter.{IMain, Results}
+import scala.tools.nsc.interpreter.IMain
 
 object InterpreterImpl {
   import Interpreter.{Config, ConfigBuilder, Result}
@@ -67,24 +67,10 @@ object InterpreterImpl {
   private def makeIMain(config: Config): IMain with ResultIntp = {
     val in: IMain with ResultIntp = MakeIMain(config)
 
-    // this was removed in Scala 2.11
-    def quietImport(ids: Seq[String]): Results.Result = {
-      // bloody Scala 2.13 removes return type
-      var res: Results.Result = null
-      in.beQuietDuring {
-        res = addImports(ids)
-      }
-      res
-    }
-
-    // this was removed in Scala 2.11
-    def addImports(ids: Seq[String]): Results.Result =
-      if (ids.isEmpty) Results.Success
-      else in.interpret(ids.mkString("import ", ", ", ""))
-
-    // in.setContextClassLoader()    // needed in Scala 2.11.
     config.bindings.foreach(in.bind)
-    if (config.quietImports) quietImport(config.imports) else addImports(config.imports)
+    if (config.imports.nonEmpty) {
+      in.interpretWithoutResult(config.imports.mkString("import ", ", ", ""), quiet = config.quietImports)
+    }
     in.setExecutionWrapper(config.executor)
     in
   }

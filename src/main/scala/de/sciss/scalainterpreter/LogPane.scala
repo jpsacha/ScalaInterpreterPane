@@ -140,7 +140,7 @@ object LogPane {
 
     private val printStream = new PrintStream(outputStream, true)
 
-    val component = new ScrollPane(textPane)
+    override val component: ScrollPane = new ScrollPane(textPane)
     component.peer.putClientProperty("styleId", "undecorated")
     component.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 

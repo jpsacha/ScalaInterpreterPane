@@ -107,13 +107,13 @@ object CodePaneImpl {
                        keyProcessor: KeyEvent => KeyEvent = identity,
                        keyMap: Map[KeyStroke, () => Unit] = Map.empty): EditorPane = {
     val _preferredSize = preferredSize
-    val ed: EditorPane = new EditorPane("text/plain", "") {
+    val ed: EditorPane = new EditorPane("text/plain", "") { pane =>
       override lazy val peer: JEditorPane = new JEditorPane("text/plain", "") with SuperMixin {
         override protected def processKeyEvent(e: KeyEvent): Unit = super.processKeyEvent(keyProcessor(e))
       }
 
-      preferredSize = _preferredSize
-      background    = style.background   // stupid... this cannot be set in the kit config
+      pane.preferredSize = _preferredSize
+      pane.background    = style.background   // stupid... this cannot be set in the kit config
     }
 
     // fix for issue #8;

@@ -76,11 +76,11 @@ object CompletionAction {
         case e: MouseClicked  => dlg.mouseClicked(e)
       }
       renderer = new ListView.Renderer[Candidate] {
-        private[this] val peer = new DefaultListCellRenderer
+        private[this] val peerR = new DefaultListCellRenderer
         def componentFor(list: ListView[_], isSelected: Boolean, focused: Boolean, a: Candidate,
                          index: Int): Component = {
           // XXX TODO -- not nice
-          val j = peer.getListCellRendererComponent(list.peer.asInstanceOf[javax.swing.JList[_]],
+          val j = peerR.getListCellRendererComponent(list.peer.asInstanceOf[javax.swing.JList[_]],
             a.fullString, index, isSelected, focused).asInstanceOf[javax.swing.JComponent]
           Component.wrap(j)
         }
@@ -169,11 +169,11 @@ object CompletionAction {
 
     private def keyPressed(e: KeyPressed): Unit =
       ggList.selection.indices.headOption.foreach { i =>
-      	val ch = e.peer.getKeyChar
-      	e.key match {
-      	  case Key.Escape => finish(None)
+        val ch = e.peer.getKeyChar
+        e.key match {
+          case Key.Escape => finish(None)
 
-       	  case Key.Down if i < ggList.model.size - 1 =>
+          case Key.Down if i < ggList.model.size - 1 =>
             val i1 = i + 1
             selectedIndex_=(i1)
             ggList.ensureIndexIsVisible(i1)
