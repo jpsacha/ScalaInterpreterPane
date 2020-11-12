@@ -1,4 +1,4 @@
-lazy val projectVersion = "1.11.0-SNAPSHOT"
+lazy val projectVersion = "1.11.0"
 lazy val mimaVersion    = "1.11.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase
@@ -20,7 +20,7 @@ lazy val root = project.withId(baseNameL).in(file("."))
     name                := baseName,
     version             := projectVersion,
     organization        := "de.sciss",
-    scalaVersion        := "3.0.0-M1", // 
+    scalaVersion        := "2.13.3",
     crossScalaVersions  := Seq("3.0.0-M1", "2.13.3", "2.12.12"),
     description         := "A Swing based front-end for the Scala REPL (interpreter)",
     homepage            := Some(url(s"https://git.iem.at/sciss/$baseName")),

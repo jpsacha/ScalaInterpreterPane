@@ -92,6 +92,7 @@ If you use scala-swing, the components can be wrapped using `swing.Component.wra
 
 - auto-completion is based on the standard Scala REPL's auto completion, thus will only see values which have been
   executed in the interpreter before
+- Dotty support is very basic; auto-completion for argument lists is not yet implemented
 - the result value of an evaluation is currently not directly available
 
 ## related
