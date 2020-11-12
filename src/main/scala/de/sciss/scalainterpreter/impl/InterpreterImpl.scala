@@ -60,8 +60,8 @@ object InterpreterImpl {
   }
 
   trait ResultIntp {
-    def interpretWithResult(   line: String, synthetic: Boolean = false): Result
-    def interpretWithoutResult(line: String, synthetic: Boolean = false): Result
+    def interpretWithResult(   line: String, synthetic: Boolean = false, quiet: Boolean = false): Result
+    def interpretWithoutResult(line: String, synthetic: Boolean = false, quiet: Boolean = false): Result
   }
 
   private def makeIMain(config: Config): IMain with ResultIntp = {
@@ -97,27 +97,9 @@ object InterpreterImpl {
     def completer: Completer = cmp
 
     def interpretWithResult(code: String, quiet: Boolean): Interpreter.Result =
-      if (quiet) {
-        // bloody Scala 2.13 removes return type
-        var res: Result = null
-        in.beQuietDuring {
-          res = in.interpretWithResult(code)
-        }
-        res
-      } else {
-        in.interpretWithResult(code)
-      }
+      in.interpretWithResult(code, quiet = quiet)
 
     def interpret(code: String, quiet: Boolean): Interpreter.Result =
-      if (quiet) {
-        // bloody Scala 2.13 removes return type
-        var res: Result = null
-        in.beQuietDuring {
-          res = in.interpretWithoutResult(code)
-        }
-        res
-      } else {
-        in.interpretWithoutResult(code)
-      }
+      in.interpretWithoutResult(code, quiet = quiet)
   }
 }

@@ -35,8 +35,8 @@ trait IMainMixIn extends ResultIntp {
     if (it.hasNext) Some(it.next()) else None // `nextOption()` requires Scala 2.13
   }
 
-  def interpretWithResult(line: String, synthetic: Boolean): Interpreter.Result = {
-    val res0 = interpretWithoutResult(line, synthetic)
+  def interpretWithResult(line: String, synthetic: Boolean, quiet: Boolean): Interpreter.Result = {
+    val res0 = interpretWithoutResult(line, synthetic = synthetic, quiet = quiet)
     res0 match {
       case Interpreter.Success(name, _) => try {
         import global._
@@ -55,8 +55,10 @@ trait IMainMixIn extends ResultIntp {
     }
   }
 
-  def interpretWithoutResult(line: String, synthetic: Boolean): Interpreter.Result = {
-    interpret(line, synthetic) match {
+  def interpretWithoutResult(line: String, synthetic: Boolean, quiet: Boolean): Interpreter.Result = {
+    var res: Results.Result = null
+    if (quiet) beQuietDuring { res = interpret(line, synthetic) } else { res = interpret(line, synthetic) }
+    res match {
       case Results.Success    => Interpreter.Success(mostRecentVar, ())
       case Results.Error      => Interpreter.Error("Error") // doesn't work anymore with 2.10.0-M7: _lastRequest.lineRep.evalCaught.map( _.toString ).getOrElse( "Error" ))
       case Results.Incomplete => Interpreter.Incomplete

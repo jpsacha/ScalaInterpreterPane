@@ -13,10 +13,10 @@
 package de.sciss.scalainterpreter
 
 import java.awt.event.KeyEvent
-import javax.swing.KeyStroke
 
 import de.sciss.scalainterpreter.impl.{CodePaneImpl => Impl}
 import de.sciss.syntaxpane.Token
+import javax.swing.KeyStroke
 
 import scala.collection.immutable.{Seq => ISeq}
 import scala.language.implicitConversions

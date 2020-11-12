@@ -17,7 +17,7 @@ import java.io.File
 
 import de.sciss.scalainterpreter.impl.InterpreterImpl.ResultIntp
 
-import scala.tools.nsc.interpreter.{IMain, Results}
+import scala.tools.nsc.interpreter.IMain
 import scala.tools.nsc.interpreter.shell.ReplReporterImpl
 import scala.tools.nsc.{ConsoleWriter, NewLinePrintWriter, Settings}
 
@@ -30,17 +30,18 @@ object MakeIMain {
     val writer    = new NewLinePrintWriter(config.out.getOrElse(new ConsoleWriter), true)
     val reporter  = new ReplReporterImpl(cSet, writer)
 
-    new IMain(cSet, reporter) with IMainMixIn {
-      // work-around for SI-8521 (Scala 2.13.0-M5)
-      override def interpret(line: String, synthetic: Boolean): Results.Result = {
-        val th = Thread.currentThread()
-        val cl = th.getContextClassLoader
-        try {
-          super.interpret(line, synthetic)
-        } finally {
-          th.setContextClassLoader(cl)
-        }
-      }
-    }
+    new IMain(cSet, reporter) with IMainMixIn
+//    {
+//      // work-around for SI-8521 (Scala 2.13.0-M5)
+//      override def interpret(line: String, synthetic: Boolean): Results.Result = {
+//        val th = Thread.currentThread()
+//        val cl = th.getContextClassLoader
+//        try {
+//          super.interpret(line, synthetic)
+//        } finally {
+//          th.setContextClassLoader(cl)
+//        }
+//      }
+//    }
   }
 }

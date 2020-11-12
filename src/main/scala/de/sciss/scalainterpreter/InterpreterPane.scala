@@ -12,9 +12,8 @@
 
 package de.sciss.scalainterpreter
 
-import javax.swing.KeyStroke
-
 import de.sciss.scalainterpreter.impl.{InterpreterPaneImpl => Impl}
+import javax.swing.KeyStroke
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions

@@ -15,14 +15,14 @@ package impl
 
 import java.awt.Color
 import java.awt.event.{ActionEvent, ActionListener, InputEvent, KeyEvent}
-import javax.swing.text.PlainDocument
-import javax.swing.{AbstractAction, JComponent, JEditorPane, KeyStroke, SwingUtilities, UIDefaults, UIManager}
 
 import de.sciss.scalainterpreter.actions.CompletionAction
 import de.sciss.syntaxpane.components.{LineNumbersRuler, Markers}
 import de.sciss.syntaxpane.syntaxkits.ScalaSyntaxKit
 import de.sciss.syntaxpane.util.Configuration
 import de.sciss.syntaxpane.{DefaultSyntaxKit, SyntaxDocument, SyntaxStyle, SyntaxStyles, SyntaxView, Token, TokenType}
+import javax.swing.text.PlainDocument
+import javax.swing.{AbstractAction, JComponent, JEditorPane, KeyStroke, SwingUtilities, UIDefaults, UIManager}
 
 import scala.collection.immutable.{Seq => ISeq}
 import scala.reflect.ClassTag

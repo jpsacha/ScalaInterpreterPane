@@ -110,7 +110,7 @@ object Interpreter {
     def isSuccess = false
   }
 
-  /** Creates a new interpreter with the given settings.
+  /** Creates a new interpreter with the given settings.
     *
     * @param config  the configuration for the interpreter.
     * @return  the new Scala interpreter

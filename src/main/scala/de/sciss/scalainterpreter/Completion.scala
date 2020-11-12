@@ -15,7 +15,7 @@ package de.sciss.scalainterpreter
 object Completion {
   final case class Result(cursor: Int, candidates: List[Candidate])
 
-  val NoResult = Result(-1, Nil)
+  val NoResult: Result = Result(-1, Nil)
 
   sealed trait Candidate /* extends Proxy */ {
     def name: String

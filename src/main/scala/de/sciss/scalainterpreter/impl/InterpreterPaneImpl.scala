@@ -14,16 +14,15 @@ package de.sciss.scalainterpreter
 package impl
 
 import java.awt.EventQueue
-import java.awt.event.{InputEvent, KeyEvent, ActionEvent}
-import javax.swing.{KeyStroke, AbstractAction, JComponent}
-import scala.swing.Swing
-import Swing._
+import java.awt.event.{ActionEvent, InputEvent, KeyEvent}
 
 import de.sciss.scalainterpreter.Interpreter.Result
 import de.sciss.swingplus.OverlayPanel
+import javax.swing.{AbstractAction, JComponent, KeyStroke}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.swing.{Orientation, BoxPanel, Label, Component, ProgressBar, BorderPanel, Panel}
+import scala.swing.Swing._
+import scala.swing.{BorderPanel, BoxPanel, Component, Label, Orientation, Panel, ProgressBar}
 
 object InterpreterPaneImpl {
   import InterpreterPane.{Config, ConfigBuilder}
@@ -84,9 +83,7 @@ object InterpreterPaneImpl {
                     (implicit exec: ExecutionContext): InterpreterPane = {
     val impl = new Impl(config, fut, codePane)
     fut.foreach { in =>
-      EventQueue.invokeLater(new Runnable {
-        def run(): Unit = impl.setInterpreter(in)
-      })
+      EventQueue.invokeLater(() => impl.setInterpreter(in))
     }
     impl
   }

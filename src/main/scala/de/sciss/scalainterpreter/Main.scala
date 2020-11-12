@@ -13,6 +13,7 @@
 package de.sciss.scalainterpreter
 
 import java.awt.GraphicsEnvironment
+
 import javax.swing.UIManager
 
 import scala.swing.Swing._
