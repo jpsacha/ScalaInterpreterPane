@@ -44,7 +44,7 @@ For example, to create a plain code view:
     val codeCfg     = CodePane.Config()         // creates a new configuration _builder_
     codeCfg.style   = Style.Light               // use a light color scheme
     codeCfg.text    = """List(1, 2, 3)"""       // initial text to show in the widget
-    codeCfg.font    = List("Helvetica" -> 16)    // list of preferred fonts
+    codeCfg.font    = List("Helvetica" -> 16)   // list of preferred fonts
     // add a custom key action
     codeCfg.keyMap += javax.swing.KeyStroke.getKeyStroke("control U") -> { () =>
       println("Action!")
@@ -64,8 +64,8 @@ To create an interpreter:
 
     import de.sciss.scalainterpreter._
     val intpCfg = Interpreter.Config()
-    intpCfg.imports :+= "javax.swing._"             // add default imports
-    intpCfg.bindings :+= NamedParam("pi", math.Pi)  // add predefined bindings
+    intpCfg.imports :+= "javax.swing._"         // add default imports
+    intpCfg.bindings :+= "pi" -> math.Pi        // add predefined bindings
 
     val intp = Interpreter(intpCfg)             // create the interpreter
     // invoke the interpreter
