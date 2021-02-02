@@ -1,13 +1,13 @@
 # ScalaInterpreterPane
 
-[![Build Status](https://travis-ci.org/Sciss/ScalaInterpreterPane.svg?branch=main)](https://travis-ci.org/Sciss/ScalaInterpreterPane)
+[![Build Status](https://github.com/Sciss/ScalaInterpreterPane/workflows/Scala%20CI/badge.svg?branch=main)](https://github.com/Sciss/ScalaInterpreterPane/actions?query=workflow%3A%22Scala+CI%22)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalainterpreterpane_2.13)
 
 ## statement
 
 ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an
 interpreter. The editor component is based on [SyntaxPane](https://git.iem.at/sciss/SyntaxPane).
-ScalaInterpreterPane is (C)opyright 2010&ndash;2020 by Hanns Holger Rutz. All rights reserved. It is released under
+ScalaInterpreterPane is (C)opyright 2010&ndash;2021 by Hanns Holger Rutz. All rights reserved. It is released under
 the [GNU Lesser General Public License](https://git.iem.at/sciss/ScalaInterpreterPane/blob/main/LICENSE) v2.1+ 
 and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
