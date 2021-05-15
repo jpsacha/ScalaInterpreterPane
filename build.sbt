@@ -24,8 +24,8 @@ lazy val root = project.withId(baseNameL).in(file("."))
     name                := baseName,
 //    version             := projectVersion,
 //    organization        := "de.sciss",
-    scalaVersion        := "3.0.0-RC2", // "2.13.5",
-    crossScalaVersions  := Seq("3.0.0-RC2", "2.13.5", "2.12.13"),
+    scalaVersion        := "2.13.5",
+    crossScalaVersions  := Seq("3.0.0", "2.13.5", "2.12.13"),
     description         := "A Swing based front-end for the Scala REPL (interpreter)",
     homepage            := Some(url(s"https://git.iem.at/sciss/$baseName")),
     licenses            := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
@@ -36,7 +36,8 @@ lazy val root = project.withId(baseNameL).in(file("."))
       "de.sciss"       %  "submin"         % deps.test.submin % Test
     ),
     libraryDependencies += {
-      if (isDotty.value) 
+      val isDot = scalaVersion.value.startsWith("3.")
+      if (isDot) 
         "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
       else 
         "org.scala-lang" %  "scala-compiler"  % scalaVersion.value
