@@ -171,33 +171,36 @@ abstract class AbstractScalaCompleter(protected final val intp: IMain) extends C
           //          println(s"tabAfterCommonPrefixCompletion = $tabAfterCommonPrefixCompletion, doubleTab = $doubleTab")
           val mkDef = tabAfterCommonPrefixCompletion || doubleTab
 
-          def tryCamelStuff: Completion.Result = {
-            // Lenient matching based on camel case and on eliding JavaBean "get" / "is" boilerplate
-            val camelMatches      : List[Member ] = r.matchingResults(CompletionResult.camelMatch(_)).filterNot(shouldHide)
-            val memberCompletions : List[String ] = camelMatches.map(_.symNameDropLocal.decoded).distinct.sorted
+          // XXX TODO: removed due to https://github.com/scala/scala/pull/9656
+          def tryCamelStuff: Completion.Result = Completion.NoResult
 
-            def allowCompletion: Boolean =
-              (memberCompletions.size == 1) ||
-                CompletionResult.camelMatch(r.name).apply {
-                  val pre = longestCommonPrefix(memberCompletions)
-                  r.name.newName(pre)
-                }
-
-            val memberCompletionsF: List[Completion.Candidate] =
-              memberCompletions.map(Completion.Simple)
-
-            if (memberCompletions.isEmpty) {
-              Completion.NoResult
-            } else if (allowCompletion) {
-              Completion.Result(cursor - r.positionDelta, memberCompletionsF)
-            } else {
-              // XXX TODO : why is this used in the original code, but does not appear in the results?
-              //              val empty: Completion.Candidate = new Completion.Candidate {
-              //                def stringRep: String = ""
-              //              } // ""
-              Completion.Result(cursor, /* empty :: */ memberCompletionsF)
-            }
-          }
+//          def tryCamelStuff: Completion.Result = {
+//            // Lenient matching based on camel case and on eliding JavaBean "get" / "is" boilerplate
+//            val camelMatches      : List[Member ] = r.matchingResults(CompletionResult.camelMatch(_)).filterNot(shouldHide)
+//            val memberCompletions : List[String ] = camelMatches.map(_.symNameDropLocal.decoded).distinct.sorted
+//
+//            def allowCompletion: Boolean =
+//              (memberCompletions.size == 1) ||
+//                CompletionResult.camelMatch(r.name).apply {
+//                  val pre = longestCommonPrefix(memberCompletions)
+//                  r.name.newName(pre)
+//                }
+//
+//            val memberCompletionsF: List[Completion.Candidate] =
+//              memberCompletions.map(Completion.Simple)
+//
+//            if (memberCompletions.isEmpty) {
+//              Completion.NoResult
+//            } else if (allowCompletion) {
+//              Completion.Result(cursor - r.positionDelta, memberCompletionsF)
+//            } else {
+//              // XXX TODO : why is this used in the original code, but does not appear in the results?
+//              //              val empty: Completion.Candidate = new Completion.Candidate {
+//              //                def stringRep: String = ""
+//              //              } // ""
+//              Completion.Result(cursor, /* empty :: */ memberCompletionsF)
+//            }
+//          }
 
           if (mkDef) {
             val attempt = defStringCandidates(matching, r.name)

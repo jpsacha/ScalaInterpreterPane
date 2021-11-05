@@ -44,8 +44,9 @@ class MyReplDriver(settings: Array[String],
 
   /** Create a fresh and initialized context with IDE mode enabled */
   private def initialCtx = {
-    val rootCtx = initCtx.fresh.addMode(Mode.ReadPositions | Mode.Interactive | Mode.ReadComments)
+    val rootCtx = initCtx.fresh.addMode(Mode.ReadPositions | Mode.Interactive)
     rootCtx.setSetting(rootCtx.settings.YcookComments, true)
+    rootCtx.setSetting(rootCtx.settings.YreadComments, true)
     val Some(_, ictx) = setup(settings, rootCtx) // ._2
     ictx.base.initialize()(using ictx)
     ictx

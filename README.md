@@ -6,10 +6,10 @@
 ## statement
 
 ScalaInterpreterPane is a Swing component for editing code in the Scala programming language and executing it in an
-interpreter. The editor component is based on [SyntaxPane](https://git.iem.at/sciss/SyntaxPane).
+interpreter. The editor component is based on [SyntaxPane](https://github.com/Sciss/SyntaxPane).
 ScalaInterpreterPane is (C)opyright 2010&ndash;2021 by Hanns Holger Rutz. All rights reserved. It is released under
-the [GNU Lesser General Public License](https://git.iem.at/sciss/ScalaInterpreterPane/blob/main/LICENSE) v2.1+ 
-and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+the [GNU Lesser General Public License](https://github.com/Sciss/ScalaInterpreterPane/blob/main/LICENSE) v2.1+ 
+and comes with absolutely no warranties. To contact the author, send an e-mail to `contact at sciss.de`.
 
 ## requirements
 
@@ -19,7 +19,7 @@ To use it in your own project, add the following to `build.sbt`:
 
     libraryDependencies += "de.sciss" %% "scalainterpreterpane" % v
 
-The current version `v` is `"1.11.0"`
+The current version `v` is `"1.11.1"`
 
 There is also the `assembly` target which creates a standalone jar in `targets`.
 
@@ -97,7 +97,7 @@ If you use scala-swing, the components can be wrapped using `swing.Component.wra
 
 ## related
 
-For a standalone desktop application, [ScalaCollider-Swing](https://git.iem.at/sciss/ScalaColliderSwing) is very 
+For a standalone desktop application, [ScalaCollider-Swing](https://github.com/Sciss/ScalaColliderSwing) is very 
 useful. It has a multi-document-adapter and  window docking and comes with cross-platform and Debian-based binary 
 installers.
 

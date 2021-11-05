@@ -1,4 +1,4 @@
-lazy val projectVersion = "1.11.0"
+lazy val projectVersion = "1.11.1"
 lazy val mimaVersion    = "1.11.0"
 lazy val baseName       = "ScalaInterpreterPane"
 lazy val baseNameL      = baseName.toLowerCase
@@ -10,7 +10,7 @@ lazy val deps = new {
     val jLine       = "2.14.6"
   }
   val test = new {
-    val submin      = "0.3.4"
+    val submin      = "0.3.5"
   }
 }
 
@@ -22,12 +22,10 @@ lazy val root = project.withId(baseNameL).in(file("."))
   .enablePlugins(BuildInfoPlugin)
   .settings(
     name                := baseName,
-//    version             := projectVersion,
-//    organization        := "de.sciss",
-    scalaVersion        := "2.13.5",
-    crossScalaVersions  := Seq("3.0.0", "2.13.5", "2.12.13"),
+    scalaVersion        := "2.13.7",
+    crossScalaVersions  := Seq("3.1.0", "2.13.7", "2.12.15"),
     description         := "A Swing based front-end for the Scala REPL (interpreter)",
-    homepage            := Some(url(s"https://git.iem.at/sciss/$baseName")),
+    homepage            := Some(url(s"https://github.com/Sciss/$baseName")),
     licenses            := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
     libraryDependencies ++= Seq(
       "jline"          %  "jline"          % deps.main.jLine,
@@ -43,8 +41,8 @@ lazy val root = project.withId(baseNameL).in(file("."))
         "org.scala-lang" %  "scala-compiler"  % scalaVersion.value
     },
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xlint", "-Xsource:2.13"),
-    unmanagedSourceDirectories in Compile += {
-      val sourceDir = (sourceDirectory in Compile).value
+    Compile / unmanagedSourceDirectories += {
+      val sourceDir = (Compile / sourceDirectory).value
       val sv  = CrossVersion.partialVersion(scalaVersion.value)
       val sub = sv match {
         case Some((3, _)) => "scala-2.14+"
@@ -53,7 +51,7 @@ lazy val root = project.withId(baseNameL).in(file("."))
       sourceDir / sub
     },
     mimaPreviousArtifacts := Set("de.sciss" %% baseNameL % mimaVersion),
-    fork in run := true,
+    run / fork := true,
     buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
       BuildInfoKey.map(homepage) { case (k, opt) => k -> opt.get },
       BuildInfoKey.map(licenses) { case (_, Seq( (lic, _) )) => "license" -> lic }
@@ -66,7 +64,7 @@ lazy val root = project.withId(baseNameL).in(file("."))
 // ---- publishing ----
 lazy val publishSettings = Seq(
   publishMavenStyle := true,
-  publishArtifact in Test := false,
+  Test / publishArtifact := false,
   pomIncludeRepository := { _ => false },
   developers := List(
     Developer(
@@ -77,15 +75,15 @@ lazy val publishSettings = Seq(
     )
   ),
   scmInfo := {
-    val h = "git.iem.at"
-    val a = s"sciss/${name.value}"
+    val h = "github.com"
+    val a = s"Sciss/${name.value}"
     Some(ScmInfo(url(s"https://$h/$a"), s"scm:git@$h:$a.git"))
   },
 )
 
 // ---- standalone ----
 lazy val assemblySettings = Seq(
-  test            in assembly := {},
-  target          in assembly := baseDirectory.value,
-  assemblyJarName in assembly := s"${name.value}.jar"
+  assembly / test            := {},
+  assembly / target          := baseDirectory.value,
+  assembly / assemblyJarName := s"${name.value}.jar"
 )
